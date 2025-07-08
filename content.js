@@ -119,16 +119,8 @@ function showTranslatePopup(text, x, y) {
   getTranslation(text).then(translation => {
     popup.innerHTML = `
       <div style="position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; cursor: pointer; color: #999; font-size: 16px; text-align: center; line-height: 20px;" onclick="document.getElementById('translate-popup').style.display='none'">×</div>
-      <div style="padding: 5px 0;">
-        <div style="margin-bottom: 8px;">
-          <div style="color: #666; font-size: 12px; margin-bottom: 4px;">原文</div>
-          <div style="color: #333; word-wrap: break-word;">${text}</div>
-        </div>
-        <div style="border-top: 1px solid #eee; margin: 10px 0;"></div>
-        <div>
-          <div style="color: #666; font-size: 12px; margin-bottom: 4px;">翻譯</div>
-          <div style="color: #000; font-weight: 500; word-wrap: break-word;">${translation}</div>
-        </div>
+      <div style="padding: 10px 5px;">
+        <div style="color: #000; font-weight: 500; word-wrap: break-word; font-size: 15px;">${translation}</div>
       </div>
     `;
   });

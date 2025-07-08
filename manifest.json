@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Highlighting Translate",
   "version": "1.1",
-  "description": "Translate selected text automatically or by right-clicking.",
+  "description": "Translate selected text automatically",
   "permissions": [
     "contextMenus",
     "tabs",
