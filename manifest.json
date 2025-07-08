@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Highlighting Translate",
+  "version": "1.0",
+  "description": "Translate selected text automatically or by right-clicking.",
+  "permissions": [
+    "contextMenus",
+    "tabs",
+    "activeTab"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "host_permissions": [
+    "https://translate.googleapis.com/*"
+  ],
+  "action": {}
+}
