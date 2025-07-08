@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 300px;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+    h3 {
+      margin-top: 0;
+      color: #333;
+    }
+    .setting-item {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #666;
+      font-size: 14px;
+    }
+    select, input {
+      width: 100%;
+      padding: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .toggle {
+      position: relative;
+      width: 50px;
+      height: 24px;
+      background-color: #ccc;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .toggle.active {
+      background-color: #4CAF50;
+    }
+    .toggle-slider {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    .toggle.active .toggle-slider {
+      transform: translateX(26px);
+    }
+    #status {
+      margin-top: 10px;
+      padding: 5px;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+  </style>
+</head>
+<body>
+  <h3>翻譯設定</h3>
+  
+  <div class="setting-item">
+    <div class="toggle-container">
+      <label>自動顯示翻譯</label>
+      <div class="toggle" id="autoTranslate">
+        <div class="toggle-slider"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="setting-item">
+    <label for="targetLang">目標語言</label>
+    <select id="targetLang">
+      <option value="zh-TW">繁體中文</option>
+      <option value="zh-CN">簡體中文</option>
+      <option value="en">英文</option>
+      <option value="ja">日文</option>
+      <option value="ko">韓文</option>
+      <option value="es">西班牙文</option>
+      <option value="fr">法文</option>
+      <option value="de">德文</option>
+    </select>
+  </div>
+  
+  <div class="setting-item">
+    <label for="delay">顯示延遲 (毫秒)</label>
+    <input type="number" id="delay" min="0" max="2000" step="100" value="500">
+  </div>
+  
+  <div id="status"></div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

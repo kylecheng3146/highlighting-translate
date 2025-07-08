@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Icons</title>
+</head>
+<body>
+    <h2>Chrome Extension Icons Generator</h2>
+    <p>右鍵點擊圖標並選擇「另存圖片」來保存不同尺寸的圖標</p>
+    
+    <div style="margin: 20px;">
+        <h3>16x16 圖標</h3>
+        <canvas id="canvas16" width="16" height="16" style="border: 1px solid #ccc;"></canvas>
+    </div>
+    
+    <div style="margin: 20px;">
+        <h3>48x48 圖標</h3>
+        <canvas id="canvas48" width="48" height="48" style="border: 1px solid #ccc;"></canvas>
+    </div>
+    
+    <div style="margin: 20px;">
+        <h3>128x128 圖標</h3>
+        <canvas id="canvas128" width="128" height="128" style="border: 1px solid #ccc;"></canvas>
+    </div>
+
+    <script>
+        // 繪製圖標的函數
+        function drawIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // 背景
+            ctx.fillStyle = '#4285f4';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, size * 0.125);
+            ctx.fill();
+            
+            // 縮放比例
+            const scale = size / 128;
+            ctx.save();
+            ctx.scale(scale, scale);
+            
+            // 左側對話框
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.moveTo(30, 35);
+            ctx.lineTo(30, 50);
+            ctx.quadraticCurveTo(30, 55, 35, 55);
+            ctx.lineTo(55, 55);
+            ctx.quadraticCurveTo(60, 55, 60, 50);
+            ctx.lineTo(60, 35);
+            ctx.quadraticCurveTo(60, 30, 55, 30);
+            ctx.lineTo(35, 30);
+            ctx.quadraticCurveTo(30, 30, 30, 35);
+            ctx.fill();
+            
+            // 左側對話框尾巴
+            ctx.beginPath();
+            ctx.moveTo(30, 50);
+            ctx.lineTo(30, 57);
+            ctx.lineTo(40, 50);
+            ctx.fill();
+            
+            // 右側對話框
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.moveTo(68, 60);
+            ctx.lineTo(68, 75);
+            ctx.quadraticCurveTo(68, 80, 73, 80);
+            ctx.lineTo(93, 80);
+            ctx.quadraticCurveTo(98, 80, 98, 75);
+            ctx.lineTo(98, 60);
+            ctx.quadraticCurveTo(98, 55, 93, 55);
+            ctx.lineTo(73, 55);
+            ctx.quadraticCurveTo(68, 55, 68, 60);
+            ctx.fill();
+            
+            // 右側對話框尾巴
+            ctx.beginPath();
+            ctx.moveTo(98, 75);
+            ctx.lineTo(98, 82);
+            ctx.lineTo(88, 75);
+            ctx.fill();
+            
+            // 文字
+            ctx.fillStyle = '#4285f4';
+            ctx.font = 'bold ' + (16 * 128 / size) + 'px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('A', 45, 45);
+            ctx.fillText('文', 83, 70);
+            
+            ctx.restore();
+        }
+        
+        // 繪製所有尺寸
+        drawIcon('canvas16', 16);
+        drawIcon('canvas48', 48);
+        drawIcon('canvas128', 128);
+    </script>
+</body>
+</html>
