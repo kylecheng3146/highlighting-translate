@@ -68,6 +68,11 @@
       background-color: #d4edda;
       color: #155724;
     }
+    .note {
+      font-size: 12px;
+      color: #888;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -83,6 +88,22 @@
   </div>
   
   <div class="setting-item">
+    <label for="sourceLang">源語言</label>
+    <select id="sourceLang">
+      <option value="auto">自動偵測</option>
+      <option value="zh-TW">繁體中文</option>
+      <option value="zh-CN">簡體中文</option>
+      <option value="en">英文</option>
+      <option value="ja">日文</option>
+      <option value="ko">韓文</option>
+      <option value="es">西班牙文</option>
+      <option value="fr">法文</option>
+      <option value="de">德文</option>
+    </select>
+    <div class="note">選擇「自動偵測」可智能判斷語言</div>
+  </div>
+  
+  <div class="setting-item">
     <label for="targetLang">目標語言</label>
     <select id="targetLang">
       <option value="zh-TW">繁體中文</option>
@@ -94,6 +115,7 @@
       <option value="fr">法文</option>
       <option value="de">德文</option>
     </select>
+    <div class="note">源語言與目標語言相同時將不顯示翻譯彈窗</div>
   </div>
   
   <div class="setting-item">

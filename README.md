@@ -5,7 +5,9 @@ A simple Chrome extension that automatically translates text you select on any w
 ## Features
 
 *   **Instant Translation:** Simply highlight text on a webpage to see the translation.
-*   **Customizable Target Language:** Choose your desired language for translations from the settings panel.
+*   **Smart Language Detection:** Automatically detects the source language or allows manual selection.
+*   **Skip Same Language:** Intelligently skips translation popup when source and target languages are the same.
+*   **Customizable Source & Target Languages:** Choose your desired source and target languages from the settings panel.
 *   **Toggle On/Off:** Easily enable or disable the automatic translation feature.
 *   **Adjustable Delay:** Set a custom delay (in milliseconds) before the translation popup appears.
 *   **Clean UI:** The translation is displayed in a clean, non-intrusive popup.
@@ -14,7 +16,17 @@ A simple Chrome extension that automatically translates text you select on any w
 
 1.  **Select Text:** Use your mouse to highlight any text on a webpage.
 2.  **View Translation:** After a short delay, a small popup will appear next to your selection with the translated text.
-3.  **Configure Settings:** Click the extension icon in the Chrome toolbar to open the settings panel. Here you can change the target language, toggle the feature on/off, and adjust the delay.
+3.  **Configure Settings:** Click the extension icon in the Chrome toolbar to open the settings panel. Here you can:
+    - Change the source language (auto-detect or manual selection)
+    - Change the target language
+    - Toggle the feature on/off
+    - Adjust the delay
+
+## Smart Features
+
+*   **Language Detection:** The extension can automatically detect the source language or you can manually specify it.
+*   **Skip Unnecessary Translation:** When the source and target languages are the same, the extension will not show any translation popup.
+*   **Optimized for Chinese:** Special handling for Traditional and Simplified Chinese text detection.
 
 ## Installation (for Development)
 
@@ -30,7 +42,19 @@ To install this extension locally for development or testing:
 ## Project Files
 
 *   `manifest.json`: The core file that defines the extension's properties, permissions, and scripts.
-*   `content.js`: This script is injected into web pages. It listens for text selection events, calls the translation API, and displays the result in a popup.
-*   `popup.html` & `popup.js`: These files create the settings panel that appears when you click the extension icon. It allows you to configure the extension's behavior.
+*   `content.js`: This script is injected into web pages. It listens for text selection events, detects languages, calls the translation API, and displays the result in a popup.
+*   `popup.html` & `popup.js`: These files create the settings panel that appears when you click the extension icon. It allows you to configure the extension's behavior including source and target languages.
 *   `background.js`: The service worker for handling background tasks, such as managing context menus or future complex logic.
 *   `icon.svg`: The icon for the extension.
+
+## Supported Languages
+
+*   繁體中文 (Traditional Chinese)
+*   簡體中文 (Simplified Chinese)
+*   English
+*   日本語 (Japanese)
+*   한국어 (Korean)
+*   Español (Spanish)
+*   Français (French)
+*   Deutsch (German)
+*   Auto-detect (for source language)
