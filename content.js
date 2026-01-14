@@ -41,12 +41,15 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 });
 
 // 注入樣式
-function injectStyles() {
-    if (document.getElementById('highlighting-translate-styles')) return;
+function injectStyles(root) {
+    if (root.getElementById('highlighting-translate-styles')) return;
 
     const style = document.createElement('style');
     style.id = 'highlighting-translate-styles';
     style.textContent = `
+        :host {
+            all: initial; /* Reset all inherited styles */
+        }
         .ht-popup {
             position: absolute;
             background: white;
@@ -64,6 +67,7 @@ function injectStyles() {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             font-size: 14px;
             line-height: 1.5;
+            box-sizing: border-box;
         }
         .ht-popup.ht-show {
             opacity: 1;
@@ -103,26 +107,24 @@ function injectStyles() {
             font-size: 15px;
         }
     `;
-    document.head.appendChild(style);
+    root.appendChild(style);
 }
 
 // 建立翻譯視窗元素
 function createTranslatePopup() {
-    injectStyles();
+    const host = document.createElement('div');
+    host.id = 'translate-popup-host';
+    const shadowRoot = host.attachShadow({mode: 'open'});
+    
+    injectStyles(shadowRoot);
 
     const popup = document.createElement('div');
     popup.id = 'translate-popup';
     popup.className = 'ht-popup';
 
-    // 添加關閉按鈕
-    const closeBtn = document.createElement('div');
-    closeBtn.className = 'ht-close-btn';
-    closeBtn.innerHTML = '×';
-    closeBtn.onclick = hideTranslatePopup;
-
-    popup.appendChild(closeBtn);
-    document.body.appendChild(popup);
-    return popup;
+    shadowRoot.appendChild(popup);
+    document.body.appendChild(host);
+    return host;
 }
 
 // 檢測文字語言
@@ -254,15 +256,30 @@ function showTranslatePopup(text, rect) {
         return;
     }
 
-    const popup = document.getElementById('translate-popup') || createTranslatePopup();
+    let host = document.getElementById('translate-popup-host');
+    if (!host) {
+        host = createTranslatePopup();
+    }
+    const popup = host.shadowRoot.getElementById('translate-popup');
+
+    const closeHandler = () => {
+        popup.classList.remove('ht-show');
+        setTimeout(() => {
+            if (!popup.classList.contains('ht-show')) {
+                popup.style.display = 'none';
+            }
+        }, 300);
+    };
 
     // 顯示載入中
     popup.innerHTML = `
-    <div class="ht-close-btn" onclick="document.getElementById('translate-popup').classList.remove('ht-show'); setTimeout(() => document.getElementById('translate-popup').style.display='none', 300);">×</div>
+    <div class="ht-close-btn">×</div>
     <div class="ht-loading">
       <div class="ht-loading-text">翻譯中...</div>
     </div>
   `;
+    popup.querySelector('.ht-close-btn').onclick = closeHandler;
+
     popup.style.display = 'block';
     // Force reflow to trigger transition
     void popup.offsetHeight;
@@ -301,17 +318,19 @@ function showTranslatePopup(text, rect) {
     // 獲取翻譯
     getTranslation(text).then(translation => {
         popup.innerHTML = `
-      <div class="ht-close-btn" onclick="document.getElementById('translate-popup').classList.remove('ht-show'); setTimeout(() => document.getElementById('translate-popup').style.display='none', 300);">×</div>
+      <div class="ht-close-btn">×</div>
       <div class="ht-content">
         <div class="ht-translation-text">${translation}</div>
       </div>
     `;
+        popup.querySelector('.ht-close-btn').onclick = closeHandler;
     });
 }
 
 // 隱藏翻譯視窗
 function hideTranslatePopup() {
-    const popup = document.getElementById('translate-popup');
+    const host = document.getElementById('translate-popup-host');
+    const popup = host ? host.shadowRoot.getElementById('translate-popup') : null;
     if (popup) {
         popup.classList.remove('ht-show');
         setTimeout(() => {
@@ -335,7 +354,7 @@ document.addEventListener('mouseup', (e) => {
     clearTimeout(selectionTimeout);
 
     // 如果點擊的是翻譯視窗本身，不要隱藏
-    if (e.target.closest('#translate-popup')) {
+    if (e.target.closest('#translate-popup-host')) {
         return;
     }
 
@@ -359,7 +378,7 @@ document.addEventListener('mouseup', (e) => {
 
 // 點擊其他地方時隱藏翻譯視窗
 document.addEventListener('mousedown', (e) => {
-    if (!e.target.closest('#translate-popup')) {
+    if (!e.target.closest('#translate-popup-host')) {
         hideTranslatePopup();
     }
 });
