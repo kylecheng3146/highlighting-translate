@@ -2,7 +2,7 @@
 
 ## Phase 1: 基礎架構與樣式重構
 - [x] **Task**: 重構內容腳本中的翻譯框 DOM 生成邏輯，引入更乾淨的類別名稱與樣式隔離。 <!-- 4936ff4 -->
-- [ ] **Task**: 實作翻譯框的平滑淡入與滑動動畫。
+- [x] **Task**: 實作翻譯框的平滑淡入與滑動動畫。 <!-- 8223b1e -->
 - [ ] **Task: Conductor - User Manual Verification 'Phase 1'**
 
 ## Phase 2: Popup 設定面板美化
