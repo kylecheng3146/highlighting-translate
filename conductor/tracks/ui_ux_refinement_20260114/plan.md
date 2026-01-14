@@ -1,9 +1,9 @@
 # 實作計畫：UI/UX 優化 (UI/UX Refinement)
 
-## Phase 1: 基礎架構與樣式重構
+## Phase 1: 基礎架構與樣式重構 [checkpoint: 12ede7c]
 - [x] **Task**: 重構內容腳本中的翻譯框 DOM 生成邏輯，引入更乾淨的類別名稱與樣式隔離。 <!-- 4936ff4 -->
 - [x] **Task**: 實作翻譯框的平滑淡入與滑動動畫。 <!-- 8223b1e -->
-- [ ] **Task: Conductor - User Manual Verification 'Phase 1'**
+- [x] **Task: Conductor - User Manual Verification 'Phase 1'** (Protocol in workflow.md) <!-- 12ede7c -->
 
 ## Phase 2: Popup 設定面板美化
 - [ ] **Task**: 重新設計 `popup.html` 與 `popup.js`，導入 Material Design 風格的控制項。
