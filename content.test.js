@@ -20,13 +20,17 @@ const { createTranslatePopup } = content;
 describe('createTranslatePopup', () => {
     beforeEach(() => {
         document.body.innerHTML = '';
+        global.innerWidth = 1024;
+        global.innerHeight = 768;
+        global.scrollX = 0;
+        global.scrollY = 0;
     });
 
     test('should create popup with correct class names', () => {
         const popup = createTranslatePopup();
         
         expect(popup.classList.contains('ht-popup')).toBe(true);
-        expect(popup.id).toBe('translate-popup'); // Keep the ID for backward compatibility if needed, or we can remove it. Let's keep it for now but check class.
+        expect(popup.id).toBe('translate-popup');
         
         const closeBtn = popup.querySelector('.ht-close-btn');
         expect(closeBtn).not.toBeNull();
@@ -35,30 +39,40 @@ describe('createTranslatePopup', () => {
 
     test('should add visible class when showing popup', () => {
         const popup = createTranslatePopup();
-        
-        // Mock getBoundingClientRect
-        document.getSelection = jest.fn().mockReturnValue({
-            toString: () => 'test',
-            getRangeAt: () => ({
-                getBoundingClientRect: () => ({ left: 100, bottom: 200 })
-            })
-        });
-
-        // We need to call showTranslatePopup. 
-        // Note: showTranslatePopup might need to accept the popup element or we rely on getElementById
-        // The current implementation calls createTranslatePopup internally if not found.
-        
-        // Mock getTranslation to return immediately
-        global.fetch = jest.fn().mockResolvedValue({
-            json: () => Promise.resolve([[['translated']]])
-        });
-
         const { showTranslatePopup } = content;
-        showTranslatePopup('test', 100, 200);
+        
+        const rect = { left: 100, top: 150, bottom: 200, width: 50, height: 50 };
+        showTranslatePopup('test', rect);
 
-        // Expect the class to be added (after a small delay if we implement it that way for transition)
-        // For now, let's assume we toggle a class.
-        // Wait for async operations?
         expect(popup.classList.contains('ht-show')).toBe(true); 
+    });
+
+    test('should adjust position when close to right edge', () => {
+        const popup = createTranslatePopup();
+        const { showTranslatePopup } = content;
+        
+        global.innerWidth = 1000;
+        const rect = { left: 900, top: 150, bottom: 200, width: 50, height: 50 };
+        
+        showTranslatePopup('test', rect);
+        
+        const left = parseInt(popup.style.left);
+        expect(left + 350).toBeLessThanOrEqual(1000);
+    });
+
+    test('should show above selection if bottom edge is reached', () => {
+        const popup = createTranslatePopup();
+        const { showTranslatePopup } = content;
+        
+        global.innerHeight = 300;
+        // Selection bottom at 250, popup height 150 -> total 400 > 300
+        const rect = { left: 100, top: 200, bottom: 250, width: 50, height: 50 };
+        
+        showTranslatePopup('test', rect);
+        
+        const top = parseInt(popup.style.top);
+        // rect.top (200) - popupHeight (150) - 5 = 45
+        expect(top).toBeLessThan(200); 
+        expect(top).toBe(45);
     });
 });

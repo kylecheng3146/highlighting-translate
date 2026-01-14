@@ -54,7 +54,7 @@ function injectStyles() {
             border-radius: 8px;
             padding: 12px;
             box-shadow: 0 2px 15px rgba(0,0,0,0.2);
-            z-index: 10000;
+            z-index: 2147483647;
             display: none;
             opacity: 0;
             transform: translateY(10px);
@@ -248,7 +248,7 @@ async function getTranslation(text, sourceLang = null, targetLang = null) {
 }
 
 // 顯示翻譯視窗
-function showTranslatePopup(text, x, y) {
+function showTranslatePopup(text, rect) {
     // 檢查是否需要翻譯，如果不需要翻譯則直接返回，不顯示任何彈窗
     if (!shouldTranslate(text, settings.sourceLang, settings.targetLang)) {
         return;
@@ -268,23 +268,35 @@ function showTranslatePopup(text, x, y) {
     void popup.offsetHeight;
     popup.classList.add('ht-show');
 
-    // 調整位置，確保不超出視窗
+    // 調整位置
     const popupWidth = 350;
-    const popupHeight = 150;
+    const popupHeight = 150; // 預估高度
+    const margin = 10;
 
-    let adjustedX = x;
-    let adjustedY = y;
+    let left = rect.left + window.scrollX;
+    let top = rect.bottom + window.scrollY + 5;
 
-    if (x + popupWidth > window.innerWidth + window.scrollX) {
-        adjustedX = window.innerWidth + window.scrollX - popupWidth - 10;
+    // 檢查右邊界
+    if (left + popupWidth > window.innerWidth + window.scrollX - margin) {
+        left = window.innerWidth + window.scrollX - popupWidth - margin;
+    }
+    // 檢查左邊界
+    if (left < window.scrollX + margin) {
+        left = window.scrollX + margin;
     }
 
-    if (y + popupHeight > window.innerHeight + window.scrollY) {
-        adjustedY = y - popupHeight - 30;
+    // 檢查下邊界，如果會被遮擋則顯示在選取文字上方
+    if (rect.bottom + popupHeight + margin > window.innerHeight) {
+        top = rect.top + window.scrollY - popupHeight - 5;
     }
 
-    popup.style.left = adjustedX + 'px';
-    popup.style.top = adjustedY + 'px';
+    // 檢查上邊界
+    if (top < window.scrollY + margin) {
+        top = window.scrollY + margin;
+    }
+
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
 
     // 獲取翻譯
     getTranslation(text).then(translation => {
@@ -337,12 +349,8 @@ document.addEventListener('mouseup', (e) => {
             const range = selection.getRangeAt(0);
             const rect = range.getBoundingClientRect();
 
-            // 在選取文字下方顯示翻譯
-            showTranslatePopup(
-                selectedText,
-                rect.left + window.scrollX,
-                rect.bottom + window.scrollY + 5
-            );
+            // 顯示翻譯
+            showTranslatePopup(selectedText, rect);
         } else {
             hideTranslatePopup();
         }
