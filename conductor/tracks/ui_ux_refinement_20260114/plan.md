@@ -11,6 +11,6 @@
 - [x] **Task: Conductor - User Manual Verification 'Phase 2'** (Protocol in workflow.md) <!-- 97fb04d -->
 
 ## Phase 3: 細節拋光與相容性測試
-- [ ] **Task**: 最佳化翻譯框的 z-index 與位置計算邏輯，確保在各種網頁佈局下都能正確顯示。
+- [x] **Task**: 最佳化翻譯框的 z-index 與位置計算邏輯，確保在各種網頁佈局下都能正確顯示。 <!-- 7ec60be -->
 - [ ] **Task**: 進行跨網頁測試，驗證翻譯框不會受到目標網站 CSS 的負面影響。
 - [ ] **Task: Conductor - User Manual Verification 'Phase 3'**
