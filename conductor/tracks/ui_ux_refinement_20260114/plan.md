@@ -1,0 +1,16 @@
+# 實作計畫：UI/UX 優化 (UI/UX Refinement)
+
+## Phase 1: 基礎架構與樣式重構
+- [ ] **Task**: 重構內容腳本中的翻譯框 DOM 生成邏輯，引入更乾淨的類別名稱與樣式隔離。
+- [ ] **Task**: 實作翻譯框的平滑淡入與滑動動畫。
+- [ ] **Task: Conductor - User Manual Verification 'Phase 1'**
+
+## Phase 2: Popup 設定面板美化
+- [ ] **Task**: 重新設計 `popup.html` 與 `popup.js`，導入 Material Design 風格的控制項。
+- [ ] **Task**: 確保所有設定項在變更時能即時保存至 `chrome.storage` 並提供視覺回饋。
+- [ ] **Task: Conductor - User Manual Verification 'Phase 2'**
+
+## Phase 3: 細節拋光與相容性測試
+- [ ] **Task**: 最佳化翻譯框的 z-index 與位置計算邏輯，確保在各種網頁佈局下都能正確顯示。
+- [ ] **Task**: 進行跨網頁測試，驗證翻譯框不會受到目標網站 CSS 的負面影響。
+- [ ] **Task: Conductor - User Manual Verification 'Phase 3'**
