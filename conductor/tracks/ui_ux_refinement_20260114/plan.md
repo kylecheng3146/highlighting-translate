@@ -1,7 +1,7 @@
 # 實作計畫：UI/UX 優化 (UI/UX Refinement)
 
 ## Phase 1: 基礎架構與樣式重構
-- [ ] **Task**: 重構內容腳本中的翻譯框 DOM 生成邏輯，引入更乾淨的類別名稱與樣式隔離。
+- [x] **Task**: 重構內容腳本中的翻譯框 DOM 生成邏輯，引入更乾淨的類別名稱與樣式隔離。 <!-- 4936ff4 -->
 - [ ] **Task**: 實作翻譯框的平滑淡入與滑動動畫。
 - [ ] **Task: Conductor - User Manual Verification 'Phase 1'**
 
