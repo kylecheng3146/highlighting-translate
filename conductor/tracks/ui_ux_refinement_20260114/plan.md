@@ -6,7 +6,7 @@
 - [x] **Task: Conductor - User Manual Verification 'Phase 1'** (Protocol in workflow.md) <!-- 12ede7c -->
 
 ## Phase 2: Popup 設定面板美化
-- [ ] **Task**: 重新設計 `popup.html` 與 `popup.js`，導入 Material Design 風格的控制項。
+- [x] **Task**: 重新設計 `popup.html` 與 `popup.js`，導入 Material Design 風格的控制項。 <!-- 21d6415 -->
 - [ ] **Task**: 確保所有設定項在變更時能即時保存至 `chrome.storage` 並提供視覺回饋。
 - [ ] **Task: Conductor - User Manual Verification 'Phase 2'**
 
