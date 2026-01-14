@@ -10,7 +10,7 @@
 - [x] **Task**: 確保所有設定項在變更時能即時保存至 `chrome.storage` 並提供視覺回饋。 <!-- 21d6415 -->
 - [x] **Task: Conductor - User Manual Verification 'Phase 2'** (Protocol in workflow.md) <!-- 97fb04d -->
 
-## Phase 3: 細節拋光與相容性測試
+## Phase 3: 細節拋光與相容性測試 [checkpoint: e5cea75]
 - [x] **Task**: 最佳化翻譯框的 z-index 與位置計算邏輯，確保在各種網頁佈局下都能正確顯示。 <!-- 7ec60be -->
 - [x] **Task**: 進行跨網頁測試，驗證翻譯框不會受到目標網站 CSS 的負面影響。 <!-- 7cfb203 -->
-- [ ] **Task: Conductor - User Manual Verification 'Phase 3'**
+- [x] **Task: Conductor - User Manual Verification 'Phase 3'** (Protocol in workflow.md) <!-- e5cea75 -->
