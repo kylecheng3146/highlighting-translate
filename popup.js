@@ -1,82 +1,98 @@
 // 載入設定
 async function loadSettings() {
-    const settings = await chrome.storage.sync.get({
-        autoTranslate: true,
-        sourceLang: 'auto',
-        targetLang: 'zh-TW',
-        delay: 500
-    });
+    try {
+        const settings = await chrome.storage.sync.get({
+            autoTranslate: true,
+            sourceLang: 'auto',
+            targetLang: 'zh-TW',
+            delay: 500
+        });
 
-    // 更新 UI
-    document.getElementById('autoTranslate').classList.toggle('active', settings.autoTranslate);
-    document.getElementById('sourceLang').value = settings.sourceLang;
-    document.getElementById('targetLang').value = settings.targetLang;
-    document.getElementById('delay').value = settings.delay;
+        // 更新 UI
+        const autoTranslateCheck = document.getElementById('autoTranslateCheck');
+        if (autoTranslateCheck) autoTranslateCheck.checked = settings.autoTranslate;
+        
+        const sourceLang = document.getElementById('sourceLang');
+        if (sourceLang) sourceLang.value = settings.sourceLang;
+        
+        const targetLang = document.getElementById('targetLang');
+        if (targetLang) targetLang.value = settings.targetLang;
+        
+        const delay = document.getElementById('delay');
+        if (delay) delay.value = settings.delay;
+    } catch (error) {
+        console.error('Failed to load settings:', error);
+    }
 }
 
 // 安全地發送消息到 content script
 async function sendMessageToContentScript(message) {
     try {
         const tabs = await chrome.tabs.query({active: true, currentWindow: true});
-        if (tabs[0]) {
+        if (tabs && tabs[0]) {
             const tab = tabs[0];
 
-            // 檢查是否是可以注入 content script 的頁面
-            if (tab.url.startsWith('chrome://') ||
+            if (!tab.url || tab.url.startsWith('chrome://') ||
                 tab.url.startsWith('chrome-extension://') ||
                 tab.url.startsWith('edge://') ||
                 tab.url.startsWith('about:') ||
                 tab.url.startsWith('moz-extension://')) {
-                // 這些是系統頁面，不能發送消息
                 return;
             }
 
-            // 嘗試發送消息，如果失敗則忽略
             await chrome.tabs.sendMessage(tab.id, message);
         }
     } catch (error) {
-        // 忽略連接錯誤，這通常表示頁面沒有 content script
         console.log('Cannot send message to content script:', error.message);
+    }
+}
+
+// 顯示 Snackbar
+function showSnackbar() {
+    const snackbar = document.getElementById("snackbar");
+    if (snackbar) {
+        snackbar.className = "show";
+        setTimeout(() => {
+            snackbar.className = snackbar.className.replace("show", "");
+        }, 2000);
     }
 }
 
 // 儲存設定
 async function saveSettings() {
     const settings = {
-        autoTranslate: document.getElementById('autoTranslate').classList.contains('active'),
+        autoTranslate: document.getElementById('autoTranslateCheck').checked,
         sourceLang: document.getElementById('sourceLang').value,
         targetLang: document.getElementById('targetLang').value,
-        delay: parseInt(document.getElementById('delay').value)
+        delay: parseInt(document.getElementById('delay').value) || 500
     };
 
-    await chrome.storage.sync.set(settings);
+    try {
+        await chrome.storage.sync.set(settings);
+        showSnackbar();
 
-    // 顯示儲存成功訊息
-    const status = document.getElementById('status');
-    status.textContent = '設定已儲存';
-    status.className = 'success';
-    setTimeout(() => {
-        status.textContent = '';
-        status.className = '';
-    }, 2000);
-
-    // 安全地通知 content scripts 更新設定
-    await sendMessageToContentScript({
-        action: 'updateSettings',
-        settings: settings
-    });
+        await sendMessageToContentScript({
+            action: 'updateSettings',
+            settings: settings
+        });
+    } catch (error) {
+        console.error('Failed to save settings:', error);
+    }
 }
 
-// 切換開關
-document.getElementById('autoTranslate').addEventListener('click', function () {
-    this.classList.toggle('active');
-    saveSettings();
+// 事件監聽
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+
+    const autoTranslateCheck = document.getElementById('autoTranslateCheck');
+    if (autoTranslateCheck) autoTranslateCheck.addEventListener('change', saveSettings);
+
+    const sourceLang = document.getElementById('sourceLang');
+    if (sourceLang) sourceLang.addEventListener('change', saveSettings);
+
+    const targetLang = document.getElementById('targetLang');
+    if (targetLang) targetLang.addEventListener('change', saveSettings);
+
+    const delay = document.getElementById('delay');
+    if (delay) delay.addEventListener('change', saveSettings);
 });
-
-// 監聽設定變更
-document.getElementById('sourceLang').addEventListener('change', saveSettings);
-document.getElementById('targetLang').addEventListener('change', saveSettings);
-document.getElementById('delay').addEventListener('change', saveSettings);
-
-// 初始化
-loadSettings();
