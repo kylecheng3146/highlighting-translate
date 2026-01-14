@@ -7,7 +7,7 @@
 
 ## Phase 2: Popup 設定面板美化
 - [x] **Task**: 重新設計 `popup.html` 與 `popup.js`，導入 Material Design 風格的控制項。 <!-- 21d6415 -->
-- [ ] **Task**: 確保所有設定項在變更時能即時保存至 `chrome.storage` 並提供視覺回饋。
+- [x] **Task**: 確保所有設定項在變更時能即時保存至 `chrome.storage` 並提供視覺回饋。 <!-- 21d6415 -->
 - [ ] **Task: Conductor - User Manual Verification 'Phase 2'**
 
 ## Phase 3: 細節拋光與相容性測試
