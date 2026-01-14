@@ -56,11 +56,18 @@ function injectStyles() {
             box-shadow: 0 2px 15px rgba(0,0,0,0.2);
             z-index: 10000;
             display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
             max-width: 350px;
             min-width: 200px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             font-size: 14px;
             line-height: 1.5;
+        }
+        .ht-popup.ht-show {
+            opacity: 1;
+            transform: translateY(0);
         }
         .ht-close-btn {
             position: absolute;
@@ -251,12 +258,15 @@ function showTranslatePopup(text, x, y) {
 
     // 顯示載入中
     popup.innerHTML = `
-    <div class="ht-close-btn" onclick="document.getElementById('translate-popup').style.display='none'">×</div>
+    <div class="ht-close-btn" onclick="document.getElementById('translate-popup').classList.remove('ht-show'); setTimeout(() => document.getElementById('translate-popup').style.display='none', 300);">×</div>
     <div class="ht-loading">
       <div class="ht-loading-text">翻譯中...</div>
     </div>
   `;
     popup.style.display = 'block';
+    // Force reflow to trigger transition
+    void popup.offsetHeight;
+    popup.classList.add('ht-show');
 
     // 調整位置，確保不超出視窗
     const popupWidth = 350;
@@ -279,7 +289,7 @@ function showTranslatePopup(text, x, y) {
     // 獲取翻譯
     getTranslation(text).then(translation => {
         popup.innerHTML = `
-      <div class="ht-close-btn" onclick="document.getElementById('translate-popup').style.display='none'">×</div>
+      <div class="ht-close-btn" onclick="document.getElementById('translate-popup').classList.remove('ht-show'); setTimeout(() => document.getElementById('translate-popup').style.display='none', 300);">×</div>
       <div class="ht-content">
         <div class="ht-translation-text">${translation}</div>
       </div>
@@ -291,7 +301,12 @@ function showTranslatePopup(text, x, y) {
 function hideTranslatePopup() {
     const popup = document.getElementById('translate-popup');
     if (popup) {
-        popup.style.display = 'none';
+        popup.classList.remove('ht-show');
+        setTimeout(() => {
+            if (!popup.classList.contains('ht-show')) {
+                popup.style.display = 'none';
+            }
+        }, 300);
     }
 }
 

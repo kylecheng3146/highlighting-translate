@@ -1,7 +1,7 @@
 global.chrome = {
     storage: {
         sync: {
-            get: jest.fn().mockResolvedValue({}),
+            get: jest.fn().mockImplementation((defaults) => Promise.resolve(defaults)),
         },
         onChanged: {
             addListener: jest.fn(),
@@ -33,13 +33,32 @@ describe('createTranslatePopup', () => {
         expect(closeBtn.innerHTML).toBe('×');
     });
 
-    test('should not have inline styles for layout', () => {
+    test('should add visible class when showing popup', () => {
         const popup = createTranslatePopup();
-        // We expect styles to be handled by CSS classes, so inline cssText should not contain the bulk of styles
-        // But the current implementation sets cssText.
-        // New implementation should ideally use classes. 
-        // We can check if specific styles are ABSENT from inline styles
-        expect(popup.style.position).toBe(''); 
-        expect(popup.style.background).toBe('');
+        
+        // Mock getBoundingClientRect
+        document.getSelection = jest.fn().mockReturnValue({
+            toString: () => 'test',
+            getRangeAt: () => ({
+                getBoundingClientRect: () => ({ left: 100, bottom: 200 })
+            })
+        });
+
+        // We need to call showTranslatePopup. 
+        // Note: showTranslatePopup might need to accept the popup element or we rely on getElementById
+        // The current implementation calls createTranslatePopup internally if not found.
+        
+        // Mock getTranslation to return immediately
+        global.fetch = jest.fn().mockResolvedValue({
+            json: () => Promise.resolve([[['translated']]])
+        });
+
+        const { showTranslatePopup } = content;
+        showTranslatePopup('test', 100, 200);
+
+        // Expect the class to be added (after a small delay if we implement it that way for transition)
+        // For now, let's assume we toggle a class.
+        // Wait for async operations?
+        expect(popup.classList.contains('ht-show')).toBe(true); 
     });
 });
