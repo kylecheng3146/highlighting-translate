@@ -40,40 +40,76 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     }
 });
 
+// 注入樣式
+function injectStyles() {
+    if (document.getElementById('highlighting-translate-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'highlighting-translate-styles';
+    style.textContent = `
+        .ht-popup {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            z-index: 10000;
+            display: none;
+            max-width: 350px;
+            min-width: 200px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .ht-close-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            color: #999;
+            font-size: 16px;
+            text-align: center;
+            line-height: 20px;
+        }
+        .ht-close-btn:hover {
+            color: #333;
+        }
+        .ht-content {
+            padding: 10px 5px;
+        }
+        .ht-loading {
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px;
+        }
+        .ht-loading-text {
+            color: #666;
+        }
+        .ht-translation-text {
+            color: #000; 
+            font-weight: 500; 
+            word-wrap: break-word; 
+            font-size: 15px;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 // 建立翻譯視窗元素
 function createTranslatePopup() {
+    injectStyles();
+
     const popup = document.createElement('div');
     popup.id = 'translate-popup';
-    popup.style.cssText = `
-    position: absolute;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 12px;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.2);
-    z-index: 10000;
-    display: none;
-    max-width: 350px;
-    min-width: 200px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
-  `;
+    popup.className = 'ht-popup';
 
     // 添加關閉按鈕
     const closeBtn = document.createElement('div');
-    closeBtn.style.cssText = `
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    color: #999;
-    font-size: 16px;
-    text-align: center;
-    line-height: 20px;
-  `;
+    closeBtn.className = 'ht-close-btn';
     closeBtn.innerHTML = '×';
     closeBtn.onclick = hideTranslatePopup;
 
@@ -215,9 +251,9 @@ function showTranslatePopup(text, x, y) {
 
     // 顯示載入中
     popup.innerHTML = `
-    <div style="position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; cursor: pointer; color: #999; font-size: 16px; text-align: center; line-height: 20px;" onclick="document.getElementById('translate-popup').style.display='none'">×</div>
-    <div style="display: flex; align-items: center; justify-content: center; padding: 20px;">
-      <div style="color: #666;">翻譯中...</div>
+    <div class="ht-close-btn" onclick="document.getElementById('translate-popup').style.display='none'">×</div>
+    <div class="ht-loading">
+      <div class="ht-loading-text">翻譯中...</div>
     </div>
   `;
     popup.style.display = 'block';
@@ -243,9 +279,9 @@ function showTranslatePopup(text, x, y) {
     // 獲取翻譯
     getTranslation(text).then(translation => {
         popup.innerHTML = `
-      <div style="position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; cursor: pointer; color: #999; font-size: 16px; text-align: center; line-height: 20px;" onclick="document.getElementById('translate-popup').style.display='none'">×</div>
-      <div style="padding: 10px 5px;">
-        <div style="color: #000; font-weight: 500; word-wrap: break-word; font-size: 15px;">${translation}</div>
+      <div class="ht-close-btn" onclick="document.getElementById('translate-popup').style.display='none'">×</div>
+      <div class="ht-content">
+        <div class="ht-translation-text">${translation}</div>
       </div>
     `;
     });
@@ -316,3 +352,15 @@ document.addEventListener('keydown', (e) => {
         hideTranslatePopup();
     }
 });
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        createTranslatePopup,
+        showTranslatePopup,
+        hideTranslatePopup,
+        detectLanguage,
+        shouldTranslate,
+        getTranslation
+    };
+}
