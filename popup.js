@@ -3,6 +3,7 @@ async function loadSettings() {
     try {
         const settings = await chrome.storage.sync.get({
             autoTranslate: true,
+            autoPlaySpeech: false,
             sourceLang: 'auto',
             targetLang: 'zh-TW',
             delay: 500
@@ -11,6 +12,9 @@ async function loadSettings() {
         // 更新 UI
         const autoTranslateCheck = document.getElementById('autoTranslateCheck');
         if (autoTranslateCheck) autoTranslateCheck.checked = settings.autoTranslate;
+
+        const autoPlaySpeechCheck = document.getElementById('autoPlaySpeechCheck');
+        if (autoPlaySpeechCheck) autoPlaySpeechCheck.checked = settings.autoPlaySpeech;
         
         const sourceLang = document.getElementById('sourceLang');
         if (sourceLang) sourceLang.value = settings.sourceLang;
@@ -62,6 +66,7 @@ function showSnackbar() {
 async function saveSettings() {
     const settings = {
         autoTranslate: document.getElementById('autoTranslateCheck').checked,
+        autoPlaySpeech: document.getElementById('autoPlaySpeechCheck').checked,
         sourceLang: document.getElementById('sourceLang').value,
         targetLang: document.getElementById('targetLang').value,
         delay: parseInt(document.getElementById('delay').value) || 500
@@ -86,6 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const autoTranslateCheck = document.getElementById('autoTranslateCheck');
     if (autoTranslateCheck) autoTranslateCheck.addEventListener('change', saveSettings);
+
+    const autoPlaySpeechCheck = document.getElementById('autoPlaySpeechCheck');
+    if (autoPlaySpeechCheck) autoPlaySpeechCheck.addEventListener('change', saveSettings);
 
     const sourceLang = document.getElementById('sourceLang');
     if (sourceLang) sourceLang.addEventListener('change', saveSettings);

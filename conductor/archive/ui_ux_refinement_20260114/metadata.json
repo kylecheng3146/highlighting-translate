@@ -1,0 +1,8 @@
+{
+  "track_id": "ui_ux_refinement_20260114",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-14T10:00:00Z",
+  "updated_at": "2026-01-14T10:00:00Z",
+  "description": "根據產品與設計指南，優化彈出視窗與翻譯框的 UI/UX，整合 Material Design 元素與動畫回饋。"
+}

@@ -63,4 +63,27 @@ describe('popup.js', () => {
 
         expect(chrome.storage.sync.set).toHaveBeenCalled();
     });
+
+    test('should handle autoPlaySpeech toggle', async () => {
+        chrome.storage.sync.get.mockResolvedValue({
+            autoTranslate: true,
+            sourceLang: 'auto',
+            targetLang: 'zh-TW',
+            delay: 500,
+            autoPlaySpeech: false
+        });
+        setupDOM();
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const checkbox = document.getElementById('autoPlaySpeechCheck');
+        expect(checkbox).not.toBeNull();
+        expect(checkbox.checked).toBe(false);
+
+        checkbox.checked = true;
+        checkbox.dispatchEvent(new Event('change'));
+
+        expect(chrome.storage.sync.set).toHaveBeenCalledWith(expect.objectContaining({
+            autoPlaySpeech: true
+        }));
+    });
 });
