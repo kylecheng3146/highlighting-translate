@@ -90,6 +90,9 @@ function injectStyles(root) {
         }
         .ht-content {
             padding: 10px 5px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
         }
         .ht-loading {
             display: flex; 
@@ -105,12 +108,10 @@ function injectStyles(root) {
             font-weight: 500; 
             word-wrap: break-word; 
             font-size: 15px;
-            margin-right: 24px; /* Space for play button */
+            flex: 1;
+            margin-right: 8px;
         }
         .ht-play-btn {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
             width: 24px;
             height: 24px;
             cursor: pointer;
@@ -119,14 +120,18 @@ function injectStyles(root) {
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
+            margin-top: -2px; /* Align with text */
         }
         .ht-play-btn:hover {
             opacity: 1;
+            background-color: #f0f0f0;
+            border-radius: 50%;
         }
         .ht-play-btn svg {
             width: 20px;
             height: 20px;
-            fill: #666;
+            fill: #6200ee; /* Use primary color */
         }
     `;
     root.appendChild(style);
