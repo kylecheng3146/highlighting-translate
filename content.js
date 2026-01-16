@@ -365,6 +365,11 @@ function showTranslatePopup(text, rect) {
             e.stopPropagation();
             playTTS(translation, settings.targetLang);
         };
+
+        // 自動播放
+        if (settings.autoPlaySpeech) {
+            playTTS(translation, settings.targetLang);
+        }
     });
 }
 
@@ -445,6 +450,7 @@ if (typeof module !== 'undefined' && module.exports) {
         detectLanguage,
         shouldTranslate,
         getTranslation,
-        playTTS
+        playTTS,
+        updateLocalSettings: (newSettings) => { settings = { ...settings, ...newSettings }; }
     };
 }

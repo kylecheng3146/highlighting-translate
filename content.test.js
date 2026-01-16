@@ -17,8 +17,44 @@ global.chrome = {
 const content = require('./content.js');
 const { createTranslatePopup, showTranslatePopup } = content;
 
+let onMessageListener;
+
 describe('content.js Shadow DOM', () => {
     beforeEach(() => {
+        // Reset listener capture
+        global.chrome.runtime.onMessage.addListener.mockImplementation((listener) => {
+            onMessageListener = listener;
+        });
+        
+        // Re-require content.js to trigger addListener again if needed, 
+        // but since it's cached, we might rely on the initial require.
+        // If content.js runs top-level code on require, we need to reset modules.
+        jest.resetModules();
+        
+        // Mock deps again for re-require
+        global.chrome = {
+            storage: {
+                sync: {
+                    get: jest.fn().mockImplementation((defaults) => Promise.resolve(defaults)),
+                },
+                onChanged: {
+                    addListener: jest.fn(),
+                }
+            },
+            runtime: {
+                onMessage: {
+                    addListener: jest.fn((listener) => { onMessageListener = listener; }),
+                }
+            }
+        };
+        
+        // Need to define other globals like Audio if they are used at top level (they are not)
+        // But detectLanguage regexes are top level.
+
+        const contentRe = require('./content.js');
+        // Update our destructured functions
+        Object.assign(content, contentRe);
+
         document.body.innerHTML = '';
         global.innerWidth = 1024;
         global.innerHeight = 768;
@@ -126,6 +162,34 @@ describe('content.js Shadow DOM', () => {
         
         expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('q=translated'));
         expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('tl=zh-TW'));
+        expect(mockPlay).toHaveBeenCalled();
+    });
+
+    test('should auto play TTS if autoPlaySpeech setting is true', async () => {
+        const host = content.createTranslatePopup();
+        
+        // Update settings using exposed helper
+        content.updateLocalSettings({
+            sourceLang: 'auto', 
+            targetLang: 'ja',
+            autoPlaySpeech: true,
+            autoTranslate: true
+        });
+
+        // Mock Audio
+        const mockPlay = jest.fn().mockResolvedValue(undefined);
+        global.Audio = jest.fn().mockImplementation(() => ({
+            play: mockPlay
+        }));
+
+        // Show popup
+        content.showTranslatePopup('Original Text', { left: 0, top: 0, bottom: 0, width: 0, height: 0 });
+
+        // Wait for async operations
+        await new Promise(resolve => setTimeout(resolve, 0));
+        
+        expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('q=translated'));
+        expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('tl=ja'));
         expect(mockPlay).toHaveBeenCalled();
     });
 });
