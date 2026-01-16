@@ -88,4 +88,44 @@ describe('content.js Shadow DOM', () => {
         expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('tl=en'));
         expect(mockPlay).toHaveBeenCalled();
     });
+
+    test('should add play button to popup and trigger playTTS on click', async () => {
+        const host = createTranslatePopup();
+        const popup = host.shadowRoot.getElementById('translate-popup');
+        
+        // Mock getTranslation to resolve immediately
+        // Note: We can't easily mock internal getTranslation call without rewiring, 
+        // so we rely on the mocked fetch in beforeEach.
+        // But we need to make sure getTranslation returns 'Translated Text' if we want to check args.
+        // Since we mocked fetch to return [[['translated']]], the text will be 'translated'.
+
+        // Mock settings
+        global.chrome.storage.sync.get.mockResolvedValue({
+            sourceLang: 'auto', 
+            targetLang: 'en',
+            autoPlaySpeech: false
+        });
+
+        // Mock Audio
+        const mockPlay = jest.fn().mockResolvedValue(undefined);
+        global.Audio = jest.fn().mockImplementation(() => ({
+            play: mockPlay
+        }));
+
+        // Show popup
+        showTranslatePopup('Original Text', { left: 0, top: 0, bottom: 0, width: 0, height: 0 });
+
+        // Wait for async operations
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        const playBtn = popup.querySelector('.ht-play-btn');
+        expect(playBtn).not.toBeNull();
+        
+        // Simulate click
+        playBtn.click();
+        
+        expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('q=translated'));
+        expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('tl=zh-TW'));
+        expect(mockPlay).toHaveBeenCalled();
+    });
 });

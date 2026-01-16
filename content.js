@@ -105,6 +105,28 @@ function injectStyles(root) {
             font-weight: 500; 
             word-wrap: break-word; 
             font-size: 15px;
+            margin-right: 24px; /* Space for play button */
+        }
+        .ht-play-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ht-play-btn:hover {
+            opacity: 1;
+        }
+        .ht-play-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #666;
         }
     `;
     root.appendChild(style);
@@ -329,9 +351,20 @@ function showTranslatePopup(text, rect) {
       <div class="ht-close-btn">×</div>
       <div class="ht-content">
         <div class="ht-translation-text">${translation}</div>
+        <div class="ht-play-btn" title="朗讀">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+        </div>
       </div>
     `;
         popup.querySelector('.ht-close-btn').onclick = closeHandler;
+        
+        const playBtn = popup.querySelector('.ht-play-btn');
+        playBtn.onclick = (e) => {
+            e.stopPropagation();
+            playTTS(translation, settings.targetLang);
+        };
     });
 }
 
