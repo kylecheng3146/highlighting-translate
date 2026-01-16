@@ -122,6 +122,7 @@ describe('content.js Shadow DOM', () => {
 
         expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('q=hello'));
         expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('tl=en'));
+        expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('client=gtx'));
         expect(mockPlay).toHaveBeenCalled();
     });
 

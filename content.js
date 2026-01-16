@@ -279,7 +279,7 @@ async function getTranslation(text, sourceLang = null, targetLang = null) {
 // 播放語音
 function playTTS(text, lang) {
     if (!text) return;
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
+    const url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${lang}&q=${encodeURIComponent(text)}`;
     const audio = new Audio(url);
     audio.play().catch(e => console.error('TTS playback error:', e));
 }
