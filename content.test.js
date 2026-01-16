@@ -74,4 +74,18 @@ describe('content.js Shadow DOM', () => {
         // rect.top (200) - popupHeight (150) - 5 = 45
         expect(top).toBe(45);
     });
+
+    test('should call playTTS and initialize Audio with correct URL', () => {
+        const mockPlay = jest.fn().mockResolvedValue(undefined);
+        global.Audio = jest.fn().mockImplementation(() => ({
+            play: mockPlay
+        }));
+
+        const { playTTS } = require('./content.js');
+        playTTS('hello', 'en');
+
+        expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('q=hello'));
+        expect(global.Audio).toHaveBeenCalledWith(expect.stringContaining('tl=en'));
+        expect(mockPlay).toHaveBeenCalled();
+    });
 });

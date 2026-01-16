@@ -249,6 +249,14 @@ async function getTranslation(text, sourceLang = null, targetLang = null) {
     }
 }
 
+// 播放語音
+function playTTS(text, lang) {
+    if (!text) return;
+    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
+    const audio = new Audio(url);
+    audio.play().catch(e => console.error('TTS playback error:', e));
+}
+
 // 顯示翻譯視窗
 function showTranslatePopup(text, rect) {
     // 檢查是否需要翻譯，如果不需要翻譯則直接返回，不顯示任何彈窗
@@ -403,6 +411,7 @@ if (typeof module !== 'undefined' && module.exports) {
         hideTranslatePopup,
         detectLanguage,
         shouldTranslate,
-        getTranslation
+        getTranslation,
+        playTTS
     };
 }
