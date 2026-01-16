@@ -5,9 +5,9 @@
    - [x] 子任務：編寫 `popup.test.js` 測試，驗證 UI 元素的呈現與 `chrome.storage` 的互動 (89483e8)
    - [x] 子任務：在 `popup.html` 新增「自動朗讀」切換開關 (Toggle) (89483e8)
    - [x] 子任務：在 `popup.js` 實作設定的讀取與儲存邏輯 (89483e8)
-2. [ ] **任務：在 `content.js` 中新增語音播放工具函式**
-   - [ ] 子任務：編寫 `content.test.js` 測試，模擬 Google TTS API 呼叫
-   - [ ] 子任務：實作 `playTTS(text, lang)` 函式，使用 `Audio` 物件播放音訊
+2. [x] **任務：在 `content.js` 中新增語音播放工具函式** (7118cc0)
+   - [x] 子任務：編寫 `content.test.js` 測試，模擬 Google TTS API 呼叫 (7118cc0)
+   - [x] 子任務：實作 `playTTS(text, lang)` 函式，使用 `Audio` 物件播放音訊 (7118cc0)
 3. [ ] **任務：Conductor - User Manual Verification '階段 1：基礎設施與設定' (Protocol in workflow.md)**
 
 ## 階段 2：UI 整合與自動化邏輯
