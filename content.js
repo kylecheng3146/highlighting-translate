@@ -109,29 +109,33 @@ function injectStyles(root) {
             word-wrap: break-word; 
             font-size: 15px;
             flex: 1;
-            margin-right: 8px;
         }
-        .ht-play-btn {
-            width: 24px;
-            height: 24px;
+        .ht-floating-play-btn {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 50%;
             cursor: pointer;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-            display: flex;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 2147483647;
+            display: none;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-            margin-top: -2px; /* Align with text */
+            transition: transform 0.2s, background-color 0.2s;
         }
-        .ht-play-btn:hover {
-            opacity: 1;
+        .ht-floating-play-btn:hover {
+            transform: scale(1.1);
             background-color: #f0f0f0;
-            border-radius: 50%;
         }
-        .ht-play-btn svg {
+        .ht-floating-play-btn svg {
             width: 20px;
             height: 20px;
-            fill: #6200ee; /* Use primary color */
+            fill: #6200ee;
+        }
+        .ht-play-btn {
+            display: none; /* Hide old play button in popup if it exists */
         }
     `;
     root.appendChild(style);
@@ -149,7 +153,18 @@ function createTranslatePopup() {
     popup.id = 'translate-popup';
     popup.className = 'ht-popup';
 
+    const floatingPlayBtn = document.createElement('div');
+    floatingPlayBtn.id = 'floating-play-btn';
+    floatingPlayBtn.className = 'ht-floating-play-btn';
+    floatingPlayBtn.title = '播放原文';
+    floatingPlayBtn.innerHTML = `
+        <svg viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </svg>
+    `;
+
     shadowRoot.appendChild(popup);
+    shadowRoot.appendChild(floatingPlayBtn);
     document.body.appendChild(host);
     return host;
 }
@@ -279,9 +294,11 @@ async function getTranslation(text, sourceLang = null, targetLang = null) {
 // 播放語音
 function playTTS(text, lang) {
     if (!text) return;
-    const url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${lang}&q=${encodeURIComponent(text)}`;
-    const audio = new Audio(url);
-    audio.play().catch(e => console.error('TTS playback error:', e));
+    chrome.runtime.sendMessage({
+        action: 'playTTS',
+        text: text,
+        lang: lang
+    }).catch(error => console.error('Error sending TTS message:', error));
 }
 
 // 顯示翻譯視窗
@@ -295,10 +312,13 @@ function showTranslatePopup(text, rect) {
     if (!host) {
         host = createTranslatePopup();
     }
-    const popup = host.shadowRoot.getElementById('translate-popup');
+    const shadowRoot = host.shadowRoot;
+    const popup = shadowRoot.getElementById('translate-popup');
+    const floatingPlayBtn = shadowRoot.getElementById('floating-play-btn');
 
     const closeHandler = () => {
         popup.classList.remove('ht-show');
+        floatingPlayBtn.style.display = 'none';
         setTimeout(() => {
             if (!popup.classList.contains('ht-show')) {
                 popup.style.display = 'none';
@@ -309,40 +329,51 @@ function showTranslatePopup(text, rect) {
     // 顯示載入中
     popup.innerHTML = `
     <div class="ht-close-btn">×</div>
-    <div class="ht-loading">
-      <div class="ht-loading-text">翻譯中...</div>
+    <div class="ht-content">
+      <div class="ht-loading">
+        <div class="ht-loading-text">翻譯中...</div>
+      </div>
     </div>
   `;
     popup.querySelector('.ht-close-btn').onclick = closeHandler;
 
+    // 顯示翻譯視窗
     popup.style.display = 'block';
-    // Force reflow to trigger transition
     void popup.offsetHeight;
     popup.classList.add('ht-show');
 
+    // 設定懸浮播放按鈕
+    floatingPlayBtn.style.display = 'flex';
+    floatingPlayBtn.style.left = (rect.right + window.scrollX + 5) + 'px';
+    floatingPlayBtn.style.top = (rect.top + window.scrollY - 15) + 'px';
+    
+    floatingPlayBtn.onclick = (e) => {
+        e.stopPropagation();
+        let lang = settings.sourceLang;
+        if (lang === 'auto') {
+            lang = detectLanguage(text);
+            if (lang === 'auto') lang = 'en';
+        }
+        playTTS(text, lang);
+    };
+
     // 調整位置
     const popupWidth = 350;
-    const popupHeight = 150; // 預估高度
+    const popupHeight = 150; 
     const margin = 10;
 
     let left = rect.left + window.scrollX;
     let top = rect.bottom + window.scrollY + 5;
 
-    // 檢查右邊界
     if (left + popupWidth > window.innerWidth + window.scrollX - margin) {
         left = window.innerWidth + window.scrollX - popupWidth - margin;
     }
-    // 檢查左邊界
     if (left < window.scrollX + margin) {
         left = window.scrollX + margin;
     }
-
-    // 檢查下邊界，如果會被遮擋則顯示在選取文字上方
     if (rect.bottom + popupHeight + margin > window.innerHeight) {
         top = rect.top + window.scrollY - popupHeight - 5;
     }
-
-    // 檢查上邊界
     if (top < window.scrollY + margin) {
         top = window.scrollY + margin;
     }
@@ -356,24 +387,18 @@ function showTranslatePopup(text, rect) {
       <div class="ht-close-btn">×</div>
       <div class="ht-content">
         <div class="ht-translation-text">${translation}</div>
-        <div class="ht-play-btn" title="朗讀">
-            <svg viewBox="0 0 24 24">
-                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-            </svg>
-        </div>
       </div>
     `;
         popup.querySelector('.ht-close-btn').onclick = closeHandler;
-        
-        const playBtn = popup.querySelector('.ht-play-btn');
-        playBtn.onclick = (e) => {
-            e.stopPropagation();
-            playTTS(translation, settings.targetLang);
-        };
 
         // 自動播放
         if (settings.autoPlaySpeech) {
-            playTTS(translation, settings.targetLang);
+            let lang = settings.sourceLang;
+            if (lang === 'auto') {
+                lang = detectLanguage(text);
+                if (lang === 'auto') lang = 'en';
+            }
+            playTTS(text, lang);
         }
     });
 }
@@ -381,7 +406,12 @@ function showTranslatePopup(text, rect) {
 // 隱藏翻譯視窗
 function hideTranslatePopup() {
     const host = document.getElementById('translate-popup-host');
-    const popup = host ? host.shadowRoot.getElementById('translate-popup') : null;
+    if (!host) return;
+    
+    const shadowRoot = host.shadowRoot;
+    const popup = shadowRoot.getElementById('translate-popup');
+    const floatingPlayBtn = shadowRoot.getElementById('floating-play-btn');
+
     if (popup) {
         popup.classList.remove('ht-show');
         setTimeout(() => {
@@ -389,6 +419,10 @@ function hideTranslatePopup() {
                 popup.style.display = 'none';
             }
         }, 300);
+    }
+    
+    if (floatingPlayBtn) {
+        floatingPlayBtn.style.display = 'none';
     }
 }
 

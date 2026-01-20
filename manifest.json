@@ -6,7 +6,8 @@
   "permissions": [
     "contextMenus",
     "tabs",
-    "storage"
+    "storage",
+    "tts"
   ],
   "background": {
     "service_worker": "background.js"

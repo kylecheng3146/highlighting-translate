@@ -12,6 +12,9 @@ global.chrome = {
     tabs: {
         query: jest.fn(),
         sendMessage: jest.fn(),
+    },
+    tts: {
+        getVoices: jest.fn().mockImplementation((cb) => cb([]))
     }
 };
 
