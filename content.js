@@ -6,6 +6,9 @@ let settings = {
     delay: 500
 };
 
+let lastSelectedText = '';
+let lastSelectedRect = null;
+
 // 載入設定的函數
 async function loadSettings() {
     try {
@@ -16,8 +19,22 @@ async function loadSettings() {
             delay: 500
         });
         settings = items;
+        return settings;
     } catch (error) {
         console.error('Failed to load settings:', error);
+    }
+}
+
+// 檢查並重新翻譯
+function checkAndRetranslate() {
+    const host = document.getElementById('translate-popup-host');
+    if (host && host.shadowRoot) {
+        const popup = host.shadowRoot.getElementById('translate-popup');
+        // Check if popup is visible (using both class and display check)
+        if (popup && popup.classList.contains('ht-show') && popup.style.display !== 'none' && lastSelectedText && lastSelectedRect) {
+            // Force re-translation
+            showTranslatePopup(lastSelectedText, lastSelectedRect);
+        }
     }
 }
 
@@ -28,6 +45,7 @@ loadSettings();
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'updateSettings') {
         settings = request.settings;
+        checkAndRetranslate();
         sendResponse({success: true});
     }
 });
@@ -36,7 +54,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'sync') {
         // 重新載入設定
-        loadSettings();
+        loadSettings().then(() => {
+            checkAndRetranslate();
+        });
     }
 });
 
@@ -132,7 +152,7 @@ function injectStyles(root) {
         .ht-floating-play-btn svg {
             width: 20px;
             height: 20px;
-            fill: #6200ee;
+            fill: #999;
         }
         .ht-play-btn {
             display: none; /* Hide old play button in popup if it exists */
@@ -303,6 +323,10 @@ function playTTS(text, lang) {
 
 // 顯示翻譯視窗
 function showTranslatePopup(text, rect) {
+    // 儲存最後一次選取的資訊，供重新翻譯使用
+    lastSelectedText = text;
+    lastSelectedRect = rect;
+
     // 檢查是否需要翻譯，如果不需要翻譯則直接返回，不顯示任何彈窗
     if (!shouldTranslate(text, settings.sourceLang, settings.targetLang)) {
         return;
