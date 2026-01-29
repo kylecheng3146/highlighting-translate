@@ -32,9 +32,9 @@
 - [ ] Task: Conductor - User Manual Verification 'Data Storage Migration (Sync to Local)' (Protocol in workflow.md)
 
 ## Phase 3: UI/UX Refinement & Robustness
-- [ ] Task: Optimize Popup Star Interaction
-    - [ ] Add simple visual feedback (e.g., small animation or color pulse) when starring
-    - [ ] Handle storage errors gracefully (show error toast in popup)
+- [x] Task: Optimize Popup Star Interaction 8326cf4
+    - [x] Add simple visual feedback (e.g., small animation or color pulse) when starring 8326cf4
+    - [x] Handle storage errors gracefully (show error toast in popup) 8326cf4
 - [ ] Task: Enhance History Page
     - [ ] Add "Confirm Delete" modal for single item deletion (optional, or just keep simple)
     - [ ] Implement "Empty State" with a helpful illustration or guide text
