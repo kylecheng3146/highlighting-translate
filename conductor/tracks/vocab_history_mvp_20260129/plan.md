@@ -31,7 +31,7 @@
     - [x] Create a logic to check `sync` storage on startup and move items to `local`, then clear `sync` 115874e
 - [ ] Task: Conductor - User Manual Verification 'Data Storage Migration (Sync to Local)' (Protocol in workflow.md)
 
-## Phase 3: UI/UX Refinement & Robustness
+## Phase 3: UI/UX Refinement & Robustness [checkpoint: ac0c1fc]
 - [x] Task: Optimize Popup Star Interaction 8326cf4
     - [x] Add simple visual feedback (e.g., small animation or color pulse) when starring 8326cf4
     - [x] Handle storage errors gracefully (show error toast in popup) 8326cf4
