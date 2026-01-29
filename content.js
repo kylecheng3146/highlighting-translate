@@ -151,6 +151,12 @@ function injectStyles(root) {
         .ht-star-btn.starred svg {
             fill: #FFD700;
             stroke: #FFD700;
+            animation: ht-pulse 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes ht-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1); }
         }
         .ht-content {
             padding: 0 5px 5px 5px;
@@ -200,6 +206,24 @@ function injectStyles(root) {
         }
         .ht-play-btn {
             display: none; /* Hide old play button in popup if it exists */
+        }
+        .ht-toast {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+        .ht-toast.show {
+            opacity: 1;
         }
     `;
     root.appendChild(style);
@@ -254,6 +278,16 @@ function createTranslatePopup() {
     popup.id = 'translate-popup';
     popup.className = 'ht-popup';
 
+    // Content container to be updated dynamically
+    const contentContainer = document.createElement('div');
+    contentContainer.id = 'ht-content-container';
+    popup.appendChild(contentContainer);
+
+    const toast = document.createElement('div');
+    toast.id = 'ht-toast';
+    toast.className = 'ht-toast';
+    popup.appendChild(toast);
+
     const floatingPlayBtn = document.createElement('div');
     floatingPlayBtn.id = 'floating-play-btn';
     floatingPlayBtn.className = 'ht-floating-play-btn';
@@ -280,6 +314,20 @@ function playTTS(text, lang) {
     }).catch(error => console.error('Error sending TTS message:', error));
 }
 
+// 顯示簡短提示
+function showToast(message) {
+    const host = document.getElementById('translate-popup-host');
+    if (!host) return;
+    const toast = host.shadowRoot.getElementById('ht-toast');
+    if (!toast) return;
+    
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2000);
+}
+
 // 顯示翻譯視窗
 async function showTranslatePopup(text, rect) {
     // 儲存最後一次選取的資訊，供重新翻譯使用
@@ -299,6 +347,7 @@ async function showTranslatePopup(text, rect) {
     }
     const shadowRoot = host.shadowRoot;
     const popup = shadowRoot.getElementById('translate-popup');
+    const contentContainer = shadowRoot.getElementById('ht-content-container');
     const floatingPlayBtn = shadowRoot.getElementById('floating-play-btn');
 
     const closeHandler = () => {
@@ -312,7 +361,7 @@ async function showTranslatePopup(text, rect) {
     };
 
     // 顯示載入中
-    popup.innerHTML = `
+    contentContainer.innerHTML = `
     <div class="ht-header">
          <div class="ht-close-btn">×</div>
     </div>
@@ -322,7 +371,7 @@ async function showTranslatePopup(text, rect) {
       </div>
     </div>
   `;
-    popup.querySelector('.ht-close-btn').onclick = closeHandler;
+    contentContainer.querySelector('.ht-close-btn').onclick = closeHandler;
 
     // 顯示翻譯視窗
     popup.style.display = 'block';
@@ -377,7 +426,7 @@ async function showTranslatePopup(text, rect) {
         isStarred = await checkIsStarred(text, translation);
         const starClass = isStarred ? 'starred' : '';
 
-        popup.innerHTML = `
+        contentContainer.innerHTML = `
           <div class="ht-header">
               <div class="ht-star-btn ${starClass}" title="收藏 (Star)">
                   <svg viewBox="0 0 24 24">
@@ -391,16 +440,23 @@ async function showTranslatePopup(text, rect) {
           </div>
         `;
         
-        const closeBtn = popup.querySelector('.ht-close-btn');
+        const closeBtn = contentContainer.querySelector('.ht-close-btn');
         closeBtn.onclick = closeHandler;
 
-        const starBtn = popup.querySelector('.ht-star-btn');
+        const starBtn = contentContainer.querySelector('.ht-star-btn');
         starBtn.onclick = async () => {
-             const newState = await toggleStar(text, translation, settings.sourceLang, settings.targetLang);
-             if (newState) {
-                 starBtn.classList.add('starred');
-             } else {
-                 starBtn.classList.remove('starred');
+             try {
+                 const newState = await toggleStar(text, translation, settings.sourceLang, settings.targetLang);
+                 if (newState) {
+                     starBtn.classList.add('starred');
+                     showToast('已收藏');
+                 } else {
+                     starBtn.classList.remove('starred');
+                     showToast('已取消收藏');
+                 }
+             } catch (error) {
+                 console.error('Star error:', error);
+                 showToast('儲存失敗');
              }
         };
 
@@ -414,7 +470,7 @@ async function showTranslatePopup(text, rect) {
             playTTS(text, lang);
         }
     } catch (error) {
-        popup.innerHTML = `
+        contentContainer.innerHTML = `
           <div class="ht-header">
                <div class="ht-close-btn">×</div>
           </div>
@@ -422,7 +478,7 @@ async function showTranslatePopup(text, rect) {
             <div class="ht-translation-text" style="color:red;">翻譯失敗: ${error.message}</div>
           </div>
         `;
-        popup.querySelector('.ht-close-btn').onclick = closeHandler;
+        contentContainer.querySelector('.ht-close-btn').onclick = closeHandler;
     }
 }
 

@@ -46,6 +46,10 @@ describe('content.js Shadow DOM', () => {
                 sync: {
                     get: jest.fn().mockImplementation((defaults) => Promise.resolve(defaults)),
                 },
+                local: {
+                    get: jest.fn().mockImplementation((defaults) => Promise.resolve(defaults)),
+                    set: jest.fn().mockImplementation(() => Promise.resolve()),
+                },
                 onChanged: {
                     addListener: jest.fn(),
                 }
@@ -86,12 +90,14 @@ describe('content.js Shadow DOM', () => {
     test('should add visible class when showing popup', () => {
         const host = createTranslatePopup();
         const popup = host.shadowRoot.getElementById('translate-popup');
+        const contentContainer = host.shadowRoot.getElementById('ht-content-container');
         
         const rect = { left: 100, top: 150, bottom: 200, width: 50, height: 50 };
         showTranslatePopup('test', rect);
 
         expect(popup.classList.contains('ht-show')).toBe(true); 
         expect(popup.style.display).toBe('block');
+        expect(contentContainer.innerHTML).toContain('ht-loading');
     });
 
     test('should adjust position when close to right edge', () => {
