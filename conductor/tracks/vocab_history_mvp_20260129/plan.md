@@ -27,8 +27,8 @@
 - [x] Task: Migrate `history.js` to use `StorageService` 3f6174d
     - [x] Replace direct `chrome.storage.sync` calls with `StorageService` methods 3f6174d
     - [x] Update `loadHistory` and `deleteItem` functions 3f6174d
-- [ ] Task: Data Migration Script (Optional/One-time)
-    - [ ] Create a logic to check `sync` storage on startup and move items to `local`, then clear `sync`
+- [x] Task: Data Migration Script (Optional/One-time) 115874e
+    - [x] Create a logic to check `sync` storage on startup and move items to `local`, then clear `sync` 115874e
 - [ ] Task: Conductor - User Manual Verification 'Data Storage Migration (Sync to Local)' (Protocol in workflow.md)
 
 ## Phase 3: UI/UX Refinement & Robustness
