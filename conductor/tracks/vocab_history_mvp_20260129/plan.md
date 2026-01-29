@@ -13,7 +13,7 @@
     - [x] Refactor to improve error messages or type checking if needed 5bc2cd3
 - [ ] Task: Conductor - User Manual Verification 'Formalize & Test Existing TranslationService' (Protocol in workflow.md)
 
-## Phase 2: Data Storage Migration (Sync to Local)
+## Phase 2: Data Storage Migration (Sync to Local) [checkpoint: ef53187]
 - [x] Task: Create `StorageService` abstraction fcf35fc
     - [x] Create `services/StorageService.js` to wrap `chrome.storage.local` fcf35fc
     - [x] Implement `saveTranslation(item)` fcf35fc
