@@ -1,6 +1,6 @@
 # Implementation Plan - Vocabulary History MVP
 
-## Phase 1: Formalize & Test Existing TranslationService
+## Phase 1: Formalize & Test Existing TranslationService [checkpoint: 10efc64]
 - [x] Task: Create test environment for `TranslationService` 5bc2cd3
     - [x] Create `services/TranslationService.test.js` using Jest 5bc2cd3
     - [x] Configure Jest to handle ES6 modules if not already set up 5bc2cd3
