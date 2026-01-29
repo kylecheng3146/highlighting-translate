@@ -6,6 +6,8 @@ A simple Chrome extension that automatically translates text you select on any w
 
 *   **Instant Translation:** Simply highlight text on a webpage to see the translation.
 *   **Smart Language Detection:** Automatically detects the source language or allows manual selection.
+*   **Vocabulary History:** Save translations to your personal word list by clicking the star icon. View and manage your history in a dedicated page.
+*   **Text-to-Speech (TTS):** Listen to the pronunciation of the original text by clicking the speaker icon.
 *   **Skip Same Language:** Intelligently skips translation popup when source and target languages are the same.
 *   **Customizable Source & Target Languages:** Choose your desired source and target languages from the settings panel.
 *   **Toggle On/Off:** Easily enable or disable the automatic translation feature.
@@ -16,11 +18,15 @@ A simple Chrome extension that automatically translates text you select on any w
 
 1.  **Select Text:** Use your mouse to highlight any text on a webpage.
 2.  **View Translation:** After a short delay, a small popup will appear next to your selection with the translated text.
-3.  **Configure Settings:** Click the extension icon in the Chrome toolbar to open the settings panel. Here you can:
+3.  **Save to History:** Click the **star icon** in the popup to save the translation to your history.
+4.  **Listen to Pronunciation:** Click the **speaker icon** above the selection to hear the text read aloud.
+5.  **Manage History:** Click the extension icon in the Chrome toolbar and then click **"單字本" (History)** to view your saved translations.
+6.  **Configure Settings:** Click the extension icon in the Chrome toolbar to open the settings panel. Here you can:
     - Change the source language (auto-detect or manual selection)
     - Change the target language
     - Toggle the feature on/off
     - Adjust the delay
+    - Toggle auto-play speech
 
 ## Smart Features
 
