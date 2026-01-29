@@ -47,6 +47,26 @@ function checkAndRetranslate() {
 // 初始載入設定
 loadSettings();
 
+// Data migration from sync to local (one-time)
+async function migrateSyncToLocal() {
+    try {
+        const syncData = await chrome.storage.sync.get('savedTranslations');
+        if (syncData.savedTranslations && syncData.savedTranslations.length > 0) {
+            console.log('Migrating saved translations from sync to local...');
+            for (const item of syncData.savedTranslations.reverse()) {
+                await storageService.saveTranslation(item);
+            }
+            // Clear sync storage after successful migration
+            await chrome.storage.sync.remove('savedTranslations');
+            console.log('Migration complete.');
+        }
+    } catch (e) {
+        console.error('Error migrating data:', e);
+    }
+}
+
+migrateSyncToLocal();
+
 // 監聽設定更新
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'updateSettings') {
