@@ -42,10 +42,10 @@
 - [ ] Task: Conductor - User Manual Verification 'UI/UX Refinement & Robustness' (Protocol in workflow.md)
 
 ## Phase 4: Final Polish & Release Prep
-- [~] Task: Full Regression Test
-    - [ ] Verify Highlight -> Translate -> Star flow
-    - [ ] Verify History Page rendering and deletion
-    - [ ] Verify settings persistence
+- [x] Task: Full Regression Test e31727c
+    - [x] Verify Highlight -> Translate -> Star flow e31727c
+    - [x] Verify History Page rendering and deletion e31727c
+    - [x] Verify settings persistence e31727c
 - [ ] Task: Update Documentation
     - [ ] Update `README.md` with new features description
 - [ ] Task: Conductor - User Manual Verification 'Final Polish & Release Prep' (Protocol in workflow.md)
