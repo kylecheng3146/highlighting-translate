@@ -14,13 +14,13 @@
 - [ ] Task: Conductor - User Manual Verification 'Formalize & Test Existing TranslationService' (Protocol in workflow.md)
 
 ## Phase 2: Data Storage Migration (Sync to Local)
-- [ ] Task: Create `StorageService` abstraction
-    - [ ] Create `services/StorageService.js` to wrap `chrome.storage.local`
-    - [ ] Implement `saveTranslation(item)`
-    - [ ] Implement `getTranslations(limit, offset)`
-    - [ ] Implement `removeTranslation(text, translation)`
-    - [ ] Implement `clearAll()`
-    - [ ] Implement `isStarred(text, translation)`
+- [x] Task: Create `StorageService` abstraction fcf35fc
+    - [x] Create `services/StorageService.js` to wrap `chrome.storage.local` fcf35fc
+    - [x] Implement `saveTranslation(item)` fcf35fc
+    - [x] Implement `getTranslations(limit, offset)` fcf35fc
+    - [x] Implement `removeTranslation(text, translation)` fcf35fc
+    - [x] Implement `clearAll()` fcf35fc
+    - [x] Implement `isStarred(text, translation)` fcf35fc
 - [ ] Task: Migrate `content.js` to use `StorageService`
     - [ ] Replace direct `chrome.storage.sync` calls with `StorageService` methods
     - [ ] Update `toggleStar` and `checkIsStarred` functions
