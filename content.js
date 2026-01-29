@@ -8,6 +8,11 @@ let settings = {
 
 let lastSelectedText = '';
 let lastSelectedRect = null;
+let lastTranslationResult = ''; // Store valid translation result for saving
+let isStarred = false; // Track star state
+
+// Instantiate TranslationService
+const translationService = new TranslationService();
 
 // 載入設定的函數
 async function loadSettings() {
@@ -93,23 +98,41 @@ function injectStyles(root) {
             opacity: 1;
             transform: translateY(0);
         }
-        .ht-close-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            width: 20px;
-            height: 20px;
+        .ht-header {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 5px;
+            align-items: center;
+            gap: 8px;
+        }
+        .ht-close-btn, .ht-star-btn {
             cursor: pointer;
             color: #999;
             font-size: 16px;
             text-align: center;
             line-height: 20px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .ht-close-btn:hover {
+        .ht-close-btn:hover, .ht-star-btn:hover {
             color: #333;
         }
+        .ht-star-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+        .ht-star-btn.starred svg {
+            fill: #FFD700;
+            stroke: #FFD700;
+        }
         .ht-content {
-            padding: 10px 5px;
+            padding: 0 5px 5px 5px;
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
@@ -118,7 +141,7 @@ function injectStyles(root) {
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            padding: 20px;
+            padding: 10px;
         }
         .ht-loading-text {
             color: #666;
@@ -161,6 +184,51 @@ function injectStyles(root) {
     root.appendChild(style);
 }
 
+// Check if current translation is saved
+async function checkIsStarred(text, translation) {
+    try {
+        const data = await chrome.storage.sync.get('savedTranslations');
+        const savedTranslations = data.savedTranslations || [];
+        return savedTranslations.some(item => item.text === text && item.translation === translation);
+    } catch (e) {
+        console.error('Error checking star status', e);
+        return false;
+    }
+}
+
+// Toggle Star/Save
+async function toggleStar(text, translation, sourceLang, targetLang) {
+    try {
+        const data = await chrome.storage.sync.get('savedTranslations');
+        let savedTranslations = data.savedTranslations || [];
+        
+        const existingIndex = savedTranslations.findIndex(item => item.text === text && item.translation === translation);
+        
+        if (existingIndex !== -1) {
+            // Remove
+            savedTranslations.splice(existingIndex, 1);
+            isStarred = false;
+        } else {
+            // Add
+            savedTranslations.unshift({
+                text,
+                translation,
+                sourceLang,
+                targetLang,
+                sourceUrl: window.location.href,
+                timestamp: Date.now()
+            });
+            isStarred = true;
+        }
+        
+        await chrome.storage.sync.set({ savedTranslations });
+        return isStarred;
+    } catch (e) {
+        console.error('Error saving translation', e);
+        return false;
+    }
+}
+
 // 建立翻譯視窗元素
 function createTranslatePopup() {
     const host = document.createElement('div');
@@ -189,128 +257,6 @@ function createTranslatePopup() {
     return host;
 }
 
-// 檢測文字語言
-function detectLanguage(text) {
-    // 簡化的語言檢測邏輯
-    const chineseTraditionalChars = /[\u4e00-\u9fff]/g;
-    const chineseSimplifiedChars = /[一-龯]/g;
-
-    // 繁體中文特有字符
-    const traditionalOnlyChars = /[豐併佈閒與會過於陣險離復讓貓]/g;
-
-    // 簡體中文特有字符
-    const simplifiedOnlyChars = /[丰并布闲与会过于阵险离复让猫]/g;
-
-    // 英文字符
-    const englishChars = /[a-zA-Z]/g;
-
-    // 日文平假名和片假名
-    const japaneseChars = /[\u3040-\u309f\u30a0-\u30ff]/g;
-
-    // 韓文字符
-    const koreanChars = /[\uac00-\ud7af]/g;
-
-    // 統計各種字符數量
-    const chineseCount = (text.match(chineseTraditionalChars) || []).length;
-    const traditionalCount = (text.match(traditionalOnlyChars) || []).length;
-    const simplifiedCount = (text.match(simplifiedOnlyChars) || []).length;
-    const englishCount = (text.match(englishChars) || []).length;
-    const japaneseCount = (text.match(japaneseChars) || []).length;
-    const koreanCount = (text.match(koreanChars) || []).length;
-
-    // 判斷主要語言
-    if (chineseCount > 0) {
-        // 如果有繁體中文特有字符，判斷為繁體中文
-        if (traditionalCount > 0) {
-            return 'zh-TW';
-        }
-        // 如果有簡體中文特有字符，判斷為簡體中文
-        if (simplifiedCount > 0) {
-            return 'zh-CN';
-        }
-        // 如果都沒有特有字符，預設為繁體中文（因為這是專案的預設設定）
-        return 'zh-TW';
-    }
-
-    // 其他語言判斷
-    if (japaneseCount > 0) {
-        return 'ja';
-    }
-    if (koreanCount > 0) {
-        return 'ko';
-    }
-    if (englishCount > 0) {
-        return 'en';
-    }
-
-    // 預設返回自動檢測
-    return 'auto';
-}
-
-// 檢查是否需要翻譯
-function shouldTranslate(text, sourceLang, targetLang) {
-    // 如果源語言設定為自動檢測，則使用檢測功能
-    if (sourceLang === 'auto') {
-        const detectedLang = detectLanguage(text);
-        sourceLang = detectedLang;
-    }
-
-    // 如果源語言和目標語言相同，則不需要翻譯
-    if (sourceLang === targetLang) {
-        return false;
-    }
-
-    // 特殊情況：如果檢測到的語言是 auto 且目標語言是繁體中文，
-    // 並且文字主要由中文字符組成，則可能不需要翻譯
-    if (sourceLang === 'auto' && targetLang === 'zh-TW') {
-        const chineseChars = /[\u4e00-\u9fff]/g;
-        const chineseCount = (text.match(chineseChars) || []).length;
-        const totalChars = text.length;
-
-        // 如果中文字符超過 70%，可能是繁體中文，不需要翻譯
-        if (chineseCount / totalChars > 0.7) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// 獲取翻譯結果
-async function getTranslation(text, sourceLang = null, targetLang = null) {
-    try {
-        sourceLang = sourceLang || settings.sourceLang;
-        targetLang = targetLang || settings.targetLang;
-
-        // 檢查是否需要翻譯
-        if (!shouldTranslate(text, sourceLang, targetLang)) {
-            return text; // 返回原文，不進行翻譯
-        }
-
-        // 如果源語言設定為自動檢測，則使用檢測功能
-        if (sourceLang === 'auto') {
-            const detectedLang = detectLanguage(text);
-            // 如果檢測不出來，使用 'auto' 讓 Google 自動檢測
-            sourceLang = detectedLang === 'auto' ? 'auto' : detectedLang;
-        }
-
-        // 使用 Google Translate API (免費版本)
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
-
-        const response = await fetch(url);
-        const data = await response.json();
-
-        // 解析翻譯結果
-        if (data && data[0] && data[0][0] && data[0][0][0]) {
-            return data[0][0][0];
-        }
-        return '翻譯失敗';
-    } catch (error) {
-        console.error('Translation error:', error);
-        return '翻譯錯誤';
-    }
-}
-
 // 播放語音
 function playTTS(text, lang) {
     if (!text) return;
@@ -322,13 +268,15 @@ function playTTS(text, lang) {
 }
 
 // 顯示翻譯視窗
-function showTranslatePopup(text, rect) {
+async function showTranslatePopup(text, rect) {
     // 儲存最後一次選取的資訊，供重新翻譯使用
     lastSelectedText = text;
     lastSelectedRect = rect;
+    lastTranslationResult = '';
+    isStarred = false;
 
-    // 檢查是否需要翻譯，如果不需要翻譯則直接返回，不顯示任何彈窗
-    if (!shouldTranslate(text, settings.sourceLang, settings.targetLang)) {
+    // 檢查是否需要翻譯
+    if (!translationService.shouldTranslate(text, settings.sourceLang, settings.targetLang)) {
         return;
     }
 
@@ -352,7 +300,9 @@ function showTranslatePopup(text, rect) {
 
     // 顯示載入中
     popup.innerHTML = `
-    <div class="ht-close-btn">×</div>
+    <div class="ht-header">
+         <div class="ht-close-btn">×</div>
+    </div>
     <div class="ht-content">
       <div class="ht-loading">
         <div class="ht-loading-text">翻譯中...</div>
@@ -375,7 +325,7 @@ function showTranslatePopup(text, rect) {
         e.stopPropagation();
         let lang = settings.sourceLang;
         if (lang === 'auto') {
-            lang = detectLanguage(text);
+            lang = translationService.detectLanguage(text);
             if (lang === 'auto') lang = 'en';
         }
         playTTS(text, lang);
@@ -406,25 +356,61 @@ function showTranslatePopup(text, rect) {
     popup.style.top = top + 'px';
 
     // 獲取翻譯
-    getTranslation(text).then(translation => {
+    try {
+        const translation = await translationService.translate(text, settings.sourceLang, settings.targetLang);
+        lastTranslationResult = translation;
+        
+        // Check if already starred
+        isStarred = await checkIsStarred(text, translation);
+        const starClass = isStarred ? 'starred' : '';
+
         popup.innerHTML = `
-      <div class="ht-close-btn">×</div>
-      <div class="ht-content">
-        <div class="ht-translation-text">${translation}</div>
-      </div>
-    `;
-        popup.querySelector('.ht-close-btn').onclick = closeHandler;
+          <div class="ht-header">
+              <div class="ht-star-btn ${starClass}" title="收藏 (Star)">
+                  <svg viewBox="0 0 24 24">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+              </div>
+              <div class="ht-close-btn">×</div>
+          </div>
+          <div class="ht-content">
+            <div class="ht-translation-text">${translation}</div>
+          </div>
+        `;
+        
+        const closeBtn = popup.querySelector('.ht-close-btn');
+        closeBtn.onclick = closeHandler;
+
+        const starBtn = popup.querySelector('.ht-star-btn');
+        starBtn.onclick = async () => {
+             const newState = await toggleStar(text, translation, settings.sourceLang, settings.targetLang);
+             if (newState) {
+                 starBtn.classList.add('starred');
+             } else {
+                 starBtn.classList.remove('starred');
+             }
+        };
 
         // 自動播放
         if (settings.autoPlaySpeech) {
             let lang = settings.sourceLang;
             if (lang === 'auto') {
-                lang = detectLanguage(text);
+                lang = translationService.detectLanguage(text);
                 if (lang === 'auto') lang = 'en';
             }
             playTTS(text, lang);
         }
-    });
+    } catch (error) {
+        popup.innerHTML = `
+          <div class="ht-header">
+               <div class="ht-close-btn">×</div>
+          </div>
+          <div class="ht-content">
+            <div class="ht-translation-text" style="color:red;">翻譯失敗: ${error.message}</div>
+          </div>
+        `;
+        popup.querySelector('.ht-close-btn').onclick = closeHandler;
+    }
 }
 
 // 隱藏翻譯視窗
@@ -503,17 +489,3 @@ document.addEventListener('keydown', (e) => {
         hideTranslatePopup();
     }
 });
-
-// Export for testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        createTranslatePopup,
-        showTranslatePopup,
-        hideTranslatePopup,
-        detectLanguage,
-        shouldTranslate,
-        getTranslation,
-        playTTS,
-        updateLocalSettings: (newSettings) => { settings = { ...settings, ...newSettings }; }
-    };
-}

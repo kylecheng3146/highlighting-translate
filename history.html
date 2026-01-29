@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Translation History - Highlighting Translate</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        button.danger {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+        button.danger:hover {
+            background-color: #ffcdd2;
+        }
+        
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .history-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            transition: background-color 0.1s;
+        }
+        .history-item:hover {
+            background-color: #fafafa;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .item-content {
+            flex: 1;
+            margin-right: 20px;
+        }
+        .original {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        .translation {
+            font-size: 16px;
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+        .meta {
+            font-size: 12px;
+            color: #999;
+            display: flex;
+            gap: 10px;
+        }
+        .meta a {
+            color: #999;
+            text-decoration: none;
+        }
+        .meta a:hover {
+            text-decoration: underline;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 18px;
+        }
+        .delete-btn:hover {
+            color: #d32f2f;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 50px 0;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>單字本 (History)</h1>
+            <div class="actions">
+                <button id="clearAll" class="danger">Clear All</button>
+            </div>
+        </header>
+
+        <ul id="historyList" class="history-list">
+            <!-- Items will be injected here -->
+        </ul>
+        
+        <div id="emptyState" class="empty-state" style="display: none;">
+            還沒有翻譯紀錄。在網頁上選取文字並點擊星號收藏！
+        </div>
+    </div>
+    <script src="history.js"></script>
+</body>
+</html>

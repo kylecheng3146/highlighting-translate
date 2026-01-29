@@ -261,4 +261,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const voiceNames = voices.map(v => `${v.voiceName} (${v.lang})`);
         console.log(voiceNames.join('\n'));
     });
+
+    const historyBtn = document.getElementById('historyBtn');
+    if (historyBtn) {
+        historyBtn.addEventListener('click', () => {
+             chrome.tabs.create({ url: 'history.html' });
+        });
+    }
 });

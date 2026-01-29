@@ -1,0 +1,115 @@
+class TranslationService {
+    constructor() {
+        this.apiBaseUrl = 'https://translate.googleapis.com/translate_a/single';
+    }
+
+    /**
+     * Detects the language of the given text.
+     * @param {string} text - The text to detect language for.
+     * @returns {string} - The detected language code (e.g., 'en', 'zh-TW', 'ja', 'auto').
+     */
+    detectLanguage(text) {
+        // Simplified language detection logic
+        const chineseTraditionalChars = /[\u4e00-\u9fff]/g;
+        const chineseSimplifiedChars = /[一-龯]/g;
+        const traditionalOnlyChars = /[豐併佈閒與會過於陣險離復讓貓]/g;
+        const simplifiedOnlyChars = /[丰并布闲与会过于阵险离复让猫]/g;
+        const englishChars = /[a-zA-Z]/g;
+        const japaneseChars = /[\u3040-\u309f\u30a0-\u30ff]/g;
+        const koreanChars = /[\uac00-\ud7af]/g;
+
+        const chineseCount = (text.match(chineseTraditionalChars) || []).length;
+        const traditionalCount = (text.match(traditionalOnlyChars) || []).length;
+        const simplifiedCount = (text.match(simplifiedOnlyChars) || []).length;
+        const englishCount = (text.match(englishChars) || []).length;
+        const japaneseCount = (text.match(japaneseChars) || []).length;
+        const koreanCount = (text.match(koreanChars) || []).length;
+
+        if (chineseCount > 0) {
+            if (traditionalCount > 0) return 'zh-TW';
+            if (simplifiedCount > 0) return 'zh-CN';
+            return 'zh-TW'; // Default to Traditional Chinese
+        }
+
+        if (japaneseCount > 0) return 'ja';
+        if (koreanCount > 0) return 'ko';
+        if (englishCount > 0) return 'en';
+
+        return 'auto';
+    }
+
+    /**
+     * Translates the given text.
+     * @param {string} text - The text to translate.
+     * @param {string} sourceLang - The source language code.
+     * @param {string} targetLang - The target language code.
+     * @returns {Promise<string>} - The translated text.
+     */
+    async translate(text, sourceLang = 'auto', targetLang = 'zh-TW') {
+        try {
+            if (!text || !text.trim()) {
+                throw new Error('Text to translate is empty');
+            }
+
+            // If source language is auto, try to detect it first for better accuracy
+            // or just let Google handle 'auto'
+            let finalSourceLang = sourceLang;
+            if (sourceLang === 'auto') {
+                const detected = this.detectLanguage(text);
+                finalSourceLang = detected === 'auto' ? 'auto' : detected;
+            }
+
+            const url = `${this.apiBaseUrl}?client=gtx&sl=${finalSourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Translation API failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Parse result
+            if (data && data[0] && data[0][0] && data[0][0][0]) {
+                return data[0][0][0];
+            }
+            throw new Error('Invalid response format');
+
+        } catch (error) {
+            console.error('TranslationService error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Determines if translation is needed based on source and target languages.
+     * @param {string} text 
+     * @param {string} sourceLang 
+     * @param {string} targetLang 
+     * @returns {boolean}
+     */
+    shouldTranslate(text, sourceLang, targetLang) {
+        if (sourceLang === 'auto') {
+            sourceLang = this.detectLanguage(text);
+        }
+
+        if (sourceLang === targetLang) {
+            return false;
+        }
+
+        // Special case: Auto-detect -> zh-TW but text is mostly Chinese
+        if (sourceLang === 'zh-TW' && targetLang === 'zh-TW') {
+             return false;
+        }
+
+        // More robust check for the "Special case" in original code
+        if (targetLang === 'zh-TW') {
+             const detected = this.detectLanguage(text);
+             if (detected === 'zh-TW') return false;
+        }
+        
+        return true;
+    }
+}
+
+// Make it available globally
+window.TranslationService = TranslationService;
