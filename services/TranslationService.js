@@ -9,31 +9,34 @@ class TranslationService {
      * @returns {string} - The detected language code (e.g., 'en', 'zh-TW', 'ja', 'auto').
      */
     detectLanguage(text) {
-        // Simplified language detection logic
-        const chineseTraditionalChars = /[\u4e00-\u9fff]/g;
-        const chineseSimplifiedChars = /[一-龯]/g;
-        const traditionalOnlyChars = /[豐併佈閒與會過於陣險離復讓貓]/g;
-        const simplifiedOnlyChars = /[丰并布闲与会过于阵险离复让猫]/g;
-        const englishChars = /[a-zA-Z]/g;
+        // Japanese Hiragana and Katakana
         const japaneseChars = /[\u3040-\u309f\u30a0-\u30ff]/g;
+        // Korean Hangul
         const koreanChars = /[\uac00-\ud7af]/g;
+        // English
+        const englishChars = /[a-zA-Z]/g;
+        
+        // Check for specific scripts first to avoid misidentifying Kanji as Chinese
+        if (japaneseChars.test(text)) return 'ja';
+        if (koreanChars.test(text)) return 'ko';
+
+        const chineseTraditionalChars = /[\u4e00-\u9fff]/g;
+        const traditionalOnlyChars = /[豐併佈閒與會過於陣險離復讓貓體發這測]/g;
+        const simplifiedOnlyChars = /[丰并布闲与会过于阵险离复让猫体发这测]/g;
 
         const chineseCount = (text.match(chineseTraditionalChars) || []).length;
         const traditionalCount = (text.match(traditionalOnlyChars) || []).length;
         const simplifiedCount = (text.match(simplifiedOnlyChars) || []).length;
-        const englishCount = (text.match(englishChars) || []).length;
-        const japaneseCount = (text.match(japaneseChars) || []).length;
-        const koreanCount = (text.match(koreanChars) || []).length;
 
         if (chineseCount > 0) {
             if (traditionalCount > 0) return 'zh-TW';
             if (simplifiedCount > 0) return 'zh-CN';
-            return 'zh-TW'; // Default to Traditional Chinese
+            // If it has Chinese chars but no specific markers, it could be Japanese with only Kanji
+            // or just common Chinese chars.
+            return 'zh-TW';
         }
 
-        if (japaneseCount > 0) return 'ja';
-        if (koreanCount > 0) return 'ko';
-        if (englishCount > 0) return 'en';
+        if (englishChars.test(text)) return 'en';
 
         return 'auto';
     }
@@ -113,3 +116,8 @@ class TranslationService {
 
 // Make it available globally
 window.TranslationService = TranslationService;
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = TranslationService;
+}

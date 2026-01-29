@@ -14,6 +14,9 @@ global.chrome = {
     }
 };
 
+const TranslationService = require('./services/TranslationService');
+global.TranslationService = TranslationService;
+
 const content = require('./content.js');
 const { createTranslatePopup, showTranslatePopup } = content;
 
@@ -62,6 +65,7 @@ describe('content.js Shadow DOM', () => {
         global.scrollY = 0;
         // Mock fetch for getTranslation
         global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
             json: () => Promise.resolve([[['translated']]])
         });
     });

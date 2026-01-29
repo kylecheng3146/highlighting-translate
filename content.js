@@ -489,3 +489,14 @@ document.addEventListener('keydown', (e) => {
         hideTranslatePopup();
     }
 });
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        createTranslatePopup,
+        showTranslatePopup,
+        hideTranslatePopup,
+        playTTS,
+        updateLocalSettings: (newSettings) => { settings = { ...settings, ...newSettings }; }
+    };
+}
