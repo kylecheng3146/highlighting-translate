@@ -1,26 +1,38 @@
 const storageService = new StorageService();
+let currentOffset = 0;
+const PAGE_SIZE = 50;
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadHistory();
+    loadHistory(true);
 
     document.getElementById('clearAll').addEventListener('click', clearAllHistory);
+    document.getElementById('loadMoreBtn').addEventListener('click', () => loadHistory(false));
 });
 
-async function loadHistory() {
+async function loadHistory(reset = true) {
     const list = document.getElementById('historyList');
     const emptyState = document.getElementById('emptyState');
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
     
-    list.innerHTML = '';
+    if (reset) {
+        list.innerHTML = '';
+        currentOffset = 0;
+    }
     
     try {
-        const items = await storageService.getTranslations(500); // Support more items in local
+        const items = await storageService.getTranslations(PAGE_SIZE, currentOffset);
 
-        if (items.length === 0) {
+        if (reset && items.length === 0) {
             emptyState.style.display = 'block';
+            loadMoreContainer.style.display = 'none';
             return;
         }
 
         emptyState.style.display = 'none';
+        
+        // Check if there are more items
+        const nextItems = await storageService.getTranslations(1, currentOffset + PAGE_SIZE);
+        loadMoreContainer.style.display = nextItems.length > 0 ? 'block' : 'none';
 
         items.forEach((item) => {
             const li = document.createElement('li');
@@ -51,15 +63,20 @@ async function loadHistory() {
 
             list.appendChild(li);
         });
+
+        currentOffset += items.length;
     } catch (error) {
         console.error('Failed to load history:', error);
     }
 }
 
 async function deleteItem(text, translation) {
+    if (!confirm('確定要刪除這筆紀錄嗎？')) {
+        return;
+    }
     try {
         await storageService.removeTranslation(text, translation);
-        loadHistory(); // Reload list
+        loadHistory(true); // Reload list from start to reflect changes
     } catch (error) {
         console.error('Failed to delete item:', error);
     }
@@ -72,7 +89,7 @@ async function clearAllHistory() {
 
     try {
         await storageService.clearAll();
-        loadHistory();
+        loadHistory(true);
     } catch (error) {
         console.error('Failed to clear history:', error);
     }
