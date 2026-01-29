@@ -21,9 +21,9 @@
     - [x] Implement `removeTranslation(text, translation)` fcf35fc
     - [x] Implement `clearAll()` fcf35fc
     - [x] Implement `isStarred(text, translation)` fcf35fc
-- [ ] Task: Migrate `content.js` to use `StorageService`
-    - [ ] Replace direct `chrome.storage.sync` calls with `StorageService` methods
-    - [ ] Update `toggleStar` and `checkIsStarred` functions
+- [x] Task: Migrate `content.js` to use `StorageService` f0831df
+    - [x] Replace direct `chrome.storage.sync` calls with `StorageService` methods f0831df
+    - [x] Update `toggleStar` and `checkIsStarred` functions f0831df
 - [ ] Task: Migrate `history.js` to use `StorageService`
     - [ ] Replace direct `chrome.storage.sync` calls with `StorageService` methods
     - [ ] Update `loadHistory` and `deleteItem` functions
