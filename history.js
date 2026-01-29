@@ -1,3 +1,5 @@
+const storageService = new StorageService();
+
 document.addEventListener('DOMContentLoaded', () => {
     loadHistory();
 
@@ -11,8 +13,7 @@ async function loadHistory() {
     list.innerHTML = '';
     
     try {
-        const data = await chrome.storage.sync.get('savedTranslations');
-        const items = data.savedTranslations || [];
+        const items = await storageService.getTranslations(500); // Support more items in local
 
         if (items.length === 0) {
             emptyState.style.display = 'block';
@@ -21,7 +22,7 @@ async function loadHistory() {
 
         emptyState.style.display = 'none';
 
-        items.forEach((item, index) => {
+        items.forEach((item) => {
             const li = document.createElement('li');
             li.className = 'history-item';
             
@@ -45,7 +46,7 @@ async function loadHistory() {
 
             // Delete button event
             li.querySelector('.delete-btn').addEventListener('click', () => {
-                deleteItem(index);
+                deleteItem(item.text, item.translation);
             });
 
             list.appendChild(li);
@@ -55,14 +56,9 @@ async function loadHistory() {
     }
 }
 
-async function deleteItem(index) {
+async function deleteItem(text, translation) {
     try {
-        const data = await chrome.storage.sync.get('savedTranslations');
-        const items = data.savedTranslations || [];
-        
-        items.splice(index, 1);
-        
-        await chrome.storage.sync.set({ savedTranslations: items });
+        await storageService.removeTranslation(text, translation);
         loadHistory(); // Reload list
     } catch (error) {
         console.error('Failed to delete item:', error);
@@ -75,7 +71,7 @@ async function clearAllHistory() {
     }
 
     try {
-        await chrome.storage.sync.set({ savedTranslations: [] });
+        await storageService.clearAll();
         loadHistory();
     } catch (error) {
         console.error('Failed to clear history:', error);
