@@ -11,8 +11,9 @@ let lastSelectedRect = null;
 let lastTranslationResult = ''; // Store valid translation result for saving
 let isStarred = false; // Track star state
 
-// Instantiate TranslationService
+// Instantiate TranslationService and StorageService
 const translationService = new TranslationService();
+const storageService = new StorageService();
 
 // 載入設定的函數
 async function loadSettings() {
@@ -187,9 +188,7 @@ function injectStyles(root) {
 // Check if current translation is saved
 async function checkIsStarred(text, translation) {
     try {
-        const data = await chrome.storage.sync.get('savedTranslations');
-        const savedTranslations = data.savedTranslations || [];
-        return savedTranslations.some(item => item.text === text && item.translation === translation);
+        return await storageService.isStarred(text, translation);
     } catch (e) {
         console.error('Error checking star status', e);
         return false;
@@ -199,18 +198,13 @@ async function checkIsStarred(text, translation) {
 // Toggle Star/Save
 async function toggleStar(text, translation, sourceLang, targetLang) {
     try {
-        const data = await chrome.storage.sync.get('savedTranslations');
-        let savedTranslations = data.savedTranslations || [];
+        const currentlyStarred = await storageService.isStarred(text, translation);
         
-        const existingIndex = savedTranslations.findIndex(item => item.text === text && item.translation === translation);
-        
-        if (existingIndex !== -1) {
-            // Remove
-            savedTranslations.splice(existingIndex, 1);
+        if (currentlyStarred) {
+            await storageService.removeTranslation(text, translation);
             isStarred = false;
         } else {
-            // Add
-            savedTranslations.unshift({
+            await storageService.saveTranslation({
                 text,
                 translation,
                 sourceLang,
@@ -221,7 +215,6 @@ async function toggleStar(text, translation, sourceLang, targetLang) {
             isStarred = true;
         }
         
-        await chrome.storage.sync.set({ savedTranslations });
         return isStarred;
     } catch (e) {
         console.error('Error saving translation', e);

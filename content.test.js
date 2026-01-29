@@ -3,6 +3,10 @@ global.chrome = {
         sync: {
             get: jest.fn().mockImplementation((defaults) => Promise.resolve(defaults)),
         },
+        local: {
+            get: jest.fn().mockImplementation((defaults) => Promise.resolve(defaults)),
+            set: jest.fn().mockImplementation(() => Promise.resolve()),
+        },
         onChanged: {
             addListener: jest.fn(),
         }
@@ -16,6 +20,8 @@ global.chrome = {
 
 const TranslationService = require('./services/TranslationService');
 global.TranslationService = TranslationService;
+const StorageService = require('./services/StorageService');
+global.StorageService = StorageService;
 
 const content = require('./content.js');
 const { createTranslatePopup, showTranslatePopup } = content;
