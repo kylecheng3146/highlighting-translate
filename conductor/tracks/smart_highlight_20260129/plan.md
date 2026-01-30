@@ -5,10 +5,10 @@
     - [x] Create `services/HighlightService.js` cc0aa50
     - [x] Implement `highlightWord(node, word)` using `Range` and `mark` tag or custom span cc0aa50
     - [x] Implement `scanAndHighlight(rootElement, vocabularyList)` using `TreeWalker` cc0aa50
-- [ ] Task: Integrate with `content.js`
-    - [ ] Update `content.js` to initialize `HighlightService`
-    - [ ] Load vocabulary from `StorageService` on page load
-    - [ ] Trigger highlighting on DOMContentLoaded
+- [x] Task: Integrate with `content.js` 7c45c35
+    - [x] Update `content.js` to initialize `HighlightService` 7c45c35
+    - [x] Load vocabulary from `StorageService` on page load 7c45c35
+    - [x] Trigger highlighting on DOMContentLoaded 7c45c35
 - [ ] Task: Test Core Highlighting (TDD)
     - [ ] Create `services/HighlightService.test.js`
     - [ ] Test highlighting on simple text nodes
