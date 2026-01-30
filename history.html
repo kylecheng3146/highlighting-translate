@@ -141,9 +141,9 @@
 <body>
     <div class="container">
         <header>
-            <h1>單字本 (History)</h1>
+            <h1 data-i18n="historyTitle">單字本 (History)</h1>
             <div class="actions">
-                <button id="clearAll" class="danger">Clear All</button>
+                <button id="clearAll" class="danger" data-i18n="clearAllBtn">Clear All</button>
             </div>
         </header>
 
@@ -151,19 +151,20 @@
             <!-- Items will be injected here -->
         </ul>
         
-        <div id="loadMoreContainer" style="text-align: center; padding: 20px; display: none;">
-            <button id="loadMoreBtn" class="secondary-btn">顯示更多</button>
-        </div>
-        
         <div id="emptyState" class="empty-state" style="display: none;">
             <svg viewBox="0 0 24 24">
                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
             </svg>
-            <p>尚未收藏任何翻譯</p>
-            <span>選取網頁上的文字，並點擊翻譯視窗中的星號開始建立您的單字本！</span>
+            <p data-i18n="emptyStateTitle">尚未收藏任何翻譯</p>
+            <span data-i18n="emptyStateText">選取網頁上的文字，並點擊翻譯視窗中的星號開始建立您的單字本！</span>
+        </div>
+        
+        <div id="loadMoreContainer" style="text-align: center; padding: 20px; display: none;">
+            <button id="loadMoreBtn" class="secondary-btn" data-i18n="loadMoreBtn">顯示更多</button>
         </div>
     </div>
     <script src="services/StorageService.js"></script>
+    <script src="services/I18nService.js"></script>
     <script src="history.js"></script>
 </body>
 </html>

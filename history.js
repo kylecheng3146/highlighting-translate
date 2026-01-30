@@ -1,8 +1,10 @@
 const storageService = new StorageService();
+const i18nService = new I18nService();
 let currentOffset = 0;
 const PAGE_SIZE = 50;
 
 document.addEventListener('DOMContentLoaded', () => {
+    i18nService.localizePage();
     loadHistory(true);
 
     document.getElementById('clearAll').addEventListener('click', clearAllHistory);
@@ -71,7 +73,7 @@ async function loadHistory(reset = true) {
 }
 
 async function deleteItem(text, translation) {
-    if (!confirm('確定要刪除這筆紀錄嗎？')) {
+    if (!confirm(i18nService.getText('deleteConfirm'))) {
         return;
     }
     try {
@@ -83,7 +85,7 @@ async function deleteItem(text, translation) {
 }
 
 async function clearAllHistory() {
-    if (!confirm('確定要清空所有紀錄嗎？')) {
+    if (!confirm(i18nService.getText('clearConfirm'))) {
         return;
     }
 
