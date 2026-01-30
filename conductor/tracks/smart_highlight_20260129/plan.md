@@ -1,10 +1,10 @@
 # Implementation Plan - Smart Context Highlight
 
 ## Phase 1: Core Highlighting Logic
-- [x] Task: Create `HighlightService` abstraction
-    - [x] Create `services/HighlightService.js`
-    - [x] Implement `highlightWord(node, word)` using `Range` and `mark` tag or custom span
-    - [x] Implement `scanAndHighlight(rootElement, vocabularyList)` using `TreeWalker`
+- [x] Task: Create `HighlightService` abstraction cc0aa50
+    - [x] Create `services/HighlightService.js` cc0aa50
+    - [x] Implement `highlightWord(node, word)` using `Range` and `mark` tag or custom span cc0aa50
+    - [x] Implement `scanAndHighlight(rootElement, vocabularyList)` using `TreeWalker` cc0aa50
 - [ ] Task: Integrate with `content.js`
     - [ ] Update `content.js` to initialize `HighlightService`
     - [ ] Load vocabulary from `StorageService` on page load
