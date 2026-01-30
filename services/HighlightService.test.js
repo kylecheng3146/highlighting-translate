@@ -62,4 +62,27 @@ describe('HighlightService', () => {
         expect(marks.length).toBe(1);
         expect(marks[0].innerHTML).not.toContain('<mark');
     });
+
+    test('should perform reasonably well with large text content', () => {
+        const words = ['apple', 'banana', 'cherry', 'date', 'elderberry'];
+        const vocab = words.map(w => ({ text: w, translation: w.toUpperCase() }));
+        
+        // Generate large content: 1000 paragraphs, each with some random words
+        let html = '';
+        for (let i = 0; i < 1000; i++) {
+            html += `<p>This is paragraph ${i}. I like ${words[i % 5]} and some other things.</p>`;
+        }
+        document.body.innerHTML = `<div id="root">${html}</div>`;
+        const root = document.getElementById('root');
+
+        const start = performance.now();
+        service.scanAndHighlight(root, vocab);
+        const end = performance.now();
+
+        // 1000 matches should be reasonably fast (e.g., < 100ms on V8, allow slack for test env)
+        expect(end - start).toBeLessThan(500); 
+        
+        const marks = root.querySelectorAll('mark');
+        expect(marks.length).toBe(1000);
+    });
 });
