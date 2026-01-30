@@ -11,9 +11,10 @@ let lastSelectedRect = null;
 let lastTranslationResult = ''; // Store valid translation result for saving
 let isStarred = false; // Track star state
 
-// Instantiate TranslationService and StorageService
+// Instantiate TranslationService, StorageService, and HighlightService
 const translationService = new TranslationService();
 const storageService = new StorageService();
+const highlightService = new HighlightService();
 
 // 載入設定的函數
 async function loadSettings() {
@@ -25,9 +26,26 @@ async function loadSettings() {
             delay: 500
         });
         settings = items;
+        
+        // Initial highlight scan if enabled (we'll implement the toggle later, for now scanning always)
+        // Ideally check settings.enableHighlighting
+        scanPageForVocabulary();
+        
         return settings;
     } catch (error) {
         console.error('Failed to load settings:', error);
+    }
+}
+
+// Scan page for vocabulary
+async function scanPageForVocabulary() {
+    try {
+        const vocabList = await storageService.getTranslations(1000); // Get up to 1000 items
+        if (vocabList && vocabList.length > 0) {
+            highlightService.scanAndHighlight(document.body, vocabList);
+        }
+    } catch (e) {
+        console.error('Error scanning page for vocabulary:', e);
     }
 }
 
@@ -224,6 +242,13 @@ function injectStyles(root) {
         }
         .ht-toast.show {
             opacity: 1;
+        }
+        mark.ht-highlight {
+            background-color: rgba(255, 235, 59, 0.4); /* Soft yellow */
+            color: inherit;
+            cursor: help;
+            border-radius: 2px;
+            padding: 0 2px;
         }
     `;
     root.appendChild(style);
