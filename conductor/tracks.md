@@ -18,5 +18,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: 加入單字收藏功能 (Vocabulary History MVP)**
+- [x] **Track: 加入單字收藏功能 (Vocabulary History MVP)**
 *Link: [./tracks/vocab_history_mvp_20260129/](./tracks/vocab_history_mvp_20260129/)*
