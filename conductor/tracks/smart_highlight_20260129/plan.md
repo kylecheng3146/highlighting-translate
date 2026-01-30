@@ -9,11 +9,11 @@
     - [x] Update `content.js` to initialize `HighlightService` 7c45c35
     - [x] Load vocabulary from `StorageService` on page load 7c45c35
     - [x] Trigger highlighting on DOMContentLoaded 7c45c35
-- [ ] Task: Test Core Highlighting (TDD)
-    - [ ] Create `services/HighlightService.test.js`
-    - [ ] Test highlighting on simple text nodes
-    - [ ] Test ignoring short words logic
-    - [ ] Test performance with large text blocks (mock environment)
+- [x] Task: Test Core Highlighting (TDD) 3a5f930
+    - [x] Create `services/HighlightService.test.js` 3a5f930
+    - [x] Test highlighting on simple text nodes 3a5f930
+    - [x] Test ignoring short words logic 3a5f930
+    - [x] Test performance with large text blocks (mock environment) 3a5f930
 - [ ] Task: Conductor - User Manual Verification 'Core Highlighting Logic' (Protocol in workflow.md)
 
 ## Phase 2: Tooltip Interaction
