@@ -6,6 +6,7 @@
 
 ## 前端技術
 - **語言**: Vanilla JavaScript (ES6+)
+- **架構模式**: 基於類別的服務模組化設計 (Service-based Modular Design)
 - **介面**: HTML5, CSS3
 - **設計風格**: Material Design (CSS 實作)
 
@@ -18,8 +19,11 @@
 - **翻譯來源**: Google Translate API (經由 `https://translate.googleapis.com/*`)
 - **語音朗讀**: Chrome TTS API (`chrome.tts`)
 - **通訊方式**: Fetch API
-- **狀態管理**: `chrome.storage.local` (儲存使用者偏好設定，如語言、延遲等)
+- **狀態管理**: 
+  - `chrome.storage.sync`: 儲存使用者偏好設定（自動翻譯、語系、延遲等），支援跨裝置同步。
+  - `chrome.storage.local`: 儲存大量單字收藏紀錄 (History)，確保容量充足。
 
 ## 其它資源
-- **國際化**: `_locales/` (支援多國語系介面)
+- **國際化**: `I18nService` (自定義服務，支援多國語系介面與動態內容翻譯)
+- **測試框架**: Jest (提供單元測試與覆蓋率報告)
 - **圖標**: SVG 格式資源
