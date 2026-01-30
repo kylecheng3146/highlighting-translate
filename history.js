@@ -49,8 +49,6 @@ async function loadHistory(reset = true) {
                     <div class="original">${escapeHtml(item.text)}</div>
                     <div class="translation">${escapeHtml(item.translation)}</div>
                     <div class="meta">
-                        <span>${escapeHtml(item.sourceLang)} → ${escapeHtml(item.targetLang)}</span>
-                        <span>•</span>
                         <span>${date}</span>
                         ${shortUrl ? `<span>•</span><a href="${item.sourceUrl}" target="_blank">${shortUrl}</a>` : ''}
                     </div>
