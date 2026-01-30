@@ -41,7 +41,7 @@
     - [x] Add pagination or "Load More" if list > 50 items (prevent performance issues) b6f2dc1
 - [ ] Task: Conductor - User Manual Verification 'UI/UX Refinement & Robustness' (Protocol in workflow.md)
 
-## Phase 4: Final Polish & Release Prep
+## Phase 4: Final Polish & Release Prep [checkpoint: 5043b5c]
 - [x] Task: Full Regression Test e31727c
     - [x] Verify Highlight -> Translate -> Star flow e31727c
     - [x] Verify History Page rendering and deletion e31727c
