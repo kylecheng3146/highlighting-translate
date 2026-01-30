@@ -1,6 +1,6 @@
 # Implementation Plan - Smart Context Highlight
 
-## Phase 1: Core Highlighting Logic
+## Phase 1: Core Highlighting Logic [checkpoint: d22121e]
 - [x] Task: Create `HighlightService` abstraction cc0aa50
     - [x] Create `services/HighlightService.js` cc0aa50
     - [x] Implement `highlightWord(node, word)` using `Range` and `mark` tag or custom span cc0aa50
