@@ -46,6 +46,6 @@
     - [x] Verify Highlight -> Translate -> Star flow e31727c
     - [x] Verify History Page rendering and deletion e31727c
     - [x] Verify settings persistence e31727c
-- [ ] Task: Update Documentation
-    - [ ] Update `README.md` with new features description
+- [x] Task: Update Documentation 3faac2f
+    - [x] Update `README.md` with new features description 3faac2f
 - [ ] Task: Conductor - User Manual Verification 'Final Polish & Release Prep' (Protocol in workflow.md)
