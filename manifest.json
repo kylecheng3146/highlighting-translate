@@ -15,7 +15,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["services/TranslationService.js", "services/StorageService.js", "services/HighlightService.js", "content.js"],
+      "js": ["services/TranslationService.js", "services/StorageService.js", "services/HighlightService.js", "services/TooltipService.js", "content.js"],
       "run_at": "document_end"
     }
   ],

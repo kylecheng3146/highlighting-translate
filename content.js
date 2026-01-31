@@ -15,6 +15,7 @@ let isStarred = false; // Track star state
 const translationService = new TranslationService();
 const storageService = new StorageService();
 const highlightService = new HighlightService();
+const tooltipService = new TooltipService();
 
 // 載入設定的函數
 async function loadSettings() {
@@ -250,6 +251,20 @@ function injectStyles(root) {
             border-radius: 2px;
             padding: 0 2px;
         }
+        .ht-tooltip {
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 2147483647;
+            pointer-events: none;
+            display: none;
+            max-width: 200px;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
     `;
     root.appendChild(style);
 }
@@ -313,6 +328,9 @@ function createTranslatePopup() {
     toast.className = 'ht-toast';
     popup.appendChild(toast);
 
+    // Initialize TooltipService
+    tooltipService.init(shadowRoot);
+
     const floatingPlayBtn = document.createElement('div');
     floatingPlayBtn.id = 'floating-play-btn';
     floatingPlayBtn.className = 'ht-floating-play-btn';
@@ -352,6 +370,9 @@ function showToast(message) {
         toast.classList.remove('show');
     }, 2000);
 }
+
+// 顯示 Tooltip
+
 
 // 顯示翻譯視窗
 async function showTranslatePopup(text, rect) {
@@ -581,6 +602,34 @@ document.addEventListener('scroll', () => {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         hideTranslatePopup();
+    }
+});
+
+// Bind hover events for tooltips
+document.addEventListener('mouseover', (e) => {
+    if (e.target.classList.contains('ht-highlight')) {
+        const text = e.target.dataset.translation;
+        if (text) {
+            const rect = e.target.getBoundingClientRect();
+            // Ensure tooltip service is initialized if not already (it should be init by loadSettings -> createTranslatePopup if popup shown, 
+            // but we might need to init it earlier if popup was never shown.
+            // Actually createTranslatePopup is called only when showing popup.
+            // We need to ensure we have a host for tooltip.
+            
+            let host = document.getElementById('translate-popup-host');
+            if (!host) {
+                host = createTranslatePopup();
+            }
+            // TooltipService init is called in createTranslatePopup
+            
+            tooltipService.show(text, rect);
+        }
+    }
+});
+
+document.addEventListener('mouseout', (e) => {
+    if (e.target.classList.contains('ht-highlight')) {
+        tooltipService.hide();
     }
 });
 
