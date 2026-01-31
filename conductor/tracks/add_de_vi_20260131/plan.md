@@ -20,9 +20,9 @@
 - [x] Task: 更新 Popup UI 選單 53fec36
     - [ ] 修改 `popup.html`，在 Source 和 Target 下拉選單中新增 `de` 和 `vi` 選項
     - [ ] 驗證 `popup.js` 是否需要修改以支援新選項（預計無，但需確認儲存/讀取邏輯）
-- [ ] Task: 整合驗收測試
+- [x] Task: 整合驗收測試 80430dd
     - [ ] 手動測試：確認設定頁面選單更新
     - [ ] 手動測試：選取德語文字，確認自動偵測與翻譯成功
     - [ ] 手動測試：選取越南語文字，確認自動偵測與翻譯成功
     - [ ] 手動測試：測試 TTS 朗讀功能
-- [ ] Task: Conductor - User Manual Verification 'UI & Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'UI & Integration' (Protocol in workflow.md) 80430dd
