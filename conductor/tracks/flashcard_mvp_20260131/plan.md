@@ -19,7 +19,7 @@
 - [x] Task: 加入鍵盤快捷鍵支援 (Space, 1-4)
 - [x] Task: Conductor - User Manual Verification '閃卡 UI 實作' (Protocol in workflow.md)
 
-## Phase 3: 整合與優化
+## Phase 3: 整合與優化 [checkpoint: a27a741]
 
 整合入口並優化體驗。
 
