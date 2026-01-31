@@ -208,13 +208,39 @@ class I18nService {
                 "enableHighlightDesc": "Gespeicherte Wörter in Seiten hervorheben",
                 "blacklistBtn": "Für diese Seite deaktivieren",
                 "whitelistBtn": "Für diese Seite aktivieren"
+            },
+            "vi": {
+                "settingsTitle": "Cài đặt Dịch",
+                "autoTranslateLabel": "Tự động dịch",
+                "autoTranslateDesc": "Tự động hiện cửa sổ khi chọn văn bản",
+                "autoPlaySpeechLabel": "Tự động phát âm",
+                "autoPlaySpeechDesc": "Tự động đọc kết quả sau khi dịch",
+                "sourceLangLabel": "Ngôn ngữ nguồn",
+                "sourceLangDesc": "Tự động phát hiện ngôn ngữ",
+                "targetLangLabel": "Ngôn ngữ đích",
+                "targetLangDesc": "Ngôn ngữ của kết quả dịch",
+                "delayLabel": "Độ trễ hiển thị (ms)",
+                "delayDesc": "Thời gian trước khi hiện cửa sổ",
+                "settingsSaved": "Đã lưu cài đặt",
+                "historyBtn": "Lịch sử",
+                "historyTitle": "Lịch sử từ vựng",
+                "clearAllBtn": "Xóa tất cả",
+                "emptyStateTitle": "Chưa có bản dịch nào được lưu",
+                "emptyStateText": "Chọn văn bản trên trang web và nhấp vào biểu tượng ngôi sao để bắt đầu tạo danh sách từ vựng của bạn!",
+                "deleteConfirm": "Bạn có chắc chắn muốn xóa mục này không?",
+                "clearConfirm": "Bạn có chắc chắn muốn xóa tất cả lịch sử không?",
+                "loadMoreBtn": "Tải thêm",
+                "enableHighlightLabel": "Làm nổi bật thông minh",
+                "enableHighlightDesc": "Làm nổi bật các từ đã lưu trên trang web",
+                "blacklistBtn": "Vô hiệu hóa trang này",
+                "whitelistBtn": "Kích hoạt trang này"
             }
         };
     }
 
     getLanguage() {
         let lang = navigator.language;
-        if (chrome.i18n && chrome.i18n.getUILanguage) {
+        if (typeof chrome !== 'undefined' && chrome.i18n && chrome.i18n.getUILanguage) {
             lang = chrome.i18n.getUILanguage();
         }
         return lang;
@@ -239,6 +265,8 @@ class I18nService {
             t = this.translations['fr'];
         } else if (lang.startsWith('de')) {
             t = this.translations['de'];
+        } else if (lang.startsWith('vi')) {
+            t = this.translations['vi'];
         }
 
         return t[key] || key;
@@ -263,6 +291,8 @@ class I18nService {
             t = this.translations['fr'];
         } else if (lang.startsWith('de')) {
             t = this.translations['de'];
+        } else if (lang.startsWith('vi')) {
+            t = this.translations['vi'];
         }
 
         const elements = document.querySelectorAll('[data-i18n]');
@@ -289,4 +319,11 @@ class I18nService {
 }
 
 // Make it available globally
-window.I18nService = I18nService;
+if (typeof window !== 'undefined') {
+    window.I18nService = I18nService;
+}
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = I18nService;
+}
