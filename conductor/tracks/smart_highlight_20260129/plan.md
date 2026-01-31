@@ -17,15 +17,15 @@
   - [x] Test performance with large text blocks (mock environment) 3a5f930
 - [x] Task: Conductor - User Manual Verification 'Core Highlighting Logic' (Protocol in workflow.md)
 
-## Phase 2: Tooltip Interaction
+## Phase 2: Tooltip Interaction [checkpoint: 33d48eb]
 
-- [x] Task: Implement Tooltip UI
-  - [x] Add Tooltip styles to `content.js` (injected styles)
-  - [x] Create `TooltipService` or methods in `HighlightService` to manage tooltip creation/positioning
-- [x] Task: Bind Hover Events
-  - [x] Add `mouseenter` / `mouseleave` listeners to highlighted elements
-  - [x] Display tooltip with translation on hover
-- [ ] Task: Conductor - User Manual Verification 'Tooltip Interaction' (Protocol in workflow.md)
+- [x] Task: Implement Tooltip UI ede0c31
+  - [x] Add Tooltip styles to `content.js` (injected styles) ede0c31
+  - [x] Create `TooltipService` or methods in `HighlightService` to manage tooltip creation/positioning ede0c31
+- [x] Task: Bind Hover Events ede0c31
+  - [x] Add `mouseenter` / `mouseleave` listeners to highlighted elements ede0c31
+  - [x] Display tooltip with translation on hover ede0c31
+- [x] Task: Conductor - User Manual Verification 'Tooltip Interaction' (Protocol in workflow.md)
 
 ## Phase 3: Settings & Controls
 
