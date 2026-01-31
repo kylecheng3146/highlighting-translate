@@ -43,9 +43,9 @@
 
 ## Phase 4: Final Polish & Optimization
 
-- [ ] Task: Optimization
-  - [ ] Implement `requestIdleCallback` or chunking for highlighting to avoid blocking main thread
-  - [ ] Limit max highlights per page (e.g., 100)
+- [x] Task: Optimization 05147c8
+  - [x] Implement `requestIdleCallback` or chunking for highlighting to avoid blocking main thread 05147c8
+  - [x] Limit max highlights per page (e.g., 100) 05147c8
 - [ ] Task: Final Regression Test
   - [ ] Verify core translation function still works
   - [ ] Verify History page still works
