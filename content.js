@@ -22,20 +22,45 @@ async function loadSettings() {
     try {
         const items = await chrome.storage.sync.get({
             autoTranslate: true,
+            autoPlaySpeech: false,
             sourceLang: 'auto',
             targetLang: 'zh-TW',
-            delay: 500
+            delay: 500,
+            enableHighlighting: true,
+            domainBlacklist: []
         });
         settings = items;
         
-        // Initial highlight scan if enabled (we'll implement the toggle later, for now scanning always)
-        // Ideally check settings.enableHighlighting
-        scanPageForVocabulary();
+        applyHighlightSettings();
         
         return settings;
     } catch (error) {
         console.error('Failed to load settings:', error);
     }
+}
+
+// Apply highlight settings (enable/disable/blacklist)
+function applyHighlightSettings() {
+    const domain = window.location.hostname;
+    const isBlacklisted = settings.domainBlacklist && settings.domainBlacklist.includes(domain);
+    
+    if (settings.enableHighlighting && !isBlacklisted) {
+        scanPageForVocabulary();
+    } else {
+        removeHighlights();
+    }
+}
+
+// Remove all highlights from the page
+function removeHighlights() {
+    const highlights = document.querySelectorAll('mark.ht-highlight');
+    highlights.forEach(mark => {
+        const parent = mark.parentNode;
+        if (parent) {
+            parent.replaceChild(document.createTextNode(mark.textContent), mark);
+            parent.normalize(); // Merge adjacent text nodes
+        }
+    });
 }
 
 // Scan page for vocabulary
@@ -91,6 +116,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'updateSettings') {
         settings = request.settings;
         checkAndRetranslate();
+        applyHighlightSettings();
         sendResponse({success: true});
     }
 });

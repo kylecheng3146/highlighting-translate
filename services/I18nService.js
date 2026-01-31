@@ -21,7 +21,11 @@ class I18nService {
                 "emptyStateText": "Select text on a webpage and click the star icon to start building your vocabulary list!",
                 "deleteConfirm": "Are you sure you want to delete this item?",
                 "clearConfirm": "Are you sure you want to clear all history?",
-                "loadMoreBtn": "Load More"
+                "loadMoreBtn": "Load More",
+                "enableHighlightLabel": "Smart Highlight",
+                "enableHighlightDesc": "Highlight saved words in web pages",
+                "blacklistBtn": "Disable for this site",
+                "whitelistBtn": "Enable for this site"
             },
             "zh-CN": {
                 "settingsTitle": "翻译设置",
@@ -43,7 +47,11 @@ class I18nService {
                 "emptyStateText": "选取网页上的文字，并点击翻译窗口中的星号开始建立您的单词本！",
                 "deleteConfirm": "确定要删除这条记录吗？",
                 "clearConfirm": "确定要清空所有记录吗？",
-                "loadMoreBtn": "显示更多"
+                "loadMoreBtn": "显示更多",
+                "enableHighlightLabel": "智能高亮",
+                "enableHighlightDesc": "在网页中自动高亮已收藏的单词",
+                "blacklistBtn": "在此网站禁用",
+                "whitelistBtn": "在此网站启用"
             },
             "zh-TW": {
                 "settingsTitle": "翻譯設定",
@@ -65,7 +73,11 @@ class I18nService {
                 "emptyStateText": "選取網頁上的文字，並點擊翻譯視窗中的星號開始建立您的單字本！",
                 "deleteConfirm": "確定要刪除這筆紀錄嗎？",
                 "clearConfirm": "確定要清空所有紀錄嗎？",
-                "loadMoreBtn": "顯示更多"
+                "loadMoreBtn": "顯示更多",
+                "enableHighlightLabel": "智能高亮",
+                "enableHighlightDesc": "在網頁中自動高亮已收藏的單字",
+                "blacklistBtn": "在此網站禁用",
+                "whitelistBtn": "在此網站啟用"
             },
             "ja": {
                 "settingsTitle": "翻訳設定",
@@ -87,7 +99,11 @@ class I18nService {
                 "emptyStateText": "Webページ上のテキストを選択し、翻訳ウィンドウの星マークをクリックして単語帳を作成しましょう！",
                 "deleteConfirm": "この項目を削除してもよろしいですか？",
                 "clearConfirm": "履歴をすべて削除してもよろしいですか？",
-                "loadMoreBtn": "もっと見る"
+                "loadMoreBtn": "もっと見る",
+                "enableHighlightLabel": "自動ハイライト",
+                "enableHighlightDesc": "保存した単語をページ内でハイライト表示",
+                "blacklistBtn": "このサイトで無効にする",
+                "whitelistBtn": "このサイトで有効にする"
             },
             "ko": {
                 "settingsTitle": "번역 설정",
@@ -109,7 +125,11 @@ class I18nService {
                 "emptyStateText": "웹페이지에서 텍스트를 선택하고 번역 창의 별표를 클릭하여 단어장을 만들어보세요!",
                 "deleteConfirm": "이 항목을 삭제하시겠습니까?",
                 "clearConfirm": "모든 기록을 삭제하시겠습니까?",
-                "loadMoreBtn": "더 보기"
+                "loadMoreBtn": "더 보기",
+                "enableHighlightLabel": "스마트 하이라이트",
+                "enableHighlightDesc": "저장된 단어를 페이지에서 하이라이트",
+                "blacklistBtn": "이 사이트에서 비활성화",
+                "whitelistBtn": "이 사이트에서 활성화"
             },
             "es": {
                 "settingsTitle": "Configuración de traducción",
@@ -131,7 +151,11 @@ class I18nService {
                 "emptyStateText": "¡Selecciona texto en una página web y haz clic en la estrella para comenzar tu lista!",
                 "deleteConfirm": "¿Estás seguro de que quieres eliminar este elemento?",
                 "clearConfirm": "¿Estás seguro de que quieres borrar todo el historial?",
-                "loadMoreBtn": "Cargar más"
+                "loadMoreBtn": "Cargar más",
+                "enableHighlightLabel": "Resaltado inteligente",
+                "enableHighlightDesc": "Resaltar palabras guardadas en las páginas",
+                "blacklistBtn": "Desactivar para este sitio",
+                "whitelistBtn": "Activar para este sitio"
             },
             "fr": {
                 "settingsTitle": "Paramètres de traduction",
@@ -153,7 +177,11 @@ class I18nService {
                 "emptyStateText": "Sélectionnez du texte et cliquez sur l'étoile pour commencer votre liste !",
                 "deleteConfirm": "Voulez-vous vraiment supprimer cet élément ?",
                 "clearConfirm": "Voulez-vous vraiment effacer tout l'historique ?",
-                "loadMoreBtn": "Charger plus"
+                "loadMoreBtn": "Charger plus",
+                "enableHighlightLabel": "Surlignage intelligent",
+                "enableHighlightDesc": "Surligner les mots enregistrés",
+                "blacklistBtn": "Désactiver pour ce site",
+                "whitelistBtn": "Activer pour ce site"
             },
             "de": {
                 "settingsTitle": "Übersetzungseinstellungen",
@@ -175,7 +203,11 @@ class I18nService {
                 "emptyStateText": "Markieren Sie Text und klicken Sie auf den Stern, um Ihre Liste zu erstellen!",
                 "deleteConfirm": "Möchten Sie diesen Eintrag wirklich löschen?",
                 "clearConfirm": "Möchten Sie den gesamten Verlauf löschen?",
-                "loadMoreBtn": "Mehr laden"
+                "loadMoreBtn": "Mehr laden",
+                "enableHighlightLabel": "Smart Highlight",
+                "enableHighlightDesc": "Gespeicherte Wörter in Seiten hervorheben",
+                "blacklistBtn": "Für diese Seite deaktivieren",
+                "whitelistBtn": "Für diese Seite aktivieren"
             }
         };
     }

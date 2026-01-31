@@ -6,7 +6,9 @@ async function loadSettings() {
             autoPlaySpeech: false,
             sourceLang: 'auto',
             targetLang: 'zh-TW',
-            delay: 500
+            delay: 500,
+            enableHighlighting: true,
+            domainBlacklist: []
         });
 
         // 更新 UI
@@ -24,8 +26,42 @@ async function loadSettings() {
         
         const delay = document.getElementById('delay');
         if (delay) delay.value = settings.delay;
+
+        const enableHighlightCheck = document.getElementById('enableHighlightCheck');
+        if (enableHighlightCheck) enableHighlightCheck.checked = settings.enableHighlighting;
+
+        // Blacklist button logic
+        updateBlacklistButton(settings.domainBlacklist);
     } catch (error) {
         console.error('Failed to load settings:', error);
+    }
+}
+
+async function updateBlacklistButton(blacklist) {
+    const btn = document.getElementById('blacklistBtn');
+    if (!btn) return;
+
+    try {
+        const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+        if (tabs && tabs[0] && tabs[0].url) {
+            const url = new URL(tabs[0].url);
+            const domain = url.hostname;
+            
+            if (['chrome:', 'chrome-extension:', 'edge:', 'about:', 'moz-extension:'].includes(url.protocol)) {
+                btn.style.display = 'none';
+                return;
+            }
+
+            btn.style.display = 'block';
+            const isBlacklisted = blacklist.includes(domain);
+            btn.textContent = i18nService.getText(isBlacklisted ? 'whitelistBtn' : 'blacklistBtn');
+            btn.dataset.domain = domain;
+            btn.dataset.isBlacklisted = isBlacklisted;
+        } else {
+            btn.style.display = 'none';
+        }
+    } catch (e) {
+        btn.style.display = 'none';
     }
 }
 
@@ -69,10 +105,15 @@ async function saveSettings() {
         autoPlaySpeech: document.getElementById('autoPlaySpeechCheck').checked,
         sourceLang: document.getElementById('sourceLang').value,
         targetLang: document.getElementById('targetLang').value,
-        delay: parseInt(document.getElementById('delay').value) || 500
+        delay: parseInt(document.getElementById('delay').value) || 500,
+        enableHighlighting: document.getElementById('enableHighlightCheck').checked
     };
 
     try {
+        // Merge with existing blacklist which isn't in UI but in storage
+        const data = await chrome.storage.sync.get({ domainBlacklist: [] });
+        settings.domainBlacklist = data.domainBlacklist;
+
         await chrome.storage.sync.set(settings);
         showSnackbar();
 
@@ -82,6 +123,38 @@ async function saveSettings() {
         });
     } catch (error) {
         console.error('Failed to save settings:', error);
+    }
+}
+
+async function toggleBlacklist() {
+    const btn = document.getElementById('blacklistBtn');
+    const domain = btn.dataset.domain;
+    const isBlacklisted = btn.dataset.isBlacklisted === 'true';
+
+    try {
+        const data = await chrome.storage.sync.get({ domainBlacklist: [] });
+        let blacklist = data.domainBlacklist;
+
+        if (isBlacklisted) {
+            blacklist = blacklist.filter(d => d !== domain);
+        } else {
+            blacklist.push(domain);
+        }
+
+        await chrome.storage.sync.set({ domainBlacklist: blacklist });
+        showSnackbar();
+        
+        // Refresh UI
+        updateBlacklistButton(blacklist);
+
+        // Update content script
+        const settings = await chrome.storage.sync.get();
+        await sendMessageToContentScript({
+            action: 'updateSettings',
+            settings: settings
+        });
+    } catch (error) {
+        console.error('Failed to toggle blacklist:', error);
     }
 }
 
@@ -107,6 +180,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const delay = document.getElementById('delay');
     if (delay) delay.addEventListener('change', saveSettings);
+
+    const enableHighlightCheck = document.getElementById('enableHighlightCheck');
+    if (enableHighlightCheck) enableHighlightCheck.addEventListener('change', saveSettings);
+
+    const blacklistBtn = document.getElementById('blacklistBtn');
+    if (blacklistBtn) blacklistBtn.addEventListener('click', toggleBlacklist);
 
     // List available TTS voices for debugging
     chrome.tts.getVoices((voices) => {

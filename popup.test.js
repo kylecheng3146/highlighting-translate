@@ -18,6 +18,12 @@ global.chrome = {
     }
 };
 
+// Mock I18nService
+global.I18nService = class MockI18nService {
+    localizePage() {}
+    getText(key) { return key; }
+};
+
 // Simple DOM mock helper
 function setupDOM() {
     const html = fs.readFileSync(path.resolve(__dirname, './popup.html'), 'utf8');
@@ -64,6 +70,9 @@ describe('popup.js', () => {
         checkbox.checked = true;
         checkbox.dispatchEvent(new Event('change'));
 
+        // Wait for async saveSettings
+        await new Promise(resolve => setTimeout(resolve, 50));
+
         expect(chrome.storage.sync.set).toHaveBeenCalled();
     });
 
@@ -73,7 +82,9 @@ describe('popup.js', () => {
             sourceLang: 'auto',
             targetLang: 'zh-TW',
             delay: 500,
-            autoPlaySpeech: false
+            autoPlaySpeech: false,
+            enableHighlighting: true,
+            domainBlacklist: []
         });
         setupDOM();
         await new Promise(resolve => setTimeout(resolve, 50));
@@ -84,6 +95,9 @@ describe('popup.js', () => {
 
         checkbox.checked = true;
         checkbox.dispatchEvent(new Event('change'));
+
+        // Wait for async saveSettings
+        await new Promise(resolve => setTimeout(resolve, 50));
 
         expect(chrome.storage.sync.set).toHaveBeenCalledWith(expect.objectContaining({
             autoPlaySpeech: true
