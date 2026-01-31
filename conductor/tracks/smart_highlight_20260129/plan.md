@@ -27,7 +27,7 @@
   - [x] Display tooltip with translation on hover ede0c31
 - [x] Task: Conductor - User Manual Verification 'Tooltip Interaction' (Protocol in workflow.md)
 
-## Phase 3: Settings & Controls
+## Phase 3: Settings & Controls [checkpoint: 2e6c737]
 
 - [x] Task: Update `SettingsService` (or Storage schema) ee23c20
   - [x] Add `enableHighlighting` (boolean) ee23c20
