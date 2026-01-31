@@ -18,10 +18,10 @@
 - [x] Task: 規劃學習進度資料結構與統計維度 (Daily Progress)
 - [x] Task: Conductor - User Manual Verification '核心邏輯與演算法設計' (Protocol in workflow.md) b326db6
 
-## Phase 3: 迭代藍圖與優先順序定義 (Roadmap & Prioritization)
+## Phase 3: 迭代藍圖與優先順序定義 (Roadmap & Prioritization) [checkpoint: 1e61cfb]
 
 本階段目標是產出具備優先順序的開發清單。
 
 - [x] Task: 執行項目評分 (ICE Scoring: Impact, Confidence, Ease)
 - [x] Task: 撰寫最終迭代藍圖報告，包含 Phase 範圍與預期產出
-- [ ] Task: Conductor - User Manual Verification '迭代藍圖與優先順序定義' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification '迭代藍圖與優先順序定義' (Protocol in workflow.md)
