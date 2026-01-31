@@ -64,6 +64,29 @@ class StorageService {
         const items = data[this.STORAGE_KEY] || [];
         return items.some(i => i.text === text && i.translation === translation);
     }
+
+    /**
+     * Updates SRS status fields for a translation item.
+     * @param {string} text - The source text.
+     * @param {string} translation - The translated text.
+     * @param {Object} updates - The fields to update (e.g. nextReview, interval, etc.)
+     * @returns {boolean} True if updated, false if not found.
+     */
+    async updateSRSStatus(text, translation, updates) {
+        const data = await chrome.storage.local.get(this.STORAGE_KEY);
+        let items = data[this.STORAGE_KEY] || [];
+
+        const index = items.findIndex(i => i.text === text && i.translation === translation);
+        if (index === -1) {
+            return false;
+        }
+
+        // Merge updates into the item
+        items[index] = { ...items[index], ...updates };
+
+        await chrome.storage.local.set({ [this.STORAGE_KEY]: items });
+        return true;
+    }
 }
 
 // Make it available globally

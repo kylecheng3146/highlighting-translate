@@ -71,4 +71,30 @@ describe('StorageService', () => {
         expect(await service.isStarred('a', 'A')).toBe(true);
         expect(await service.isStarred('b', 'B')).toBe(false);
     });
+
+    test('updateSRSStatus should update fields without changing order', async () => {
+        const items = [
+            { text: 'a', translation: 'A', nextReview: 0 },
+            { text: 'b', translation: 'B', nextReview: 0 }
+        ];
+        chrome.storage.local.get.mockResolvedValue({ savedTranslations: items });
+
+        const updates = { nextReview: 1000, interval: 2 };
+        const result = await service.updateSRSStatus('b', 'B', updates);
+
+        expect(result).toBe(true);
+        expect(chrome.storage.local.set).toHaveBeenCalledWith({
+            savedTranslations: [
+                { text: 'a', translation: 'A', nextReview: 0 },
+                { text: 'b', translation: 'B', nextReview: 1000, interval: 2 }
+            ]
+        });
+    });
+
+    test('updateSRSStatus should return false if item not found', async () => {
+        chrome.storage.local.get.mockResolvedValue({ savedTranslations: [] });
+        const result = await service.updateSRSStatus('x', 'X', {});
+        expect(result).toBe(false);
+        expect(chrome.storage.local.set).not.toHaveBeenCalled();
+    });
 });
