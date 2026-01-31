@@ -7,7 +7,7 @@
     - [ ] 產生德語 (de) 的 UI 翻譯文本
     - [ ] 產生越南語 (vi) 的 UI 翻譯文本
     - [ ] 更新 `I18nService.js` 載入或包含新的語系定義
-- [ ] Task: 強化語言偵測 - 更新 TranslationService
+- [x] Task: 強化語言偵測 - 更新 TranslationService c53e48d
     - [ ] 為 `TranslationService.js` 編寫測試案例，加入德語與越南語的樣本文字，驗證偵測失敗（TDD Red Phase）
     - [ ] 實作 `detectLanguage` 中的德語正則表達式偵測
     - [ ] 實作 `detectLanguage` 中的越南語正則表達式偵測
