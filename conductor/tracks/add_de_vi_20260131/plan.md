@@ -17,7 +17,7 @@
 ## Phase 2: UI 與整合 (UI & Integration)
 本階段將更新使用者介面並整合所有功能。
 
-- [ ] Task: 更新 Popup UI 選單
+- [x] Task: 更新 Popup UI 選單 53fec36
     - [ ] 修改 `popup.html`，在 Source 和 Target 下拉選單中新增 `de` 和 `vi` 選項
     - [ ] 驗證 `popup.js` 是否需要修改以支援新選項（預計無，但需確認儲存/讀取邏輯）
 - [ ] Task: 整合驗收測試
