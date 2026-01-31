@@ -1,6 +1,6 @@
 # 實作計畫：新增德語與越南語支援
 
-## Phase 1: 核心邏輯擴充 (Core Logic Extension)
+## Phase 1: 核心邏輯擴充 (Core Logic Extension) [checkpoint: 72a47b4]
 本階段專注於後端邏輯的更新，確保服務層能夠正確處理新語言。
 
 - [x] Task: 建立基礎設施 - 更新 I18nService 以支援新語言 9c65c23
@@ -12,7 +12,7 @@
     - [ ] 實作 `detectLanguage` 中的德語正則表達式偵測
     - [ ] 實作 `detectLanguage` 中的越南語正則表達式偵測
     - [ ] 驗證測試通過 (Green Phase)
-- [ ] Task: Conductor - User Manual Verification 'Core Logic Extension' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Core Logic Extension' (Protocol in workflow.md) 72a47b4
 
 ## Phase 2: UI 與整合 (UI & Integration)
 本階段將更新使用者介面並整合所有功能。
