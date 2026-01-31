@@ -12,6 +12,8 @@
 
 ## 擴充功能元件
 - **Content Scripts**: `content.js` (負責網頁文字偵測、DOM 操作與彈出視窗顯示，使用 Shadow DOM 進行樣式隔離)
+- **高亮引擎**: `HighlightService` (利用 TreeWalker API 與 RegExp 進行高效網頁內容掃描與高亮處理)
+- **互動組件**: `TooltipService` (動態管理高亮單字的譯文提示氣泡)
 - **Background Service Worker**: `background.js` (處理背景任務與擴充功能生命週期)
 - **Popup**: `popup.html`, `popup.js` (提供擴充功能設定介面)
 
