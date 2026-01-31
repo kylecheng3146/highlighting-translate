@@ -16,4 +16,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: 專案審查與迭代規劃**
 *Link: [./tracks/project_audit_20260120/](./tracks/project_audit_20260120/)*
 
+---
+
+- [~] **Track: 新增德語與越南語支援**
+*Link: [./tracks/add_de_vi_20260131/](./tracks/add_de_vi_20260131/)*
+
 
