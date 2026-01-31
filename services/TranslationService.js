@@ -13,12 +13,18 @@ class TranslationService {
         const japaneseChars = /[\u3040-\u309f\u30a0-\u30ff]/g;
         // Korean Hangul
         const koreanChars = /[\uac00-\ud7af]/g;
+        // German specific chars
+        const germanChars = /[äöüßÄÖÜ]/;
+        // Vietnamese specific chars
+        const vietnameseChars = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/;
         // English
         const englishChars = /[a-zA-Z]/g;
         
         // Check for specific scripts first to avoid misidentifying Kanji as Chinese
         if (japaneseChars.test(text)) return 'ja';
         if (koreanChars.test(text)) return 'ko';
+        if (vietnameseChars.test(text)) return 'vi';
+        if (germanChars.test(text)) return 'de';
 
         const chineseTraditionalChars = /[\u4e00-\u9fff]/g;
         const traditionalOnlyChars = /[豐併佈閒與會過於陣險離復讓貓體發這測]/g;

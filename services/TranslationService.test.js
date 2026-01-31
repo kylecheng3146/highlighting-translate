@@ -32,6 +32,18 @@ describe('TranslationService', () => {
             expect(service.detectLanguage('Hello World')).toBe('en');
         });
 
+        test('should detect German', () => {
+            expect(service.detectLanguage('Schönheit')).toBe('de');
+            expect(service.detectLanguage('Groß')).toBe('de');
+            expect(service.detectLanguage('Käse')).toBe('de');
+        });
+
+        test('should detect Vietnamese', () => {
+            expect(service.detectLanguage('Xin chào')).toBe('vi');
+            expect(service.detectLanguage('Tiếng Việt')).toBe('vi');
+            expect(service.detectLanguage('Phở')).toBe('vi');
+        });
+
         test('should return auto for unknown characters', () => {
             expect(service.detectLanguage('123456')).toBe('auto');
             expect(service.detectLanguage('!!!')).toBe('auto');
