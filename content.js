@@ -139,26 +139,39 @@ function injectStyles(root) {
     style.id = 'highlighting-translate-styles';
     style.textContent = `
         :host {
+            --ht-primary: #f5b041;
+            --ht-primary-hover: #d68910;
+            --ht-bg: rgba(255, 255, 255, 0.95);
+            --ht-text: #333;
+            --ht-text-secondary: #666;
+            --ht-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            --ht-radius: 12px;
+            --ht-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --ht-anim-duration: 0.25s;
+            --ht-anim-ease: cubic-bezier(0.4, 0.0, 0.2, 1);
             all: initial; /* Reset all inherited styles */
         }
         .ht-popup {
             position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 12px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            background: var(--ht-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: var(--ht-radius);
+            padding: 16px;
+            box-shadow: var(--ht-shadow);
             z-index: 2147483647;
             display: none;
             opacity: 0;
             transform: translateY(10px);
-            transition: opacity 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            max-width: 350px;
-            min-width: 200px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            transition: opacity var(--ht-anim-duration) var(--ht-anim-ease), transform var(--ht-anim-duration) var(--ht-anim-ease);
+            max-width: 380px;
+            min-width: 240px;
+            font-family: var(--ht-font);
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
             box-sizing: border-box;
+            color: var(--ht-text);
         }
         .ht-popup.ht-show {
             opacity: 1;
@@ -167,44 +180,48 @@ function injectStyles(root) {
         .ht-header {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
         .ht-close-btn, .ht-star-btn {
             cursor: pointer;
             color: #999;
-            font-size: 16px;
+            font-size: 18px;
             text-align: center;
-            line-height: 20px;
-            width: 20px;
-            height: 20px;
+            line-height: 24px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s, color 0.2s;
         }
         .ht-close-btn:hover, .ht-star-btn:hover {
-            color: #333;
+            color: var(--ht-text);
+            background-color: rgba(0,0,0,0.05);
         }
         .ht-star-btn svg {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2;
+            transition: fill 0.2s, stroke 0.2s;
         }
         .ht-star-btn.starred svg {
-            fill: #FFD700;
-            stroke: #FFD700;
-            animation: ht-pulse 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            fill: var(--ht-primary);
+            stroke: var(--ht-primary);
+            animation: ht-pulse 0.4s var(--ht-anim-ease);
         }
         @keyframes ht-pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.4); }
+            50% { transform: scale(1.3); }
             100% { transform: scale(1); }
         }
         .ht-content {
-            padding: 0 5px 5px 5px;
+            padding: 0 4px 4px 4px;
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
@@ -213,83 +230,102 @@ function injectStyles(root) {
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            padding: 10px;
+            padding: 20px;
+            width: 100%;
         }
         .ht-loading-text {
-            color: #666;
+            color: var(--ht-text-secondary);
+            font-size: 13px;
         }
         .ht-translation-text {
-            color: #000; 
+            color: var(--ht-text); 
             font-weight: 500; 
             word-wrap: break-word; 
-            font-size: 15px;
+            font-size: 16px;
             flex: 1;
+            line-height: 1.5;
         }
         .ht-floating-play-btn {
             position: absolute;
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             background: white;
-            border: 1px solid #ddd;
+            border: 1px solid rgba(0,0,0,0.1);
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             z-index: 2147483647;
             display: none;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s, background-color 0.2s;
+            transition: transform 0.2s var(--ht-anim-ease), background-color 0.2s;
         }
         .ht-floating-play-btn:hover {
-            transform: scale(1.1);
-            background-color: #f0f0f0;
+            transform: scale(1.1) translateY(-1px);
+            background-color: #fafafa;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
         }
         .ht-floating-play-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: #999;
-        }
-        .ht-play-btn {
-            display: none; /* Hide old play button in popup if it exists */
+            width: 22px;
+            height: 22px;
+            fill: var(--ht-text-secondary);
+            margin-left: 2px; /* Visual optical alignment */
         }
         .ht-toast {
             position: absolute;
-            bottom: 10px;
+            bottom: 16px;
             left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
+            transform: translateX(-50%) translateY(10px);
+            background: rgba(30, 30, 30, 0.9);
             color: white;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.3s, transform 0.3s;
             z-index: 100;
+            white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         .ht-toast.show {
             opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
         mark.ht-highlight {
-            background-color: rgba(255, 235, 59, 0.4); /* Soft yellow */
+            background: linear-gradient(120deg, rgba(245, 176, 65, 0.3) 0%, rgba(245, 176, 65, 0.5) 100%);
+            border-bottom: 2px solid rgba(245, 176, 65, 0.6);
             color: inherit;
             cursor: help;
-            border-radius: 2px;
+            border-radius: 3px;
             padding: 0 2px;
+            transition: background 0.2s;
+        }
+        mark.ht-highlight:hover {
+            background: rgba(245, 176, 65, 0.6);
         }
         .ht-tooltip {
             position: absolute;
-            background: #333;
+            background: rgba(40, 44, 52, 0.95);
+            backdrop-filter: blur(4px);
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: var(--ht-font);
             z-index: 2147483647;
             pointer-events: none;
             display: none;
-            max-width: 200px;
+            max-width: 240px;
             word-wrap: break-word;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(5px);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .ht-tooltip.ht-show {
+            opacity: 1;
+            transform: translateY(0);
         }
     `;
     root.appendChild(style);
@@ -306,7 +342,7 @@ async function checkIsStarred(text, translation) {
 }
 
 // Toggle Star/Save
-async function toggleStar(text, translation, sourceLang, targetLang) {
+async function toggleStar(text, translation, sourceLang, targetLang, context = null) {
     try {
         const currentlyStarred = await storageService.isStarred(text, translation);
         
@@ -320,6 +356,7 @@ async function toggleStar(text, translation, sourceLang, targetLang) {
                 sourceLang,
                 targetLang,
                 sourceUrl: window.location.href,
+                context, 
                 timestamp: Date.now()
             });
             isStarred = true;
@@ -328,7 +365,7 @@ async function toggleStar(text, translation, sourceLang, targetLang) {
         return isStarred;
     } catch (e) {
         console.error('Error saving translation', e);
-        return false;
+        throw e; // Propagate error to be handled by caller
     }
 }
 
@@ -373,10 +410,22 @@ function createTranslatePopup() {
     return host;
 }
 
+// Helper for safe message passing
+async function sendMessageSafe(message) {
+    try {
+        return await chrome.runtime.sendMessage(message);
+    } catch (error) {
+        if (error.message && error.message.includes('Extension context invalidated')) {
+            throw new Error('擴充功能已更新，請重新整理頁面 (Extension updated, please reload page)');
+        }
+        throw error;
+    }
+}
+
 // 播放語音
 function playTTS(text, lang) {
     if (!text) return;
-    chrome.runtime.sendMessage({
+    sendMessageSafe({
         action: 'playTTS',
         text: text,
         lang: lang
@@ -399,6 +448,59 @@ function showToast(message) {
 
 // 顯示 Tooltip
 
+
+// Helper to get sentence context
+function getSentenceContext(range) {
+    if (!range) return null;
+    
+    // Simple implementation: Expand to block boundaries or punctuation
+    // This is a heuristic and might need refinement
+    try {
+        let container = range.commonAncestorContainer;
+        if (container.nodeType === 3) { // Text node
+            container = container.parentNode;
+        }
+        
+        // Get the full text content of the block
+        // We limit to the nearest block element to avoid grabbing the whole page
+        let block = container;
+        while (block && window.getComputedStyle(block).display === 'inline') {
+             block = block.parentElement;
+        }
+        if (!block) block = container;
+
+        let fullText = block.innerText || block.textContent;
+        // Clean up whitespace
+        fullText = fullText.replace(/\s+/g, ' ').trim();
+        
+        // Find the selected text within the full text
+        const selectedText = range.toString().trim();
+        if (!selectedText) return null;
+
+        // Escape regex special characters in selectedText
+        const escapedSelection = selectedText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Find match position (simple approach)
+        // Note: This relies on the text being unique enough or just taking the first match in the block.
+        // For a more robust solution, we'd strictly follow DOM nodes, but that's complex.
+        // Let's try to match surrounding sentence.
+        
+        const sentenceRegex = new RegExp(`([^.?!]*${escapedSelection}[^.?!]*[.?!]?)`, 'i');
+        const match = fullText.match(sentenceRegex);
+        
+        if (match) {
+            let sentence = match[0].trim();
+            // Cap length
+            if (sentence.length > 300) {
+                 return sentence.substring(0, 300) + '...';
+            }
+            return sentence;
+        }
+        return null;
+    } catch (e) {
+        console.error('Error getting context', e);
+        return null; // Fail gracefully
+    }
+}
 
 // 顯示翻譯視窗
 async function showTranslatePopup(text, rect) {
@@ -491,7 +593,7 @@ async function showTranslatePopup(text, rect) {
 
     // 獲取翻譯
     try {
-        const response = await chrome.runtime.sendMessage({
+        const response = await sendMessageSafe({
             action: 'TRANSLATE',
             text: text,
             sourceLang: settings.sourceLang,
@@ -503,6 +605,17 @@ async function showTranslatePopup(text, rect) {
         }
         const translation = response.data;
         lastTranslationResult = translation;
+        
+        // Context Capture
+        let context = null;
+        // Try to get context from the current selection if it matches the text
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            if (selection.toString().trim() === text) {
+                 context = getSentenceContext(range);
+            }
+        }
         
         // Check if already starred
         isStarred = await checkIsStarred(text, translation);
@@ -519,6 +632,7 @@ async function showTranslatePopup(text, rect) {
           </div>
           <div class="ht-content">
             <div class="ht-translation-text">${translation}</div>
+            ${context ? `<div class="ht-context-preview" style="display:none;">${context}</div>` : ''} 
           </div>
         `;
         
@@ -528,7 +642,8 @@ async function showTranslatePopup(text, rect) {
         const starBtn = contentContainer.querySelector('.ht-star-btn');
         starBtn.onclick = async () => {
              try {
-                 const newState = await toggleStar(text, translation, settings.sourceLang, settings.targetLang);
+                 // Pass context to toggleStar
+                 const newState = await toggleStar(text, translation, settings.sourceLang, settings.targetLang, context);
                  if (newState) {
                      starBtn.classList.add('starred');
                      showToast('已收藏');
@@ -676,6 +791,7 @@ if (typeof module !== 'undefined' && module.exports) {
         showTranslatePopup,
         hideTranslatePopup,
         playTTS,
+        getSentenceContext,
         updateLocalSettings: (newSettings) => { settings = { ...settings, ...newSettings }; }
     };
 }

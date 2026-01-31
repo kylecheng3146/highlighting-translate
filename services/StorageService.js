@@ -5,7 +5,8 @@ class StorageService {
     constructor() {
         this.STORAGE_KEY = 'savedTranslations';
         // Check if we are in the Service Worker context
-        this.isBackground = (typeof self !== 'undefined' && self.ServiceWorkerGlobalScope === true) || StorageService.forceBackgroundMode;
+        // In actual Service Worker, ServiceWorkerGlobalScope is a global function/constructor
+        this.isBackground = (typeof self !== 'undefined' && typeof ServiceWorkerGlobalScope !== 'undefined' && self instanceof ServiceWorkerGlobalScope) || StorageService.forceBackgroundMode;
         this.cache = null; // In-memory cache for Host mode
     }
 
@@ -16,11 +17,18 @@ class StorageService {
         if (this.isBackground) {
             throw new Error('Internal Error: _request called in background context');
         }
-        const response = await chrome.runtime.sendMessage({ action, ...data });
-        if (!response || !response.success) {
-            throw new Error(response ? response.error : 'Request failed');
+        try {
+            const response = await chrome.runtime.sendMessage({ action, ...data });
+            if (!response || !response.success) {
+                throw new Error(response ? response.error : 'Request failed');
+            }
+            return response.data;
+        } catch (error) {
+            if (error.message && error.message.includes('Extension context invalidated')) {
+                throw new Error('擴充功能已更新，請重新整理頁面 (Extension updated, please reload page)');
+            }
+            throw error;
         }
-        return response.data;
     }
 
     /**

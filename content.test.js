@@ -241,4 +241,59 @@ describe('content.js Shadow DOM', () => {
             lang: 'en' // Detected from 'Original Text'
         });
     });
+
+    test('should handle Extension context invalidated error gracefully', async () => {
+        // Mock sendMessage to throw the specific error
+        chrome.runtime.sendMessage.mockRejectedValue(new Error('Extension context invalidated'));
+        
+        // We can't access sendMessageSafe directly as it's not exported, 
+        // but we can test it via playTTS or showTranslatePopup which uses it.
+        
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        
+        // Test via playTTS
+        content.playTTS('test', 'en');
+        
+        // Allow microtasks to run
+        await new Promise(resolve => setTimeout(resolve, 0));
+        
+        expect(consoleSpy).toHaveBeenCalledWith(
+            'Error sending TTS message:', 
+            expect.objectContaining({ message: expect.stringContaining('擴充功能已更新') })
+        );
+        
+        consoleSpy.mockRestore();
+    });
+    
+    test('should show correct feedback when saveTranslation fails', async () => {
+        const host = content.createTranslatePopup();
+        const popup = host.shadowRoot.getElementById('translate-popup');
+        
+        // Mock sendMessage: 
+        // 1. IS_STARRED -> false (not starred initially)
+        // 2. SAVE -> fails
+        const sendMessageMock = jest.fn()
+            .mockResolvedValueOnce({success: true, data: 'Translated'}) // TRANSLATE
+            .mockResolvedValueOnce({success: true, data: false}) // IS_STARRED check
+            .mockResolvedValueOnce({success: false, error: 'Storage Error'}); // SAVE fails
+
+        global.chrome.runtime.sendMessage = sendMessageMock;
+
+        // Show popup
+        await content.showTranslatePopup('test', { left: 0, top: 0, bottom: 0, width: 0, height: 0 });
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        const starBtn = host.shadowRoot.getElementById('translate-popup').querySelector('.ht-star-btn');
+        const toast = host.shadowRoot.getElementById('ht-toast');
+        
+        // Click star
+        starBtn.click();
+        await new Promise(resolve => setTimeout(resolve, 0)); // Allow async callbacks
+
+        // With fixed logic, toggleStar throws, so the catch block in onclick should trigger.
+        // showToast('儲存失敗');
+        
+        expect(toast.textContent).toBe('儲存失敗'); 
+        // This confirms the fix: user sees "Save Failed" 
+    });
 });
