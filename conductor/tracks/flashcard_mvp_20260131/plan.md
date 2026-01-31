@@ -9,7 +9,7 @@
 - [x] Task: 撰寫單元測試驗證 SRS 排程邏輯
 - [x] Task: Conductor - User Manual Verification '基礎架構與 SRS 邏輯' (Protocol in workflow.md)
 
-## Phase 2: 閃卡 UI 實作
+## Phase 2: 閃卡 UI 實作 [checkpoint: 0b652a3]
 
 開發使用者互動介面。
 
