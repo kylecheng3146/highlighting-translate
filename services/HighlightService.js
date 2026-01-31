@@ -1,6 +1,8 @@
 class HighlightService {
     constructor() {
         this.minWordLength = 3;
+        this.maxHighlights = 100;
+        this.highlightCount = 0;
     }
 
     /**
@@ -10,6 +12,8 @@ class HighlightService {
      */
     scanAndHighlight(rootElement, vocabularyList) {
         if (!vocabularyList || vocabularyList.length === 0) return;
+
+        this.highlightCount = 0;
 
         // Create a map for faster lookup: text -> translation
         const vocabMap = new Map();
@@ -27,10 +31,14 @@ class HighlightService {
             {
                 acceptNode: (node) => {
                     // Skip script, style, and already highlighted nodes
-                    if (['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT'].includes(node.parentNode.tagName)) {
+                    const parent = node.parentNode;
+                    if (!parent) return NodeFilter.FILTER_REJECT;
+                    
+                    const tagName = parent.tagName;
+                    if (['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT'].includes(tagName)) {
                         return NodeFilter.FILTER_REJECT;
                     }
-                    if (node.parentNode.classList.contains('ht-highlight')) {
+                    if (parent.classList.contains('ht-highlight')) {
                         return NodeFilter.FILTER_REJECT;
                     }
                     return NodeFilter.FILTER_ACCEPT;
@@ -45,10 +53,42 @@ class HighlightService {
             currentNode = walker.nextNode();
         }
 
-        // Process nodes
-        nodesToHighlight.forEach(node => {
-            this.highlightNode(node, vocabMap);
-        });
+        // Process nodes in chunks to avoid blocking
+        this.processChunks(nodesToHighlight, vocabMap);
+    }
+
+    /**
+     * Processes text nodes in chunks using requestIdleCallback if available.
+     */
+    processChunks(nodes, vocabMap) {
+        let index = 0;
+        const CHUNK_SIZE = 50;
+
+        const process = (deadline) => {
+            while (index < nodes.length && (deadline ? deadline.timeRemaining() > 0 : true)) {
+                const chunkEnd = Math.min(index + CHUNK_SIZE, nodes.length);
+                for (; index < chunkEnd; index++) {
+                    if (this.highlightCount >= this.maxHighlights) return;
+                    this.highlightNode(nodes[index], vocabMap);
+                }
+                
+                if (this.highlightCount >= this.maxHighlights) return;
+            }
+
+            if (index < nodes.length) {
+                if (window.requestIdleCallback) {
+                    window.requestIdleCallback(process);
+                } else {
+                    setTimeout(() => process(), 10);
+                }
+            }
+        };
+
+        if (window.requestIdleCallback) {
+            window.requestIdleCallback(process);
+        } else {
+            process();
+        }
     }
 
     /**
@@ -86,6 +126,8 @@ class HighlightService {
         regex.lastIndex = 0;
 
         while ((match = regex.exec(text)) !== null) {
+            if (this.highlightCount >= this.maxHighlights) break;
+
             const matchedText = match[0];
             const matchIndex = match.index;
 
@@ -101,6 +143,7 @@ class HighlightService {
             mark.dataset.translation = vocabMap.get(matchedText.toLowerCase());
             fragment.appendChild(mark);
 
+            this.highlightCount++;
             lastIndex = regex.lastIndex;
         }
 
