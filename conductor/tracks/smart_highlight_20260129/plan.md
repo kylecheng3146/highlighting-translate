@@ -46,8 +46,8 @@
 - [x] Task: Optimization 05147c8
   - [x] Implement `requestIdleCallback` or chunking for highlighting to avoid blocking main thread 05147c8
   - [x] Limit max highlights per page (e.g., 100) 05147c8
-- [~] Task: Final Regression Test
-  - [ ] Verify core translation function still works
-  - [ ] Verify History page still works
-  - [ ] Verify highlighting behaves correctly on complex sites
+- [x] Task: Final Regression Test a5abbec
+  - [x] Verify core translation function still works a5abbec
+  - [x] Verify History page still works a5abbec
+  - [x] Verify highlighting behaves correctly on complex sites a5abbec
 - [ ] Task: Conductor - User Manual Verification 'Final Polish & Optimization' (Protocol in workflow.md)
