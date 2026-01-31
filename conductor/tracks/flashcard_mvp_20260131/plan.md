@@ -1,13 +1,13 @@
 # 實作計畫：Flashcard MVP
 
-## Phase 1: 基礎架構與 SRS 邏輯
+## Phase 1: 基礎架構與 SRS 邏輯 [checkpoint: c2384a8]
 
 建立資料結構與核心運算邏輯。
 
 - [x] Task: 設計並實作 `SRSService` (SM-2 演算法實作)
 - [x] Task: 擴充 `StorageService` 支援 SRS 欄位 (`nextReview`, `interval`, etc.)
 - [x] Task: 撰寫單元測試驗證 SRS 排程邏輯
-- [ ] Task: Conductor - User Manual Verification '基礎架構與 SRS 邏輯' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification '基礎架構與 SRS 邏輯' (Protocol in workflow.md)
 
 ## Phase 2: 閃卡 UI 實作
 
