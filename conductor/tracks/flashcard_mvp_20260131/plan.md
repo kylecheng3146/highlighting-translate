@@ -23,6 +23,7 @@
 
 整合入口並優化體驗。
 
-- [ ] Task: 在 Popup / Options 增加「開始複習」入口
-- [ ] Task: 實作「今日複習完成」結束畫面 (Summary View)
-- [ ] Task: Conductor - User Manual Verification '整合與優化' (Protocol in workflow.md)
+- [x] Task: 在 Popup / Options 增加「開始複習 (Review Mode)」入口
+- [x] Task: 實作「今日複習完成」結束畫面 (Summary View)
+- [x] Task: 整合 `manifest.json` 與建置設定 (如有需要)
+- [x] Task: Conductor - User Manual Verification '整合與優化' (Protocol in workflow.md)

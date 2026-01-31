@@ -200,4 +200,11 @@ document.addEventListener('DOMContentLoaded', () => {
              chrome.tabs.create({ url: 'history.html' });
         });
     }
+
+    const reviewBtn = document.getElementById('reviewBtn');
+    if (reviewBtn) {
+        reviewBtn.addEventListener('click', () => {
+            chrome.tabs.create({ url: 'review.html' });
+        });
+    }
 });

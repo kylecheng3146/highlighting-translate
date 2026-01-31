@@ -25,7 +25,8 @@ class I18nService {
                 "enableHighlightLabel": "Smart Highlight",
                 "enableHighlightDesc": "Highlight saved words in web pages",
                 "blacklistBtn": "Disable for this site",
-                "whitelistBtn": "Enable for this site"
+                "whitelistBtn": "Enable for this site",
+                "reviewBtn": "Start Review"
             },
             "zh-CN": {
                 "settingsTitle": "翻译设置",
@@ -51,7 +52,8 @@ class I18nService {
                 "enableHighlightLabel": "智能高亮",
                 "enableHighlightDesc": "在网页中自动高亮已收藏的单词",
                 "blacklistBtn": "在此网站禁用",
-                "whitelistBtn": "在此网站启用"
+                "whitelistBtn": "在此网站启用",
+                "reviewBtn": "开始复习"
             },
             "zh-TW": {
                 "settingsTitle": "翻譯設定",
@@ -77,7 +79,8 @@ class I18nService {
                 "enableHighlightLabel": "智能高亮",
                 "enableHighlightDesc": "在網頁中自動高亮已收藏的單字",
                 "blacklistBtn": "在此網站禁用",
-                "whitelistBtn": "在此網站啟用"
+                "whitelistBtn": "在此網站啟用",
+                "reviewBtn": "開始複習"
             },
             "ja": {
                 "settingsTitle": "翻訳設定",
@@ -103,7 +106,8 @@ class I18nService {
                 "enableHighlightLabel": "自動ハイライト",
                 "enableHighlightDesc": "保存した単語をページ内でハイライト表示",
                 "blacklistBtn": "このサイトで無効にする",
-                "whitelistBtn": "このサイトで有効にする"
+                "whitelistBtn": "このサイトで有効にする",
+                "reviewBtn": "復習開始"
             },
             "ko": {
                 "settingsTitle": "번역 설정",
@@ -129,7 +133,8 @@ class I18nService {
                 "enableHighlightLabel": "스마트 하이라이트",
                 "enableHighlightDesc": "저장된 단어를 페이지에서 하이라이트",
                 "blacklistBtn": "이 사이트에서 비활성화",
-                "whitelistBtn": "이 사이트에서 활성화"
+                "whitelistBtn": "이 사이트에서 활성화",
+                "reviewBtn": "복습 시작"
             },
             "es": {
                 "settingsTitle": "Configuración de traducción",
@@ -155,7 +160,8 @@ class I18nService {
                 "enableHighlightLabel": "Resaltado inteligente",
                 "enableHighlightDesc": "Resaltar palabras guardadas en las páginas",
                 "blacklistBtn": "Desactivar para este sitio",
-                "whitelistBtn": "Activar para este sitio"
+                "whitelistBtn": "Activar para este sitio",
+                "reviewBtn": "Iniciar repaso"
             },
             "fr": {
                 "settingsTitle": "Paramètres de traduction",
@@ -181,7 +187,8 @@ class I18nService {
                 "enableHighlightLabel": "Surlignage intelligent",
                 "enableHighlightDesc": "Surligner les mots enregistrés",
                 "blacklistBtn": "Désactiver pour ce site",
-                "whitelistBtn": "Activer pour ce site"
+                "whitelistBtn": "Activer pour ce site",
+                "reviewBtn": "Commencer la révision"
             },
             "de": {
                 "settingsTitle": "Übersetzungseinstellungen",
@@ -207,7 +214,8 @@ class I18nService {
                 "enableHighlightLabel": "Smart Highlight",
                 "enableHighlightDesc": "Gespeicherte Wörter in Seiten hervorheben",
                 "blacklistBtn": "Für diese Seite deaktivieren",
-                "whitelistBtn": "Für diese Seite aktivieren"
+                "whitelistBtn": "Für diese Seite aktivieren",
+                "reviewBtn": "Überprüfung starten"
             },
             "vi": {
                 "settingsTitle": "Cài đặt Dịch",
@@ -233,7 +241,8 @@ class I18nService {
                 "enableHighlightLabel": "Làm nổi bật thông minh",
                 "enableHighlightDesc": "Làm nổi bật các từ đã lưu trên trang web",
                 "blacklistBtn": "Vô hiệu hóa trang này",
-                "whitelistBtn": "Kích hoạt trang này"
+                "whitelistBtn": "Kích hoạt trang này",
+                "reviewBtn": "Bắt đầu ôn tập"
             }
         };
     }
