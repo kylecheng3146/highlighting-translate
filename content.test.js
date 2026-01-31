@@ -24,6 +24,8 @@ const StorageService = require('./services/StorageService');
 global.StorageService = StorageService;
 const HighlightService = require('./services/HighlightService');
 global.HighlightService = HighlightService;
+const TooltipService = require('./services/TooltipService');
+global.TooltipService = TooltipService;
 
 const content = require('./content.js');
 const { createTranslatePopup, showTranslatePopup } = content;

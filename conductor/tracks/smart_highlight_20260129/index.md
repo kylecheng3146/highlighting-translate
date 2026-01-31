@@ -1,4 +1,4 @@
-# Track vocab_history_mvp_20260129 Context
+# Track smart_highlight_20260129 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

@@ -46,7 +46,7 @@
 - [x] Task: Optimization 05147c8
   - [x] Implement `requestIdleCallback` or chunking for highlighting to avoid blocking main thread 05147c8
   - [x] Limit max highlights per page (e.g., 100) 05147c8
-- [ ] Task: Final Regression Test
+- [~] Task: Final Regression Test
   - [ ] Verify core translation function still works
   - [ ] Verify History page still works
   - [ ] Verify highlighting behaves correctly on complex sites

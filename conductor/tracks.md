@@ -16,3 +16,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: 專案審查與迭代規劃**
 *Link: [./tracks/project_audit_20260120/](./tracks/project_audit_20260120/)*
 
+
+---
+
+- [~] **Track: 網頁單字自動高亮 (Smart Context Highlight)**
+*Link: [./tracks/smart_highlight_20260129/](./tracks/smart_highlight_20260129/)*
