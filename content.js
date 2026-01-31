@@ -491,7 +491,17 @@ async function showTranslatePopup(text, rect) {
 
     // 獲取翻譯
     try {
-        const translation = await translationService.translate(text, settings.sourceLang, settings.targetLang);
+        const response = await chrome.runtime.sendMessage({
+            action: 'TRANSLATE',
+            text: text,
+            sourceLang: settings.sourceLang,
+            targetLang: settings.targetLang
+        });
+        
+        if (!response || !response.success) {
+            throw new Error(response ? response.error : 'Translation failed');
+        }
+        const translation = response.data;
         lastTranslationResult = translation;
         
         // Check if already starred

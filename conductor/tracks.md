@@ -22,5 +22,8 @@ _Link: [./conductor/tracks/tts_support_20260114/](./conductor/tracks/tts_support
 
 ---
 
-- [ ] **Track: Flashcard MVP & Basic SRS**
+- [x] **Track: Flashcard MVP & Basic SRS**
       _Link: [./tracks/flashcard_mvp_20260131/](./tracks/flashcard_mvp_20260131/)_
+
+- [ ] **Track: Refactor MV3 Architecture**
+      _Link: [./tracks/refactor_mv3_20260131/](./tracks/refactor_mv3_20260131/)_

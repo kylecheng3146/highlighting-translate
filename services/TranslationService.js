@@ -121,7 +121,12 @@ class TranslationService {
 }
 
 // Make it available globally
-window.TranslationService = TranslationService;
+// Make it available globally
+if (typeof window !== 'undefined') {
+    window.TranslationService = TranslationService;
+} else if (typeof self !== 'undefined') {
+    self.TranslationService = TranslationService;
+}
 
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {

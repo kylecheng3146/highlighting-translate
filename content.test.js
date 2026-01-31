@@ -14,7 +14,8 @@ global.chrome = {
     runtime: {
         onMessage: {
             addListener: jest.fn(),
-        }
+        },
+        sendMessage: jest.fn().mockResolvedValue({success: true, data: 'default mock'})
     }
 };
 
@@ -61,7 +62,8 @@ describe('content.js Shadow DOM', () => {
             runtime: {
                 onMessage: {
                     addListener: jest.fn((listener) => { onMessageListener = listener; }),
-                }
+                },
+                sendMessage: jest.fn().mockResolvedValue({success: true, data: 'default mock'})
             }
         };
         
@@ -140,11 +142,41 @@ describe('content.js Shadow DOM', () => {
         // Since playTTS is exported for testing, we can call it directly.
         content.playTTS('hello', 'en');
 
-        expect(sendMessageMock).toHaveBeenCalledWith({
+        expect(sendMessageMock).toHaveBeenCalledWith(expect.objectContaining({
             action: 'playTTS',
             text: 'hello',
             lang: 'en'
+        }));
+    });
+
+    test('should call TRANSLATE message and show result', async () => {
+        const host = content.createTranslatePopup();
+        const popup = host.shadowRoot.getElementById('translate-popup');
+        const contentContainer = host.shadowRoot.getElementById('ht-content-container');
+        
+        // Mock sendMessage for TRANSLATE
+        const sendMessageMock = jest.fn().mockImplementation((message) => {
+            if (message.action === 'TRANSLATE') {
+                return Promise.resolve({success: true, data: 'Translated Text'});
+            }
+            if (message.action === 'playTTS') {
+                return Promise.resolve({success: true});
+            }
+            return Promise.resolve({success: false});
         });
+        global.chrome.runtime.sendMessage = sendMessageMock;
+
+        // Show popup
+        await content.showTranslatePopup('test', { left: 0, top: 0, bottom: 0, width: 0, height: 0 });
+
+        // Wait for async operations
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(sendMessageMock).toHaveBeenCalledWith(expect.objectContaining({
+            action: 'TRANSLATE',
+            text: 'test'
+        }));
+        expect(contentContainer.innerHTML).toContain('Translated Text');
     });
 
     test('should add play button to popup and trigger playTTS on click', async () => {
