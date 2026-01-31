@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highlighting Translate - Flashcard Review</title>
+    <link rel="stylesheet" href="review.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="progress-container">
+                <div class="progress-text">Daily Goal: <span id="progress-count">0</span>/20</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            <button id="close-btn" class="icon-btn" aria-label="Close">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"></path>
+                </svg>
+            </button>
+        </header>
+
+        <main id="review-area">
+            <div class="card-container">
+                <div class="flashcard" id="flashcard">
+                    <div class="card-face card-front">
+                        <div class="card-content">
+                            <h2 id="card-source-text">Loading...</h2>
+                            <div class="card-hint">Click or Space to flip</div>
+                        </div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="card-content">
+                            <h2 id="card-target-text"></h2>
+                            <div class="card-details" id="card-details">
+                                <!-- Example sentence or extra info -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls" id="controls">
+                <div class="flip-controls">
+                    <button id="flip-btn" class="primary-btn">Show Answer (Space)</button>
+                </div>
+                <div class="rating-controls hidden" id="rating-controls">
+                    <button class="rate-btn" data-rating="1" style="--btn-color: #ef4444">
+                        <span class="rate-label">Forget</span>
+                        <span class="rate-time">1m</span>
+                        <span class="rate-key">1</span>
+                    </button>
+                    <button class="rate-btn" data-rating="2" style="--btn-color: #f59e0b">
+                        <span class="rate-label">Hard</span>
+                        <span class="rate-time">2d</span>
+                        <span class="rate-key">2</span>
+                    </button>
+                    <button class="rate-btn" data-rating="3" style="--btn-color: #3b82f6">
+                        <span class="rate-label">Good</span>
+                        <span class="rate-time">4d</span>
+                        <span class="rate-key">3</span>
+                    </button>
+                    <button class="rate-btn" data-rating="4" style="--btn-color: #10b981">
+                        <span class="rate-label">Easy</span>
+                        <span class="rate-time">7d</span>
+                        <span class="rate-key">4</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <div id="summary-area" class="hidden">
+            <div class="summary-content">
+                <h2>🎉 Review Complete!</h2>
+                <p>You've finished your reviews for now.</p>
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="session-count">0</span>
+                        <span class="stat-label">Cards Reviewed</span>
+                    </div>
+                </div>
+                <button id="finish-btn" class="primary-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="services/StorageService.js"></script>
+    <script src="services/SRSService.js"></script>
+    <script src="review.js"></script>
+</body>
+</html>

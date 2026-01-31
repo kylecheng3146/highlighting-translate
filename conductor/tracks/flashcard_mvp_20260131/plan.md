@@ -13,11 +13,11 @@
 
 開發使用者互動介面。
 
-- [ ] Task: 建立 Review Mode 頁面框架 (HTML/CSS)
-- [ ] Task: 實作 Card Component (Front/Back 翻轉動畫)
-- [ ] Task: 整合 `SRSService` 與介面互動 (評分按鈕串接)
-- [ ] Task: 加入鍵盤快捷鍵支援 (Space, 1-4)
-- [ ] Task: Conductor - User Manual Verification '閃卡 UI 實作' (Protocol in workflow.md)
+- [x] Task: 建立 Review Mode 頁面框架 (HTML/CSS)
+- [x] Task: 實作 Card Component (Front/Back 翻轉動畫)
+- [x] Task: 整合 `SRSService` 與介面互動 (評分按鈕串接)
+- [x] Task: 加入鍵盤快捷鍵支援 (Space, 1-4)
+- [x] Task: Conductor - User Manual Verification '閃卡 UI 實作' (Protocol in workflow.md)
 
 ## Phase 3: 整合與優化
 
