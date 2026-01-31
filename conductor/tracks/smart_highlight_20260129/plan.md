@@ -29,16 +29,16 @@
 
 ## Phase 3: Settings & Controls
 
-- [ ] Task: Update `SettingsService` (or Storage schema)
-  - [ ] Add `enableHighlighting` (boolean)
-  - [ ] Add `domainBlacklist` (array of strings)
-- [ ] Task: Update Popup UI
-  - [ ] Add toggle switch for "Smart Highlight" in `popup.html`
-  - [ ] Add "Disable for this site" button in `popup.html` (only visible when on a page)
-- [ ] Task: Integrate Settings with Highlight Logic
-  - [ ] Check `enableHighlighting` before scanning
-  - [ ] Check `domainBlacklist` against `window.location.hostname`
-  - [ ] Listen for setting changes in `content.js` to enable/disable dynamically
+- [x] Task: Update `SettingsService` (or Storage schema) ee23c20
+  - [x] Add `enableHighlighting` (boolean) ee23c20
+  - [x] Add `domainBlacklist` (array of strings) ee23c20
+- [x] Task: Update Popup UI ee23c20
+  - [x] Add toggle switch for "Smart Highlight" in `popup.html` ee23c20
+  - [x] Add "Disable for this site" button in `popup.html` (only visible when on a page) ee23c20
+- [x] Task: Integrate Settings with Highlight Logic ee23c20
+  - [x] Check `enableHighlighting` before scanning ee23c20
+  - [x] Check `domainBlacklist` against `window.location.hostname` ee23c20
+  - [x] Listen for setting changes in `content.js` to enable/disable dynamically ee23c20
 - [ ] Task: Conductor - User Manual Verification 'Settings & Controls' (Protocol in workflow.md)
 
 ## Phase 4: Final Polish & Optimization
