@@ -30,5 +30,5 @@ _Link: [./conductor/tracks/tts_support_20260114/](./conductor/tracks/tts_support
 
 ---
 
-- [~] **Track: Smart Context Cards**
+- [x] **Track: Smart Context Cards**
       _Link: [./tracks/smart_context_cards_20260131/](./tracks/smart_context_cards_20260131/)_
