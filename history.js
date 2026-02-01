@@ -48,9 +48,12 @@ async function loadHistory(reset = true) {
                 <div class="item-content">
                     <div class="original">${escapeHtml(item.text)}</div>
                     <div class="translation">${escapeHtml(item.translation)}</div>
+                    ${item.context ? `<div class="context">"${highlightContext(item.context, item.text)}"</div>` : ''}
                     <div class="meta">
-                        <span>${date}</span>
-                        ${shortUrl ? `<span>•</span><a href="${item.sourceUrl}" target="_blank">${shortUrl}</a>` : ''}
+                        <div class="meta-info">
+                            <span>${date}</span>
+                            ${shortUrl ? `<span>•</span><a href="${item.sourceUrl}" target="_blank">${shortUrl}</a>` : ''}
+                        </div>
                     </div>
                 </div>
                 <button class="delete-btn" title="Delete">×</button>
@@ -92,6 +95,18 @@ async function clearAllHistory() {
         loadHistory(true);
     } catch (error) {
         console.error('Failed to clear history:', error);
+    }
+}
+
+function highlightContext(context, text) {
+    if (!context || !text) return context;
+    
+    try {
+        const escapedText = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedText})`, 'gi');
+        return escapeHtml(context).replace(regex, '<mark>$1</mark>');
+    } catch (e) {
+        return escapeHtml(context);
     }
 }
 
