@@ -299,33 +299,88 @@ function injectStyles(root) {
             cursor: help;
             border-radius: 3px;
             padding: 0 2px;
-            transition: background 0.2s;
+            transition: background 0.2s, border-color 0.2s;
         }
         mark.ht-highlight:hover {
             background: rgba(245, 176, 65, 0.6);
         }
+        /* Frequency Based Highlighting */
+        mark.ht-highlight.hl-freq-high {
+            background: rgba(255, 130, 0, 0.25); /* Bright orange tint */
+            border-bottom: 2px solid rgba(255, 130, 0, 0.8);
+        }
+        mark.ht-highlight.hl-freq-high:hover {
+            background: rgba(255, 130, 0, 0.45);
+        }
+        mark.ht-highlight.hl-freq-mid {
+            background: rgba(245, 176, 65, 0.15); /* Standard yellow tint */
+            border-bottom: 2px solid rgba(245, 176, 65, 0.5);
+        }
+        mark.ht-highlight.hl-freq-low {
+            background: transparent;
+            border-bottom: 1px dashed #adb5bd; /* Subtle gray dashed line */
+        }
+        mark.ht-highlight.hl-freq-low:hover {
+            background: rgba(173, 181, 189, 0.1);
+        }
+
         .ht-tooltip {
             position: absolute;
             background: rgba(40, 44, 52, 0.95);
             backdrop-filter: blur(4px);
             color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border-radius: 8px;
             font-size: 13px;
             font-family: var(--ht-font);
             z-index: 2147483647;
             pointer-events: none;
             display: none;
-            max-width: 240px;
+            max-width: 260px;
             word-wrap: break-word;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             opacity: 0;
             transform: translateY(5px);
             transition: opacity 0.2s, transform 0.2s;
         }
+        .ht-tooltip-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 4px;
+            gap: 12px;
+        }
+        .ht-rank-badge {
+            background: #ff8200;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .ht-rank-badge.level-mid { background: #3498db; }
+        .ht-rank-badge.level-low { background: #7f8c8d; }
+        
+        .ht-tooltip-translation {
+            font-size: 14px;
+            font-weight: 500;
+        }
         .ht-tooltip.ht-show {
             opacity: 1;
             transform: translateY(0);
+        }
+        
+        /* Popup Rank Style */
+        .ht-popup-freq-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: var(--ht-text-secondary);
         }
     `;
     root.appendChild(style);
@@ -617,9 +672,19 @@ async function showTranslatePopup(text, rect) {
             }
         }
         
+        // Fetch frequency info
+        const wordInfo = await storageService.getWordInfo(text);
+
         // Check if already starred
         isStarred = await checkIsStarred(text, translation);
         const starClass = isStarred ? 'starred' : '';
+
+        const freqHtml = wordInfo ? `
+            <div class="ht-popup-freq-info">
+                <span class="ht-rank-badge ${wordInfo.rank <= 3000 ? 'level-high' : (wordInfo.rank <= 10000 ? 'level-mid' : 'level-low')}">#${wordInfo.rank}</span>
+                <span>CEFR: ${wordInfo.level}</span>
+            </div>
+        ` : '';
 
         contentContainer.innerHTML = `
           <div class="ht-header">
@@ -630,7 +695,8 @@ async function showTranslatePopup(text, rect) {
               </div>
               <div class="ht-close-btn">×</div>
           </div>
-          <div class="ht-content">
+          <div class="ht-content" style="flex-direction: column;">
+            ${freqHtml}
             <div class="ht-translation-text">${translation}</div>
             ${context ? `<div class="ht-context-preview" style="display:none;">${context}</div>` : ''} 
           </div>
@@ -760,20 +826,16 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('mouseover', (e) => {
     if (e.target.classList.contains('ht-highlight')) {
         const text = e.target.dataset.translation;
+        const rank = e.target.dataset.rank;
+        const level = e.target.dataset.level;
+        
         if (text) {
             const rect = e.target.getBoundingClientRect();
-            // Ensure tooltip service is initialized if not already (it should be init by loadSettings -> createTranslatePopup if popup shown, 
-            // but we might need to init it earlier if popup was never shown.
-            // Actually createTranslatePopup is called only when showing popup.
-            // We need to ensure we have a host for tooltip.
-            
             let host = document.getElementById('translate-popup-host');
             if (!host) {
                 host = createTranslatePopup();
             }
-            // TooltipService init is called in createTranslatePopup
-            
-            tooltipService.show(text, rect);
+            tooltipService.show(text, rect, rank, level);
         }
     }
 });

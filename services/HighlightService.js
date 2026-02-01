@@ -19,7 +19,12 @@ class HighlightService {
         const vocabMap = new Map();
         vocabularyList.forEach(item => {
             if (item.text && item.text.length >= this.minWordLength) {
-                vocabMap.set(item.text.toLowerCase(), item.translation);
+                const normalized = item.text.toLowerCase();
+                vocabMap.set(normalized, {
+                    translation: item.translation,
+                    rank: item.frequency_rank,
+                    level: item.cefr_level
+                });
             }
         });
 
@@ -105,16 +110,10 @@ class HighlightService {
         const escapedKeys = Array.from(vocabMap.keys()).map(key => key.replace(/[.*+?^${}()|[\\]/g, '\\$&'));
         if (escapedKeys.length === 0) return;
 
-        // Match whole words only (word boundaries), case insensitive
-        // Note: \b doesn't work well with non-ASCII chars like Chinese/Japanese.
-        // For mixed content, we might need a more complex regex or separate logic.
-        // For MVP, assuming mostly space-separated languages or exact matches.
-        // Let's use a simpler approach: replace known terms.
-        
         // Sorting keys by length descending to match longest terms first
         escapedKeys.sort((a, b) => b.length - a.length);
         
-        const regex = new RegExp(`(${escapedKeys.join('|')})`, 'gi');
+        const regex = new RegExp(`\\b(${escapedKeys.join('|')})\\b`, 'gi');
         
         if (!regex.test(text)) return;
 
@@ -137,10 +136,22 @@ class HighlightService {
             }
 
             // Create highlight element
+            const data = vocabMap.get(matchedText.toLowerCase());
             const mark = document.createElement('mark');
             mark.className = 'ht-highlight';
+            
+            // Apply frequency classes
+            if (data.rank) {
+                if (data.rank <= 3000) mark.classList.add('hl-freq-high');
+                else if (data.rank <= 10000) mark.classList.add('hl-freq-mid');
+                else mark.classList.add('hl-freq-low');
+                
+                mark.dataset.rank = data.rank;
+                mark.dataset.level = data.level || '';
+            }
+
             mark.textContent = matchedText;
-            mark.dataset.translation = vocabMap.get(matchedText.toLowerCase());
+            mark.dataset.translation = data.translation;
             fragment.appendChild(mark);
 
             this.highlightCount++;

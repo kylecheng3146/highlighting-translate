@@ -4,10 +4,13 @@
 class StorageService {
     constructor() {
         this.STORAGE_KEY = 'savedTranslations';
+        this.DB_VERSION_KEY = 'db_version';
+        this.CURRENT_VERSION = 2; // Version 2 introduces frequency_rank
         // Check if we are in the Service Worker context
         // In actual Service Worker, ServiceWorkerGlobalScope is a global function/constructor
         this.isBackground = (typeof self !== 'undefined' && typeof ServiceWorkerGlobalScope !== 'undefined' && self instanceof ServiceWorkerGlobalScope) || StorageService.forceBackgroundMode;
         this.cache = null; // In-memory cache for Host mode
+        this.frequencyDb = null;
     }
 
     /**
@@ -32,12 +35,94 @@ class StorageService {
     }
 
     /**
+     * Loads the frequency database from assets
+     */
+    async _loadFrequencyDb() {
+        if (this.frequencyDb) return this.frequencyDb;
+        try {
+            const response = await fetch(chrome.runtime.getURL('assets/frequency_db.json'));
+            this.frequencyDb = await response.json();
+            return this.frequencyDb;
+        } catch (error) {
+            console.error('Failed to load frequency database:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Migration logic for frequency rank
+     */
+    async _migrate() {
+        if (!this.isBackground) return;
+
+        const db = await this._loadFrequencyDb();
+        if (!db) return;
+
+        let migrated = false;
+        this.cache = this.cache.map(item => {
+            if (item.frequency_rank === undefined) {
+                const word = item.text.toLowerCase().trim();
+                if (db[word]) {
+                    item.frequency_rank = db[word];
+                    migrated = true;
+                }
+            }
+            return item;
+        });
+
+        if (migrated) {
+            await chrome.storage.local.set({ [this.STORAGE_KEY]: this.cache });
+        }
+        await chrome.storage.local.set({ [this.DB_VERSION_KEY]: this.CURRENT_VERSION });
+        console.log('Storage migration to v2 complete.');
+    }
+
+    /**
      * Initializes cache if not already loaded (Host mode only)
      */
     async _ensureCache() {
         if (this.cache) return;
-        const data = await chrome.storage.local.get(this.STORAGE_KEY);
-        this.cache = data[this.STORAGE_KEY] || [];
+        const storageData = await chrome.storage.local.get([this.STORAGE_KEY, this.DB_VERSION_KEY]);
+        this.cache = storageData[this.STORAGE_KEY] || [];
+        
+        // Handle migration in background
+        if (this.isBackground) {
+            const version = storageData[this.DB_VERSION_KEY] || 1;
+            if (version < this.CURRENT_VERSION) {
+                await this._migrate();
+            }
+        }
+    }
+
+    /**
+     * Gets frequency info for a word
+     */
+    async getWordInfo(word) {
+        if (!this.isBackground) {
+            return this._request('STORAGE_GET_WORD_INFO', { word });
+        }
+
+        const db = await this._loadFrequencyDb();
+        if (!db) return null;
+
+        const normalized = word.toLowerCase().trim();
+        const rank = db[normalized];
+        
+        if (!rank) return null;
+
+        return {
+            rank,
+            level: this._calculateLevel(rank)
+        };
+    }
+
+    _calculateLevel(rank) {
+        if (rank <= 500) return 'A1';
+        if (rank <= 1000) return 'A2';
+        if (rank <= 2000) return 'B1';
+        if (rank <= 4000) return 'B2';
+        if (rank <= 8000) return 'C1';
+        return 'C2';
     }
 
     /**
@@ -50,6 +135,16 @@ class StorageService {
         }
 
         await this._ensureCache();
+        
+        // Auto-fill frequency rank if missing
+        if (item.frequency_rank === undefined) {
+            const info = await this.getWordInfo(item.text);
+            if (info) {
+                item.frequency_rank = info.rank;
+                item.cefr_level = info.level;
+            }
+        }
+
         let items = this.cache;
         
         // Remove existing if duplicate to move it to the top

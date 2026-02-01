@@ -6,10 +6,59 @@ const PAGE_SIZE = 50;
 document.addEventListener('DOMContentLoaded', () => {
     i18nService.localizePage();
     loadHistory(true);
+    updateDashboard();
 
     document.getElementById('clearAll').addEventListener('click', clearAllHistory);
     document.getElementById('loadMoreBtn').addEventListener('click', () => loadHistory(false));
 });
+
+async function updateDashboard() {
+    try {
+        // Load all items to calculate stats
+        const allItems = await storageService.getTranslations(5000, 0);
+        const totalCount = allItems.length;
+        
+        // Mastery Index based on SRS stage (assuming stage 5+ is mastered)
+        const masteredCount = allItems.filter(item => (item.srs_stage || 0) >= 5).length;
+        const masteryIndex = totalCount > 0 ? Math.round((masteredCount / totalCount) * 100) : 0;
+
+        // Coverage Stats
+        const top2kMastered = new Set(allItems.filter(i => i.frequency_rank && i.frequency_rank <= 2000).map(i => i.text.toLowerCase())).size;
+        const top5kMastered = new Set(allItems.filter(i => i.frequency_rank && i.frequency_rank <= 5000).map(i => i.text.toLowerCase())).size;
+
+        // Animate Numbers
+        animateNumber(document.getElementById('stat-total-count'), 0, totalCount, 1000);
+        animateNumber(document.getElementById('stat-mastery-index'), 0, masteryIndex, 1000, '%');
+
+        // Update Progress Bars
+        const coverage2kPercent = Math.min((top2kMastered / 2000) * 100, 100);
+        const coverage5kPercent = Math.min((top5kMastered / 5000) * 100, 100);
+
+        setTimeout(() => {
+            document.getElementById('bar-coverage-2k').style.width = `${coverage2kPercent}%`;
+            document.getElementById('bar-coverage-5k').style.width = `${coverage5kPercent}%`;
+            document.getElementById('label-coverage-2k').innerText = `${top2kMastered} / 2000`;
+            document.getElementById('label-coverage-5k').innerText = `${top5kMastered} / 5000`;
+        }, 100);
+
+    } catch (error) {
+        console.error('Failed to update dashboard:', error);
+    }
+}
+
+function animateNumber(element, start, end, duration, suffix = '') {
+    let startTime = null;
+    const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const value = Math.floor(progress * (end - start) + start);
+        element.innerText = value + suffix;
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
 
 async function loadHistory(reset = true) {
     const list = document.getElementById('historyList');
@@ -44,8 +93,15 @@ async function loadHistory(reset = true) {
             // Truncate URL for display
             const shortUrl = item.sourceUrl ? new URL(item.sourceUrl).hostname : '';
 
+            const freqBadge = item.frequency_rank ? `
+                <span style="font-size: 10px; background: #eee; padding: 2px 6px; border-radius: 4px; color: #666; font-weight: bold; margin-bottom: 8px; display: inline-block;">
+                    #${item.frequency_rank} ${item.cefr_level || ''}
+                </span>
+            ` : '';
+
             li.innerHTML = `
                 <div class="item-content">
+                    ${freqBadge}
                     <div class="original">${escapeHtml(item.text)}</div>
                     <div class="translation">${escapeHtml(item.translation)}</div>
                     ${item.context ? `<div class="context">"${highlightContext(item.context, item.text)}"</div>` : ''}

@@ -1,41 +1,34 @@
-# 01-requirements.md - Refactoring Requirements
+# 01-requirements.md - Smart Frequency Radar & Mastery Dashboard
 
-Based on the "Hell Interview" and code analysis, here are the critical refactoring requirements for Project Highlighting Translate.
+## 1. 功能概述
+本功能旨在解決使用者「記不住單字」以及「不知道單字是否常用」的痛點。透過引入離線詞頻數據庫，為翻譯後的單字提供常用度標記，並透過視覺化儀表板展示學習進度。
 
-## 1. Core Architecture (State & Messaging)
+## 2. 核心需求
 
-- **Current State**: Decentralized. `content.js`, `popup.js`, and `review.js` all instantiate `StorageService` independently. Sync logic relies on disparate `onChanged` listeners.
-- **Problem**: Race conditions, inconsistent state, and heavy logic running in Content Scripts (which slows down the user's page).
-- **Requirement**:
-  - **Move Logic to Background**: The Service Worker should be the "Brain". Content Scripts and Popup should be "Dumb Views" that send messages (`CMD_SAVE`, `CMD_GET_STATUS`) to the Background.
-  - **Unified Message Handler**: Implement a typed message routing system in `background.js`.
+### A. 常用度感應系統 (Frequency Radar)
+- **數據源**：內置 Top 20,000 詞頻表（如 COCA 或 CEFR 等級）。
+- **顯示方式**：在翻譯 Tooltip 中顯示單字排名（例：#450）或等級（例：B2）。
+- **視覺強化**：根據單字常用度調整高亮顏色深度。
+    - 高頻詞（Top 3000）：亮色（醒目），提示使用者優先掌握。
+    - 低頻詞（Top 10000+）：淡色，提示使用者僅需了解，無需死記。
 
-## 2. Injection Strategy (Reliability)
+### B. 字彙覆蓋率儀表板 (Mastery Dashboard)
+- **位置**：新增於 `history.html` 頁面。
+- **指標**：
+    - **常用詞覆蓋率**：展示使用者已翻譯/掌握的單字佔 Top 2000/5000 的比例。
+    - **進度曲線**：基於 SRS 狀態，展示「已精通」單字的增長趨勢。
 
-- **Current State**: Static Declaration in `manifest.json`.
-- **Problem**: Users must refresh all tabs after installation/update for the extension to work. "It feels broken" immediately after install.
-- **Requirement**:
-  - **Dynamic Injection**: Implement `chrome.scripting.executeScript` in the Service Worker `onInstalled` event to inject content scripts into _existing_ open tabs immediately.
+### C. 數據遷移與存儲 (Storage Migration)
+- **欄位擴展**：`StorageService` 存儲的 translation 物件需新增 `frequency_rank` 欄位。
+- **遷移機制**：安裝/更新後自動掃描舊數據並補齊頻率排名。
 
-## 3. Data Scalability (Storage)
+## 3. 技術限制與考量
+- **性能**：高亮邏輯應限制在使用者曾查過的單字，避免全網頁掃描造成的效能降級。
+- **離線支持**：頻率表需隨擴充功能打包，不依賴外部 API。
+- **MV3 兼容**：數據處理邏輯集中在 Background Service Worker。
 
-- **Current State**: `StorageService.getTranslations(1000)` loads _all_ data into memory on every page load to perform highlighting.
-- **Problem**: O(N) memory usage per tab. 1,000 flashcards = performance degradation on complex pages.
-- **Requirement**:
-  - **Pagination / Virtualization**: Only load what's needed (though for highlighting, we might need a Bloom Filter or distinct optimization).
-  - **Asynchronous Highlighting**: Ensure highlighting logic does not block the main thread. (Consider `Offscreen Document` or Web Worker if heavy text processing is needed, currently `HighlightService` runs in main thread).
-
-## 4. Service Worker Lifecycle (Resilience)
-
-- **Current State**: Implicit reliance on persistence.
-- **Problem**: MV3 SW kills itself after ~30s of inactivity.
-- **Requirement**:
-  - **Alarm-based Keep-alive (Optional)**: If we need long-running timers for SRS (though currently SRS seems like a passive calculation).
-  - **State Hydration**: Ensure `background.js` can rebuild its internal state from `chrome.storage` immediately upon waking up.
-
-## Summary of Tasks
-
-1.  **Refactor Storage**: Centralize in Background.
-2.  **Refactor Injection**: Add Dynamic Injection logic.
-3.  **Refactor Messaging**: strict `Action/Payload` pattern.
-4.  **Optimize Highlighting**: Prevent full vocabulary load if possible, or optimize matching.
+## 4. 驗收標準 (Acceptance Criteria)
+1. 使用者查單字時，Tooltip 必須顯示該詞的頻率等級。
+2. 網頁上的高亮標記應反映該詞的常用度（顏色深淺）。
+3. 歷史紀錄頁面能正確顯示「詞彙掌握百分比」。
+4. 舊有的翻譯紀錄能成功遷移並獲得頻率排名。

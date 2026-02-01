@@ -25,5 +25,8 @@ _Link: [./conductor/tracks/tts_support_20260114/](./conductor/tracks/tts_support
 - [x] **Track: Flashcard MVP & Basic SRS**
       _Link: [./tracks/flashcard_mvp_20260131/](./tracks/flashcard_mvp_20260131/)_
 
+- [ ] **Track: Smart Frequency Radar & Mastery Dashboard**
+      _Link: [./tracks/smart_frequency_radar_20260201/index.md](./tracks/smart_frequency_radar_20260201/index.md)_
+
 - [ ] **Track: Refactor MV3 Architecture**
       _Link: [./tracks/refactor_mv3_20260131/](./tracks/refactor_mv3_20260131/)_

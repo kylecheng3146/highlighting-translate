@@ -112,6 +112,10 @@ async function handleMessage(request, sender, sendResponse) {
                 await storageService.updateSRSStatus(request.text, request.translation, request.updates);
                 sendResponse({success: true});
                 break;
+            case 'STORAGE_GET_WORD_INFO':
+                const wordInfo = await storageService.getWordInfo(request.word);
+                sendResponse({success: true, data: wordInfo});
+                break;
             default:
                 console.warn('Unknown action:', request.action);
                 sendResponse({success: false, error: 'Unknown action'});

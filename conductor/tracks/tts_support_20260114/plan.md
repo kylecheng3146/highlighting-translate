@@ -17,4 +17,4 @@
 2. [x] **任務：實作自動播放邏輯** (95518ea)
    - [x] 子任務：編寫測試驗證當 `autoPlaySpeech` 為 true 時會觸發播放 (95518ea)
    - [x] 子任務：在 `showTranslatePopup` 中根據 `settings.autoPlaySpeech` 決定是否自動播放 (95518ea)
-3. [ ] **任務：Conductor - User Manual Verification '階段 2：UI 整合與自動化邏輯' (Protocol in workflow.md)**
+3. [x] **任務：Conductor - User Manual Verification '階段 2：UI 整合與自動化邏輯' (Protocol in workflow.md)** [checkpoint: 35bd6bb]**

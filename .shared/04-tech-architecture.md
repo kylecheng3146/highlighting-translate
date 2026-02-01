@@ -1,90 +1,66 @@
-# 04-tech-architecture.md - MV3 Refactoring Architecture
+# 04-tech-architecture.md - Smart Frequency Radar Tech Stack
 
-## 1. Architectural Overview
+## 1. Data Schema Evolution (數據結構演進)
 
-The refactored architecture shifts from a **Decentralized Model** (each component manages its own state) to a **Service Worker Centric Model** (Hub & Spoke).
-
-### Core Components
-
-1.  **Service Worker (`background.js`)**
-    - **Role**: The "Brain" and Single Source of Truth.
-    - **Responsibilities**:
-      - Manage `StorageService` (Exclusive Write Access recommended).
-      - Handle `SRSService` calculations.
-      - Listen for `chrome.runtime.onMessage`.
-      - Manage Context Menus.
-      - Handle Dynamic Script Injection (`chrome.scripting`).
-    - **State Strategy**: In-memory cache backed by `chrome.storage.local`. Rehydrates on startup.
-
-2.  **Content Script (`content.js`)**
-    - **Role**: "Dumb View" & Event Capturer.
-    - **Responsibilities**:
-      - Capture text selection (`mouseup`).
-      - Render Tooltip/Popup UI (Shadow DOM).
-      - **NO** direct storage writes. Sends `CMD_TRANSLATE` or `CMD_SAVE_CARD` to Background.
-      - Listen for `CMD_UPDATE_HIGHLIGHTS` from Background.
-
-3.  **Popup (`popup.js`) / Review (`review.js`)**
-    - **Role**: UI for Settings & Review.
-    - **Responsibilities**:
-      - Fetch state from Background via messaging.
-      - Send user actions (`CMD_UPDATE_SETTINGS`) to Background.
-
-## 2. Dynamic Injection Strategy
-
-To fix the "must reload" issue, `background.js` will implement an `onInstalled` listener:
-
-```javascript
-chrome.runtime.onInstalled.addListener(async () => {
-  for (const cs of chrome.runtime.getManifest().content_scripts) {
-    for (const tab of await chrome.tabs.query({ url: cs.matches })) {
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: cs.js,
-      });
-    }
-  }
-});
-```
-
-## 3. Communication Protocol (Typed Messages)
-
-All messages must follow this shape:
+現有的 `Translation` 物件將進行擴展：
 
 ```typescript
-interface ExtensionMessage {
-  action: string; // e.g., 'TRANSLATE', 'SAVE_CARD', 'GET_SETTINGS'
-  payload?: any;
-}
-
-interface ExtensionResponse {
-  success: boolean;
-  data?: any;
-  error?: string;
+interface Translation {
+  original: string;
+  translated: string;
+  context: string;
+  timestamp: number;
+  srs_stage: number;
+  // --- NEW FIELDS ---
+  frequency_rank?: number; // 1 to 20000
+  cefr_level?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+  last_lookup_url: string; // 用於熱點分析
 }
 ```
 
-### Defined Actions
+## 2. Storage Migration Strategy (數據遷移策略)
 
-- `TRANSLATE`: Content -> Background (Calls Translation API)
-- `SAVE_CARD`: Content/Popup -> Background (Update Storage & SRS)
-- `GET_SETTINGS`: Content/Popup -> Background
-- `TTS_PLAY`: Content -> Background (Speech)
+在 `background.js` 的 `onInstalled` 事件中觸發：
 
-## 4. File Structure Changes
+1. **版本檢查**：讀取 `chrome.storage.local.get('db_version')`。
+2. **條件觸發**：若 `db_version < 2.0`。
+3. **異步批次處理**：
+    - 加載 `assets/frequency_db.json`。
+    - 獲取所有現有翻譯紀錄。
+    - 遍歷紀錄，使用原型提取算法 (Lemmatization) 匹配 `frequency_rank`。
+    - 更新存儲並將 `db_version` 設為 `2.0`。
 
-```text
-/src
-  /background
-    background.js      # Entry point
-    messageHandler.js  # Router for messages
-    injectionManager.js # Handles dynamic injection
-  /services
-    StorageService.js  # Singleton in Background
-    SRSService.js      # Singleton in Background
-    TranslationService.js # Singleton in Background
-  /content
-    content.js         # UI logic only
-  /popup
-    popup.js           # UI logic only
+## 3. Component Responsibilities (各組件職責)
+
+### Background Service Worker (The Brain)
+- **詞頻引擎**：持有 20,000 詞頻的 `Map` 對象（緩存在記憶體中）。
+- **訊息處理**：監聽 `CMD_GET_FREQUENCY` 請求並回傳結果。
+- **儀表板計算**：定期彙總 `chrome.storage` 數據，計算 Top 2000/5000 覆蓋率，並存入快取。
+
+### Content Script (The View)
+- **詞法還原**：在發送請求前，嘗試將複數/時態還原（簡單正則或外部庫）。
+- **動態樣式**：根據回傳的 `rank` 動態掛載 CSS 類別（`hl-freq-high`, etc.）。
+
+### Dashboard (history.js)
+- **渲染邏輯**：從快取讀取覆蓋率數據，或直接即時計算（若數據量 < 1000）。
+
+## 4. Messaging Protocol (通訊協定)
+
+```json
+// Request Frequency Rank
+{
+  "action": "CMD_GET_WORD_INFO",
+  "payload": { "word": "subtle" }
+}
+
+// Response
+{
+  "rank": 920,
+  "level": "B2",
+  "is_high_frequency": true
+}
 ```
+
+## 5. Optimization (性能優化)
+- **詞頻庫格式**：將 JSON 轉換為 `Uint16Array` 或壓縮的字串以減少內存佔用。
+- **Lazy Loading**：僅在使用者打開翻譯功能時才將詞頻 Map 加載進 Service Worker 內存。

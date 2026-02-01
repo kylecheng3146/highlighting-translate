@@ -1,33 +1,50 @@
-# 07-roadmap.md - Refactoring Execution Plan
+# 07-roadmap.md - Smart Frequency Radar Development Roadmap
 
-## Phase 1: Infrastructure Centralization (大腦移植)
+## Phase 1: Core Foundation (The Brain)
+**目標**：建立數據底層，確保詞頻數據可被檢索。
 
-目標：建立 Service Worker 為核心，將 Service 邏輯移入 Background。
+- [ ] **Task 1.1: Dataset Integration**
+    - 尋找並壓縮 Top 20,000 詞頻表（JSON 格式）。
+    - 放入 `assets/` 目錄並優化加載效能。
+- [ ] **Task 1.2: Storage Service Expansion**
+    - 更新 `StorageService.js` 以支持 `frequency_rank` 欄位。
+    - 實現 `db_version` 管理邏輯。
+- [ ] **Task 1.3: Data Migration Script**
+    - 編寫一鍵遷移函式，補齊現有翻譯紀錄的排名數據。
+    - 驗證大數據量（>1000 條）下的遷移穩定性。
 
-- [ ] **Step 1.1**: 建立 `background.js` (如果尚未存在) 並在 Manifest 註冊。
-- [ ] **Step 1.2**: 實作 `MessageHandler` 路由機制。
-- [ ] **Step 1.3**: 將 `TranslationService`、`SRSService` 移動/整併至 Background 執行環境。
-- [ ] **Step 1.4**: 修改 `content.js` 的 `translate` 呼叫，改為 `runtime.sendMessage('TRANSLATE')`。
+## Phase 2: Live Interaction (The Experience)
+**目標**：讓使用者在瀏覽網頁時能即時感知詞頻。
 
-## Phase 2: Dynamic Injection & Resilience (強固性)
+- [ ] **Task 2.1: Background Lookup Logic**
+    - 在 `background.js` 實現 `CMD_GET_WORD_INFO` 訊息處理器。
+    - 整合 Lemmatization（詞法還原）邏輯，處理變體詞。
+- [ ] **Task 2.2: Enhanced Tooltip UI**
+    - 修改 `popup.html/js` 或 `TooltipService.js` 新增排名標籤。
+    - 應用顏色編碼系統（橘/藍/灰）。
+- [ ] **Task 2.3: CSS Class System**
+    - 在 `content.css` 中定義 `hl-freq-high`, `hl-freq-mid`, `hl-freq-low`。
+    - 更新 `HighlightService.js` 以動態應用這些類別。
 
-目標：解決安裝後需重整的問題，並確保 SW 生命週期正確。
+## Phase 3: Mastery Analytics (The Satisfaction)
+**目標**：透過量化數據提供反饋，提升留存。
 
-- [ ] **Step 2.1**: 在 `background.js` 實作 `onInstalled` 監聽器。
-- [ ] **Step 2.2**: 實作 `injectContentScripts` 函式，查詢並注入既有分頁。
-- [ ] **Step 2.3**: 驗證：安裝擴充功能後，不重整即可在既有頁面使用翻譯。
+- [ ] **Task 3.1: Dashboard UI Layout**
+    - 在 `history.html` 頂部插入儀表板容器。
+    - 使用 Tailwind 實現響應式進度條。
+- [ ] **Task 3.2: Stats Engine**
+    - 實作「覆蓋率計算」算法，統計不同區間（Top 2k, 5k）的掌握度。
+    - 實作數據快取機制，避免重複計算。
+- [ ] **Task 3.3: Animation Implementation**
+    - 整合 `06-animations.md` 中設計的數字滾動與進度條填充效果。
 
-## Phase 3: Storage Refactor (數據流)
+## Phase 4: Polish & QA
+**目標**：確保高品質交付。
 
-目標：將 Storage 寫入權限收歸 Background。
-
-- [ ] **Step 3.1**: 修改 `StorageService`，區分 `Client` (發送訊息) 與 `Host` (實際寫入) 模式，或拆分為兩個類別。
-- [ ] **Step 3.2**: 更新 `popup.js` 與 `review.js` 透過訊息存取設定。
-- [ ] **Step 3.3**: 實作 `StorageService` 的快取層 (Memory Cache)，減少 `chrome.storage.local.get` 呼叫。
-
-## Phase 4: Integration & Cleanup
-
-目標：移除舊有冗餘代碼。
-
-- [ ] **Step 4.1**: 移除 Content Script 中直接存取 Storage 的代碼。
-- [ ] **Step 4.2**: 全面測試 (Regression Testing)。
+- [ ] **Task 4.1: Performance Audit**
+    - 檢查 Service Worker 的內存佔用。
+    - 確保 `content.js` 在複雜網頁上的標記速度。
+- [ ] **Task 4.2: Bug Squashing**
+    - 處理特殊字元、非英語單字的詞頻例外。
+- [ ] **Task 4.3: User Feedback Loop**
+    - 加入「重置掌握度」或「匯出統計報表」功能（選配）。

@@ -158,6 +158,71 @@
             margin: 0 auto;
             padding: 20px;
         }
+        /* Dashboard Styles */
+        .dashboard {
+            background: linear-gradient(135deg, #ffffff 0%, #fcfcfc 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .progress-container {
+            grid-column: span 2;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        @media (max-width: 600px) {
+            .progress-container { grid-column: span 1; }
+        }
+        .progress-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .progress-label-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #555;
+        }
+        .progress-bar-bg {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f5b041 0%, #ff8200 100%);
+            border-radius: 5px;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .progress-bar-fill.level-b2 {
+            background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);
+        }
+        
         body {
             background-color: #f8f9fa;
         }
@@ -194,6 +259,38 @@
                 <button id="clearAll" class="danger" data-i18n="clearAllBtn">Clear All</button>
             </div>
         </header>
+
+        <!-- Dashboard Section -->
+        <div class="dashboard">
+            <div class="stat-card">
+                <div class="stat-label">Total Vocabulary</div>
+                <div id="stat-total-count" class="stat-value">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Mastery Index</div>
+                <div id="stat-mastery-index" class="stat-value">0%</div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-row">
+                    <div class="progress-label-row">
+                        <span>Top 2000 Coverage (Common Words)</span>
+                        <span id="label-coverage-2k">0 / 2000</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="bar-coverage-2k" class="progress-bar-fill"></div>
+                    </div>
+                </div>
+                <div class="progress-row">
+                    <div class="progress-label-row">
+                        <span>Top 5000 Coverage (Fluent Level)</span>
+                        <span id="label-coverage-5k">0 / 5000</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="bar-coverage-5k" class="progress-bar-fill level-b2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <ul id="historyList" class="history-list">
             <!-- Items will be injected here -->
