@@ -27,8 +27,3 @@ _Link: [./conductor/tracks/tts_support_20260114/](./conductor/tracks/tts_support
 
 - [ ] **Track: Refactor MV3 Architecture**
       _Link: [./tracks/refactor_mv3_20260131/](./tracks/refactor_mv3_20260131/)_
-
----
-
-- [x] **Track: Smart Context Cards**
-      _Link: [./tracks/smart_context_cards_20260131/](./tracks/smart_context_cards_20260131/)_
