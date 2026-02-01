@@ -1,6 +1,6 @@
 # 實作計畫：Smart Context Cards
 
-## Phase 1: 核心邏輯與資料層
+## Phase 1: 核心邏輯與資料層 [checkpoint: fc85fb5]
 
 實作情境擷取算法與資料儲存更新。
 
