@@ -47,6 +47,7 @@ done
 DIRECTORIES=(
     "services"
     "icons"
+    "assets"
 )
 
 for dir in "${DIRECTORIES[@]}"; do
