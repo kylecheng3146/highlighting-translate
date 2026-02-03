@@ -1,34 +1,45 @@
-# 01-requirements.md - Smart Frequency Radar & Mastery Dashboard
+# 01. 需求規格書 (Requirements Specification)
 
-## 1. 功能概述
-本功能旨在解決使用者「記不住單字」以及「不知道單字是否常用」的痛點。透過引入離線詞頻數據庫，為翻譯後的單字提供常用度標記，並透過視覺化儀表板展示學習進度。
+## 專案資訊
 
-## 2. 核心需求
+- **專案名稱**: Highlighting Translate
+- **功能迭代**: 多語種智慧朗讀 (Smart Multi-language TTS)
+- **訪談模式**: Hell Interviewer (Simplified)
 
-### A. 常用度感應系統 (Frequency Radar)
-- **數據源**：內置 Top 20,000 詞頻表（如 COCA 或 CEFR 等級）。
-- **顯示方式**：在翻譯 Tooltip 中顯示單字排名（例：#450）或等級（例：B2）。
-- **視覺強化**：根據單字常用度調整高亮顏色深度。
-    - 高頻詞（Top 3000）：亮色（醒目），提示使用者優先掌握。
-    - 低頻詞（Top 10000+）：淡色，提示使用者僅需了解，無需死記。
+## 1. 核心目標 (Core Objectives)
 
-### B. 字彙覆蓋率儀表板 (Mastery Dashboard)
-- **位置**：新增於 `history.html` 頁面。
-- **指標**：
-    - **常用詞覆蓋率**：展示使用者已翻譯/掌握的單字佔 Top 2000/5000 的比例。
-    - **進度曲線**：基於 SRS 狀態，展示「已精通」單字的增長趨勢。
+解決目前 TTS (文字轉語音) 功能僅能朗讀英文的問題，實現對多種語言的正確識別與朗讀，提升使用者學習外語原音的體驗。
 
-### C. 數據遷移與存儲 (Storage Migration)
-- **欄位擴展**：`StorageService` 存儲的 translation 物件需新增 `frequency_rank` 欄位。
-- **遷移機制**：安裝/更新後自動掃描舊數據並補齊頻率排名。
+## 2. 用戶痛點 (Pain Points)
 
-## 3. 技術限制與考量
-- **性能**：高亮邏輯應限制在使用者曾查過的單字，避免全網頁掃描造成的效能降級。
-- **離線支持**：頻率表需隨擴充功能打包，不依賴外部 API。
-- **MV3 兼容**：數據處理邏輯集中在 Background Service Worker。
+- **語言支援不足**: 目前語音功能「只能講英文」，當使用者翻譯日文、法文等其他語言時，TTS 無法正確發音或仍使用英文語音引擎，導致體驗斷裂。
+- **缺乏原音學習**: 使用者希望聽到「原文」的正確發音以輔助學習，而非翻譯後的結果。
 
-## 4. 驗收標準 (Acceptance Criteria)
-1. 使用者查單字時，Tooltip 必須顯示該詞的頻率等級。
-2. 網頁上的高亮標記應反映該詞的常用度（顏色深淺）。
-3. 歷史紀錄頁面能正確顯示「詞彙掌握百分比」。
-4. 舊有的翻譯紀錄能成功遷移並獲得頻率排名。
+## 3. 功能需求 (Functional Requirements)
+
+### 3.1 朗讀對象 (Target Text)
+
+- **MUST**: 朗讀「原文內容」(Source Text)。
+- **NOTE**: 不需要朗讀翻譯後的結果。
+
+### 3.2 語音引擎 (Speech Engine)
+
+- **MUST**: 使用 Chrome 內建 `chrome.tts` API。
+- **SHOULD**: 確保能正確調用對應語言的語音包 (Voice Profile)。如果系統未安裝該語言語音包，應有適當的降級 (Fallback) 或提示。
+- **FUTURE**: 未來可考慮整合 Web Speech API 或第三方 AI 語音 (如 OpenAI TTS) 以獲得更自然的發音。
+
+### 3.3 自動化行為 (Automation)
+
+- **MUST**: 維持現有的「自動播放」設定選項。
+- **MUST**: 當使用者啟用自動播放時，翻譯視窗彈出後應立即播放原文語音。
+- **MUST**: 修正語言偵測邏輯，確保傳遞給 TTS 的 `lang` 參數正確無誤 (例如：偵測到日文則傳 `ja-JP`)。
+
+## 4. 非功能需求 (Non-functional Requirements)
+
+- **效能**: TTS 請求不應顯著延遲翻譯視窗的顯示。
+- **準確度**: 語言偵測演算法需足夠準確，避免用英文腔調讀中文的情況。
+
+## 5. 限制條件 (Constraints)
+
+- 必須在 Manifest V3 架構下運作。
+- 依賴使用者作業系統安裝的語音包 (OS dependent)。

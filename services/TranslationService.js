@@ -77,9 +77,10 @@ class TranslationService {
 
             const data = await response.json();
 
-            // Parse result
             if (data && data[0] && data[0][0] && data[0][0][0]) {
-                return data[0][0][0];
+                const translation = data[0][0][0];
+                const detectedSourceLang = data[2] || sourceLang; // specific to 'gtx' client response format
+                return { translation, detectedSourceLang };
             }
             throw new Error('Invalid response format');
 

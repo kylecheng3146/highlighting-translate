@@ -8,7 +8,7 @@ let settings = {
 
 let lastSelectedText = '';
 let lastSelectedRect = null;
-let lastTranslationResult = ''; // Store valid translation result for saving
+let lastTranslationResult; let lastDetectedSourceLang = ''; // Store valid translation result for saving
 let isStarred = false; // Track star state
 
 // Instantiate TranslationService, StorageService, and HighlightService
@@ -477,14 +477,60 @@ async function sendMessageSafe(message) {
     }
 }
 
-// 播放語音
+// 播放語音 (使用 Web Speech API)
+let activeUtterance = null; // Prevent GC
+
 function playTTS(text, lang) {
     if (!text) return;
-    sendMessageSafe({
-        action: 'playTTS',
-        text: text,
-        lang: lang
-    }).catch(error => console.error('Error sending TTS message:', error));
+    
+    // Cancel any current speaking
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    activeUtterance = utterance; // Keep reference
+
+    // Try to select a voice
+    let voices = window.speechSynthesis.getVoices();
+    
+    // Helper to pick voice
+    const selectVoice = () => {
+        voices = window.speechSynthesis.getVoices();
+        // 1. Prefer Local Service (System Voice) - Reliable & Mechanical
+        let v = voices.find(v => v.lang.includes(lang) && v.localService);
+        // 2. Prefer Google - Better Quality but network dependent
+        if (!v) v = voices.find(v => v.lang.includes(lang) && v.name.includes('Google'));
+        // 3. Any match
+        if (!v) v = voices.find(v => v.lang.includes(lang));
+        return v;
+    };
+
+    const runSpeak = () => {
+        const targetVoice = selectVoice();
+        if (targetVoice) {
+            utterance.voice = targetVoice;
+        }
+        
+        // Settings
+        utterance.lang = lang;
+        utterance.rate = 1.0;
+        utterance.volume = 1.0;
+
+        utterance.onend = () => {
+            activeUtterance = null;
+        };
+
+        window.speechSynthesis.speak(utterance);
+    };
+
+    // Retry if voices not ready
+    if (voices.length === 0) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.onvoiceschanged = null;
+            runSpeak();
+        };
+    } else {
+        setTimeout(runSpeak, 50);
+    }
 }
 
 // 顯示簡短提示
@@ -616,7 +662,7 @@ async function showTranslatePopup(text, rect) {
         e.stopPropagation();
         let lang = settings.sourceLang;
         if (lang === 'auto') {
-            lang = translationService.detectLanguage(text);
+            lang = lastDetectedSourceLang || translationService.detectLanguage(text);
             if (lang === 'auto') lang = 'en';
         }
         playTTS(text, lang);
@@ -658,8 +704,9 @@ async function showTranslatePopup(text, rect) {
         if (!response || !response.success) {
             throw new Error(response ? response.error : 'Translation failed');
         }
-        const translation = response.data;
+        const { translation, detectedSourceLang } = response.data;
         lastTranslationResult = translation;
+        lastDetectedSourceLang = detectedSourceLang;
         
         // Context Capture
         let context = null;
@@ -727,7 +774,7 @@ async function showTranslatePopup(text, rect) {
         if (settings.autoPlaySpeech) {
             let lang = settings.sourceLang;
             if (lang === 'auto') {
-                lang = translationService.detectLanguage(text);
+                lang = detectedSourceLang || translationService.detectLanguage(text);
                 if (lang === 'auto') lang = 'en';
             }
             playTTS(text, lang);
