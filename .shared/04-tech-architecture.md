@@ -1,66 +1,70 @@
-# 04-tech-architecture.md - Smart Frequency Radar Tech Stack
+# 04. Technical Architecture (技術架構)
 
-## 1. Data Schema Evolution (數據結構演進)
+## 1. 系統組件 (System Components)
 
-現有的 `Translation` 物件將進行擴展：
+### 1.1 Review Page (`review.html` + `review.js`)
+
+- **類型**: Extension Page (打包在擴充功能內的 HTML)。
+- **職責**:
+  - 渲染測驗 UI (Vue/React or Vanilla JS? -> 依專案現狀，似乎是 Vanilla JS + Tailwind)。
+  - 與 `chrome.storage` 直接互動以讀取單字與寫入進度。
+  - 運算測驗邏輯 (隨機出題、計分)。
+
+### 1.2 Storage Service (`storage.js` / `HighlightService.js`)
+
+- **職責更新**:
+  - **Migration**: 需實作 `migrateHistorySchema()`，將舊的純陣列或舊物件結構轉為包含 `learningRate` 的新結構。
+  - **Query**: 新增 `getReviewCandidates()` 方法，篩選出 `!isArchived` 的單字。
+  - **Update**: 新增 `updateWordProgress(word, isCorrect)` 方法。
+
+### 1.3 Background Service Worker (`background.js`)
+
+- **職責**:
+  - 監聽 `onInstalled` 事件，執行資料遷移 (Migration)。
+  - (Optional) 監聽來自 Review Page 的 "Quiz Completed" 訊息，如果有需要更新 Badge 或其他全域狀態。
+
+## 2. 資料流 (Data Flow)
+
+1. **User** 點擊 Popup "Start Review"。
+2. **Popup** 呼叫 `chrome.tabs.create({ url: 'review.html' })`。
+3. **Review Page** 載入 `review.js`。
+4. **Review Page** 呼叫 `HighlightService.getReviewCandidates()` 從 `storage.local` 獲取單字。
+   - 若數量不足 (<4)，Service 自動補入 `fallback_words.json`。
+5. **Review Page** 生成 10 題測驗並渲染。
+6. **User** 作答。
+7. **Review Page** 根據結果呼叫 `HighlightService.updateWordProgress()` 寫回 `storage.local`。
+8. **User** 完成測驗，查看結果。
+
+## 3. 資料結構 (Data Schema)
+
+### Storage Key: `vocabulary_history`
 
 ```typescript
-interface Translation {
-  original: string;
-  translated: string;
-  context: string;
+interface VocabularyItem {
+  id: string; // (New) 若無則使用 word 當 key
+  word: string;
+  meaning: string;
+  context?: string; // 例句
+  url?: string; // 來源網址
   timestamp: number;
-  srs_stage: number;
-  // --- NEW FIELDS ---
-  frequency_rank?: number; // 1 to 20000
-  cefr_level?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-  last_lookup_url: string; // 用於熱點分析
+
+  // New Fields for Quiz
+  learningRate: number; // 0 - 100
+  isArchived: boolean;
+  lastReviewedAt?: number;
 }
 ```
 
-## 2. Storage Migration Strategy (數據遷移策略)
+## 4. 目錄結構變更 (Directory Structure)
 
-在 `background.js` 的 `onInstalled` 事件中觸發：
-
-1. **版本檢查**：讀取 `chrome.storage.local.get('db_version')`。
-2. **條件觸發**：若 `db_version < 2.0`。
-3. **異步批次處理**：
-    - 加載 `assets/frequency_db.json`。
-    - 獲取所有現有翻譯紀錄。
-    - 遍歷紀錄，使用原型提取算法 (Lemmatization) 匹配 `frequency_rank`。
-    - 更新存儲並將 `db_version` 設為 `2.0`。
-
-## 3. Component Responsibilities (各組件職責)
-
-### Background Service Worker (The Brain)
-- **詞頻引擎**：持有 20,000 詞頻的 `Map` 對象（緩存在記憶體中）。
-- **訊息處理**：監聽 `CMD_GET_FREQUENCY` 請求並回傳結果。
-- **儀表板計算**：定期彙總 `chrome.storage` 數據，計算 Top 2000/5000 覆蓋率，並存入快取。
-
-### Content Script (The View)
-- **詞法還原**：在發送請求前，嘗試將複數/時態還原（簡單正則或外部庫）。
-- **動態樣式**：根據回傳的 `rank` 動態掛載 CSS 類別（`hl-freq-high`, etc.）。
-
-### Dashboard (history.js)
-- **渲染邏輯**：從快取讀取覆蓋率數據，或直接即時計算（若數據量 < 1000）。
-
-## 4. Messaging Protocol (通訊協定)
-
-```json
-// Request Frequency Rank
-{
-  "action": "CMD_GET_WORD_INFO",
-  "payload": { "word": "subtle" }
-}
-
-// Response
-{
-  "rank": 920,
-  "level": "B2",
-  "is_high_frequency": true
-}
+```text
+/
+├── review.html        (New)
+├── review.js          (New)
+├── review.css         (New - Tailwind input)
+├── assets/
+│   └── fallback_words.json (New)
+├── services/
+│   └── HighlightService.js (Modify)
+└── background.js      (Modify)
 ```
-
-## 5. Optimization (性能優化)
-- **詞頻庫格式**：將 JSON 轉換為 `Uint16Array` 或壓縮的字串以減少內存佔用。
-- **Lazy Loading**：僅在使用者打開翻譯功能時才將詞頻 Map 加載進 Service Worker 內存。

@@ -9,40 +9,26 @@ class TranslationService {
      * @returns {string} - The detected language code (e.g., 'en', 'zh-TW', 'ja', 'auto').
      */
     detectLanguage(text) {
-        // Japanese Hiragana and Katakana
-        const japaneseChars = /[\u3040-\u309f\u30a0-\u30ff]/g;
-        // Korean Hangul
-        const koreanChars = /[\uac00-\ud7af]/g;
-        // German specific chars
-        const germanChars = /[äöüßÄÖÜ]/;
-        // Vietnamese specific chars
-        const vietnameseChars = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/;
-        // English
-        const englishChars = /[a-zA-Z]/g;
+        // Regex definitions moved to module scope or constants to avoid recreation
         
         // Check for specific scripts first to avoid misidentifying Kanji as Chinese
-        if (japaneseChars.test(text)) return 'ja';
-        if (koreanChars.test(text)) return 'ko';
-        if (vietnameseChars.test(text)) return 'vi';
-        if (germanChars.test(text)) return 'de';
+        if (TranslationService.RX_JAPANESE.test(text)) return 'ja';
+        if (TranslationService.RX_KOREAN.test(text)) return 'ko';
+        if (TranslationService.RX_VIETNAMESE.test(text)) return 'vi';
+        if (TranslationService.RX_GERMAN.test(text)) return 'de';
 
-        const chineseTraditionalChars = /[\u4e00-\u9fff]/g;
-        const traditionalOnlyChars = /[豐併佈閒與會過於陣險離復讓貓體發這測]/g;
-        const simplifiedOnlyChars = /[丰并布闲与会过于阵险离复让猫体发这测]/g;
-
-        const chineseCount = (text.match(chineseTraditionalChars) || []).length;
-        const traditionalCount = (text.match(traditionalOnlyChars) || []).length;
-        const simplifiedCount = (text.match(simplifiedOnlyChars) || []).length;
+        const chineseCount = (text.match(TranslationService.RX_CHINESE) || []).length;
+        const traditionalCount = (text.match(TranslationService.RX_TRADITIONAL) || []).length;
+        const simplifiedCount = (text.match(TranslationService.RX_SIMPLIFIED) || []).length;
 
         if (chineseCount > 0) {
             if (traditionalCount > 0) return 'zh-TW';
             if (simplifiedCount > 0) return 'zh-CN';
-            // If it has Chinese chars but no specific markers, it could be Japanese with only Kanji
-            // or just common Chinese chars.
+            // Default to Traditional for ambiguous cases in this app context
             return 'zh-TW';
         }
 
-        if (englishChars.test(text)) return 'en';
+        if (TranslationService.RX_ENGLISH.test(text)) return 'en';
 
         return 'auto';
     }
@@ -119,6 +105,16 @@ class TranslationService {
         
         return true;
     }
+
+    // Static Regex Definitions
+    static RX_JAPANESE = /[\u3040-\u309f\u30a0-\u30ff]/g;
+    static RX_KOREAN = /[\uac00-\ud7af]/g;
+    static RX_GERMAN = /[äöüßÄÖÜ]/;
+    static RX_VIETNAMESE = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/;
+    static RX_ENGLISH = /[a-zA-Z]/g;
+    static RX_CHINESE = /[\u4e00-\u9fff]/g;
+    static RX_TRADITIONAL = /[豐併佈閒與會過於陣險離復讓貓體發這測]/g;
+    static RX_SIMPLIFIED = /[丰并布闲与会过于阵险离复让猫体发这测]/g;
 }
 
 // Make it available globally

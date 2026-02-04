@@ -6,17 +6,18 @@
   <title data-i18n="settingsTitle">Highlighting Translate Settings</title>
   <style>
     :root {
-      --primary-color: #7e57c2;
-      --primary-variant: #3700b3;
-      --secondary-color: #03dac6;
-      --background-color: #f5f5f5;
+      /* Material Pale/Teal Theme */
+      --primary-color: #26A69A; /* Teal 400 */
+      --primary-variant: #00897B; /* Teal 600 */
+      --secondary-color: #FF7043; /* Deep Orange 400 - accent */
+      --background-color: #F5F7FA;
       --surface-color: #ffffff;
-      --error-color: #b00020;
+      --error-color: #EF5350;
       --on-primary: #ffffff;
-      --on-surface: #000000;
-      --on-surface-medium: rgba(0, 0, 0, 0.6);
+      --on-surface: #37474F;
+      --on-surface-medium: #78909C;
       --on-surface-disabled: rgba(0, 0, 0, 0.38);
-      --divider-color: rgba(0, 0, 0, 0.12);
+      --divider-color: rgba(0, 0, 0, 0.08);
     }
 
     body {
@@ -156,9 +157,9 @@
     .secondary-btn {
         background-color: var(--surface-color);
         color: var(--primary-color);
-        border: 1px solid var(--primary-color);
+        border: 1px solid rgba(0,0,0,0.1);
         padding: 8px 24px;
-        border-radius: 4px;
+        border-radius: 24px;
         cursor: pointer;
         font-size: 14px;
         font-weight: 500;

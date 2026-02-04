@@ -150,7 +150,13 @@ function handleTTS(request, sendResponse) {
             rate: 1.0
         };
         
-        chrome.tts.speak(request.text, options);
+        chrome.tts.speak(request.text, options, () => {
+            if (chrome.runtime.lastError) {
+                console.error('TTS execution failed:', chrome.runtime.lastError);
+                // Can't sendResponse here easily as it wraps the initial sync return, 
+                // but logging is better than silent failure.
+            }
+        });
         sendResponse({success: true});
     });
 }

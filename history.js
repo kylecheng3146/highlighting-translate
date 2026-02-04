@@ -10,6 +10,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('clearAll').addEventListener('click', clearAllHistory);
     document.getElementById('loadMoreBtn').addEventListener('click', () => loadHistory(false));
+    
+    // Toggle Archived
+    const toggleBtn = document.getElementById('toggleArchivedBtn');
+    const archList = document.getElementById('archivedList');
+    const chevron = document.getElementById('archivedChevron');
+    
+    toggleBtn.addEventListener('click', () => {
+        const isHidden = archList.style.display === 'none';
+        archList.style.display = isHidden ? 'grid' : 'none';
+        chevron.innerText = isHidden ? '▲' : '▼';
+    });
 });
 
 async function updateDashboard() {
@@ -62,37 +73,54 @@ function animateNumber(element, start, end, duration, suffix = '') {
 
 async function loadHistory(reset = true) {
     const list = document.getElementById('historyList');
+    const archivedList = document.getElementById('archivedList');
+    const archivedContainer = document.getElementById('archivedContainer');
+    const archivedCountLabel = document.getElementById('archivedCount');
     const emptyState = document.getElementById('emptyState');
     const loadMoreContainer = document.getElementById('loadMoreContainer');
     
     if (reset) {
         list.innerHTML = '';
+        archivedList.innerHTML = '';
         currentOffset = 0;
     }
     
     try {
+        // Load MORE items to facilitate separation (or filter in memory? StorageService pagination is generic)
+        // Since we need to split active/archived, simple pagination gets tricky if we want ALL archived at bottom.
+        // Option 1: Load generic page, sort them. (Might have mixed pages)
+        // Option 2: Fetch ALL and render client side (cleanest for "Archived at bottom")
+        // Option 3: Request separate Active/Archived lists from StorageService (Best for perf)
+        // Let's stick to generic fetch for now but render into two buckets. 
+        // NOTE: This simple pagination approach means "Archived" items might appear in later "pages".
+        // For the user request "Move to hidden row", usually implies seeing them all.
+        // Let's assume fetching a larger batch or handling simply by rendering.
+        
         const items = await storageService.getTranslations(PAGE_SIZE, currentOffset);
 
+        // If no items at all (and reset), show empty
         if (reset && items.length === 0) {
             emptyState.style.display = 'block';
             loadMoreContainer.style.display = 'none';
+            archivedContainer.style.display = 'none';
             return;
         }
 
         emptyState.style.display = 'none';
         
-        // Check if there are more items
+        // Check for more
         const nextItems = await storageService.getTranslations(1, currentOffset + PAGE_SIZE);
         loadMoreContainer.style.display = nextItems.length > 0 ? 'block' : 'none';
+
+        let hasArchived = false;
 
         items.forEach((item) => {
             const li = document.createElement('li');
             li.className = 'history-item';
+            if (item.isArchived) li.classList.add('is-archived');
             
             const date = new Date(item.timestamp).toLocaleString();
-            // Truncate URL for display
             const shortUrl = item.sourceUrl ? new URL(item.sourceUrl).hostname : '';
-
             const freqBadge = item.frequency_rank ? `
                 <span style="font-size: 10px; background: #eee; padding: 2px 6px; border-radius: 4px; color: #666; font-weight: bold; margin-bottom: 8px; display: inline-block;">
                     #${item.frequency_rank} ${item.cefr_level || ''}
@@ -105,6 +133,16 @@ async function loadHistory(reset = true) {
                     <div class="original">${escapeHtml(item.text)}</div>
                     <div class="translation">${escapeHtml(item.translation)}</div>
                     ${item.context ? `<div class="context">"${highlightContext(item.context, item.text)}"</div>` : ''}
+                    
+                    <div class="progress-wrapper">
+                         <div class="item-progress-bar" title="Mastery: ${item.learningRate || 0}%">
+                            <div class="item-progress-fill" style="width: ${item.learningRate || 0}%"></div>
+                         </div>
+                         <button class="archive-btn ${item.isArchived ? 'archived' : ''}" data-text="${escapeHtml(item.text)}" data-translation="${escapeHtml(item.translation)}">
+                            ${item.isArchived ? 'Unarchive' : 'Archive'}
+                         </button>
+                    </div>
+
                     <div class="meta">
                         <div class="meta-info">
                             <span>${date}</span>
@@ -115,13 +153,36 @@ async function loadHistory(reset = true) {
                 <button class="delete-btn" title="Delete">×</button>
             `;
 
-            // Delete button event
+            // Archive event
+            const archiveBtn = li.querySelector('.archive-btn');
+            archiveBtn.addEventListener('click', () => {
+                 archiveItem(item.text, item.translation, !item.isArchived); // Toggle
+            });
+
+            // Delete event
             li.querySelector('.delete-btn').addEventListener('click', () => {
                 deleteItem(item.text, item.translation);
             });
 
-            list.appendChild(li);
+            // Distribute to containers
+            if (item.isArchived) {
+                archivedList.appendChild(li);
+                hasArchived = true;
+            } else {
+                list.appendChild(li);
+            }
         });
+        
+        // Update Archived Count & Visibility (Accumulative logic if load more? 
+        // Ideally we should count ALL archived items in DB. 
+        // For now let's just show count of LOADED archived items or fetch stats)
+        
+        // Simple hack: count children
+        const totalArchived = archivedList.children.length;
+        if (totalArchived > 0) {
+            archivedContainer.style.display = 'block';
+            archivedCountLabel.innerText = totalArchived;
+        }
 
         currentOffset += items.length;
     } catch (error) {
@@ -138,6 +199,15 @@ async function deleteItem(text, translation) {
         loadHistory(true); // Reload list from start to reflect changes
     } catch (error) {
         console.error('Failed to delete item:', error);
+    }
+}
+
+async function archiveItem(text, translation, newState = true) {
+    try {
+        await storageService.updateSRSStatus(text, translation, { isArchived: newState });
+        loadHistory(true); // Need reset to move item between lists
+    } catch (error) {
+        console.error('Failed to update archive status:', error);
     }
 }
 

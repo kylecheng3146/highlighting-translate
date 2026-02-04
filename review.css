@@ -1,228 +1,412 @@
+/* review.css */
+
 :root {
-  --bg-color: #f8fafc;
-  --text-color: #1e293b;
-  --card-bg: #ffffff;
-  --primary-color: #4f46e5;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+    /* Material Design 3 inspired Pale/Light Theme */
+    /* Primary: Soft Teal/Cyan */
+    --primary: #26A69A; /* Teal 400 */
+    --primary-hover: #00897B; /* Teal 600 */
+    --on-primary: #FFFFFF;
+    
+    /* Backgrounds */
+    --bg-color: #F5F7FA; /* Very light grey-blue */
+    --surface-color: #FFFFFF;
+    
+    /* Text */
+    --text-primary: #37474F; /* Blue Grey 800 */
+    --text-secondary: #78909C; /* Blue Grey 400 */
+    
+    /* Status Colors (Pastel/Soft) */
+    --green-bg: #E8F5E9;
+    --green-border: #A5D6A7;
+    --green-text: #2E7D32;
+    
+    --red-bg: #FFEBEE;
+    --red-border: #EF9A9A;
+    --red-text: #C62828;
+    
+    /* Shadows (Material Elevation) */
+    --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    --shadow-2: 0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12);
+    --shadow-3: 0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10);
 }
 
 body {
-  font-family: "Inter", sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  display: flex;
-  justify-content: center;
-  min-height: 100vh;
+    font-family: 'Roboto', 'Inter', sans-serif; /* Roboto is standard for Material */
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
-.container {
-  width: 100%;
-  max-width: 600px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  box-sizing: border-box;
+/* Header */
+.app-header {
+    background-color: var(--surface-color);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-1);
+    z-index: 10;
 }
 
-/* Header & Progress */
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2rem;
+.brand-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
 }
 
-.progress-container {
-  flex: 1;
-  margin-right: 1rem;
+.icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--primary);
 }
 
-.progress-text {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
 }
 
-.progress-bar {
-  height: 8px;
-  background-color: #e2e8f0;
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: var(--primary-color);
-  transition: width 0.3s ease;
+.progress-info {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: #ECEFF1;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
 }
 
 .icon-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #64748b;
-  padding: 0.5rem;
-  border-radius: 50%;
-  transition: background-color 0.2s;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .icon-btn:hover {
-  background-color: #e2e8f0;
-  color: var(--text-color);
+    background-color: #ECEFF1;
+    color: var(--text-primary);
 }
 
-/* Card Section */
-.card-container {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  perspective: 1000px;
-  margin-bottom: 2rem;
-  /* Prevent flex item from overflowing container */
-  min-height: 0; 
-  position: relative;
-  z-index: 1;
+/* Progress Bar */
+.progress-track {
+    width: 100%;
+    background-color: #E0E0E0;
+    height: 4px;
 }
 
-.flashcard {
-  width: 100%;
-  height: 100%;
-  /* Use viewport units to ensure it fits on small screens */
-  max-height: min(400px, 55vh); 
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
+.progress-fill {
+    background-color: var(--primary);
+    height: 100%;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ... existing styles ... */
-
-/* Controls */
-.controls {
-  height: 100px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  z-index: 10; /* Ensure controls are always on top */
-  flex-shrink: 0; /* Never shrink controls */
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
-.primary-btn {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 1rem 3rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  box-shadow: var(--shadow-md);
-  transition:
-    transform 0.1s,
-    box-shadow 0.1s;
+/* Loading */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-secondary);
 }
 
-.primary-btn:active {
-  transform: scale(0.98);
+.spinner {
+    height: 3rem;
+    width: 3rem;
+    border-radius: 50%;
+    border: 3px solid #E0E0E0;
+    border-top-color: var(--primary);
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
 }
 
-.rating-controls {
-  display: flex;
-  gap: 0.75rem;
-  width: 100%;
-  justify-content: space-between;
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
-.rate-btn {
-  flex: 1;
-  background-color: white;
-  border: 2px solid var(--btn-color);
-  border-radius: var(--radius-md);
-  padding: 0.75rem 0.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.rate-btn:hover {
-  background-color: var(--btn-color);
-}
-
-.rate-btn:hover span {
-  color: white;
-}
-
-.rate-label {
-  font-weight: 600;
-  color: var(--text-color);
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
-}
-
-.rate-time {
-  font-size: 0.75rem;
-  color: #64748b;
-}
-
-.rate-key {
-  font-size: 0.625rem;
-  color: #94a3b8;
-  margin-top: 0.25rem;
-  font-weight: 700;
-  text-transform: uppercase;
+/* Quiz Container */
+.quiz-container {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .hidden {
-  display: none !important;
+    display: none !important;
 }
 
-/* Summary View */
-#summary-area {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--bg-color);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
+.question-card {
+    margin-bottom: 3rem;
+    text-align: center;
+    width: 100%;
 }
 
-.summary-content {
-  background: white;
-  padding: 3rem;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  text-align: center;
-  width: 90%;
-  max-width: 400px;
+.label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 1rem;
 }
 
-.summary-stats {
-  margin: 2rem 0;
+.question-text {
+    font-size: 3rem;
+    font-weight: 400; /* Lighter weight for Material look */
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
 }
 
-.stat-item {
-  display: flex;
-  flex-direction: column;
+/* Options Grid */
+.options-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+@media (min-width: 600px) {
+    .options-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.option-card {
+    background-color: var(--surface-color);
+    padding: 1.5rem;
+    border-radius: 16px; /* Material 3 styled rounded corners */
+    box-shadow: var(--shadow-1);
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 110px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Ripple effect simulation would go here, but hover lift is fine for now */
+.option-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+    border-color: #B2DFDB; /* Light teal border on hover */
+}
+
+.option-card:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-1);
+}
+
+.option-correct {
+    background-color: var(--green-bg) !important;
+    border-color: var(--green-border) !important;
+    color: var(--green-text) !important;
+    box-shadow: none !important;
+}
+
+.option-wrong {
+    background-color: var(--red-bg) !important;
+    border-color: var(--red-border) !important;
+    color: var(--red-text) !important;
+    opacity: 0.9;
+    box-shadow: none !important;
+}
+
+.option-dimmed {
+    opacity: 0.4;
+    pointer-events: none;
+    box-shadow: none;
+}
+
+/* Feedback */
+.feedback-msg {
+    margin-top: 2.5rem;
+    height: 2rem;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 500;
+    opacity: 1;
+}
+.text-green { color: var(--green-text); }
+.text-red { color: var(--red-text); }
+
+/* Results */
+.results-container {
+    width: 100%;
+    max-width: 480px;
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.results-card {
+    background-color: var(--surface-color);
+    border-radius: 24px;
+    box-shadow: var(--shadow-3);
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.success-icon {
+    margin-bottom: 1.5rem;
+    display: inline-flex;
+    padding: 1.5rem;
+    border-radius: 50%;
+    background-color: #E0F2F1; /* Teal 50 */
+    color: var(--primary);
+}
+
+.icon-large {
+    width: 4rem;
+    height: 4rem;
+}
+
+.results-title {
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.results-desc {
+    color: var(--text-secondary);
+    margin: 0 0 2.5rem 0;
+    font-size: 1.1rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-box {
+    background-color: #FAFAFA;
+    padding: 1.5rem 1rem;
+    border-radius: 12px;
+    border: 1px solid #F0F0F0;
 }
 
 .stat-value {
-  font-size: 3rem;
-  font-weight: 700;
-  color: var(--primary-color);
+    display: block;
+    font-size: 2rem;
+    font-weight: 300;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.btn {
+    width: 100%;
+    padding: 1rem;
+    font-weight: 500;
+    border-radius: 50px; /* Pill buttons */
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: var(--on-primary);
+    border: none;
+    box-shadow: 0 4px 10px rgba(38, 166, 154, 0.3); /* Teal shadow */
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    box-shadow: 0 6px 15px rgba(38, 166, 154, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid #CFD8DC;
+}
+
+.btn-secondary:hover {
+    background-color: #F5F5F5;
+    color: var(--text-primary);
+    border-color: #B0BEC5;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    15%, 45%, 75% { transform: translateX(-6px); }
+    30%, 60%, 90% { transform: translateX(6px); }
+}
+
+.animate-shake {
+    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+.animate-pop {
+    animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }

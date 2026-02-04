@@ -3,92 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Highlighting Translate - Flashcard Review</title>
+    <title>Vocabulary Review - Highlighting Translate</title>
     <link rel="stylesheet" href="review.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="progress-container">
-                <div class="progress-text">Daily Goal: <span id="progress-count">0</span>/20</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
-                </div>
-            </div>
-            <button id="close-btn" class="icon-btn" aria-label="Close">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 6L6 18M6 6l12 12"></path>
+
+    <!-- Header -->
+    <header class="app-header">
+        <h1 class="brand-title">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            Review Mode
+        </h1>
+        <div class="header-controls">
+            <span id="progress-text" class="progress-info">1 / 10</span>
+            <button id="exit-btn" class="icon-btn" title="Exit">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
-        </header>
-
-        <main id="review-area">
-            <div class="card-container">
-                <div class="flashcard" id="flashcard">
-                    <div class="card-face card-front">
-                        <div class="card-content">
-                            <h2 id="card-source-text">Loading...</h2>
-                            <div class="card-hint">Click or Space to flip</div>
-                        </div>
-                    </div>
-                    <div class="card-face card-back">
-                        <div class="card-content">
-                            <h2 id="card-target-text"></h2>
-                            <div class="card-details" id="card-details">
-                                <!-- Example sentence or extra info -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="controls" id="controls">
-                <div class="flip-controls">
-                    <button id="flip-btn" class="primary-btn">Show Answer (Space)</button>
-                </div>
-                <div class="rating-controls hidden" id="rating-controls">
-                    <button class="rate-btn" data-rating="1" style="--btn-color: #ef4444">
-                        <span class="rate-label">Forget</span>
-                        <span class="rate-time">1m</span>
-                        <span class="rate-key">1</span>
-                    </button>
-                    <button class="rate-btn" data-rating="2" style="--btn-color: #f59e0b">
-                        <span class="rate-label">Hard</span>
-                        <span class="rate-time">2d</span>
-                        <span class="rate-key">2</span>
-                    </button>
-                    <button class="rate-btn" data-rating="3" style="--btn-color: #3b82f6">
-                        <span class="rate-label">Good</span>
-                        <span class="rate-time">4d</span>
-                        <span class="rate-key">3</span>
-                    </button>
-                    <button class="rate-btn" data-rating="4" style="--btn-color: #10b981">
-                        <span class="rate-label">Easy</span>
-                        <span class="rate-time">7d</span>
-                        <span class="rate-key">4</span>
-                    </button>
-                </div>
-            </div>
-        </main>
-
-        <div id="summary-area" class="hidden">
-            <div class="summary-content">
-                <h2>🎉 Review Complete!</h2>
-                <p>You've finished your reviews for now.</p>
-                <div class="summary-stats">
-                    <div class="stat-item">
-                        <span class="stat-value" id="session-count">0</span>
-                        <span class="stat-label">Cards Reviewed</span>
-                    </div>
-                </div>
-                <button id="finish-btn" class="primary-btn">Close</button>
-            </div>
         </div>
+    </header>
+
+    <!-- Progress Bar Line -->
+    <div class="progress-track">
+        <div id="progress-bar" class="progress-fill" style="width: 10%"></div>
     </div>
 
-    <script src="services/StorageService.js"></script>
-    <script src="services/SRSService.js"></script>
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Loading State -->
+        <div id="loading-state" class="loading-container">
+            <div class="spinner"></div>
+            <p>Preparing your quiz...</p>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quiz-container" class="quiz-container hidden">
+            
+            <!-- Question Card -->
+            <div class="question-card" id="question-card">
+                <span class="label">Translate this</span>
+                <h2 id="question-text" class="question-text">
+                    <!-- Question (Chinese) goes here -->
+                </h2>
+            </div>
+
+            <!-- Options Grid -->
+            <div id="options-grid" class="options-grid">
+                <!-- Buttons will be injected here -->
+            </div>
+
+            <!-- Feedback Overlay -->
+            <div id="feedback-msg" class="feedback-msg">
+                <!-- Correct! / Try Again -->
+            </div>
+        </div>
+
+        <!-- Results Container -->
+        <div id="results-container" class="results-container hidden animate-fade-in">
+            <div class="results-card">
+                <div class="success-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon-large" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h2 class="results-title">Review Complete!</h2>
+                <p class="results-desc">Great job keeping your vocabulary fresh.</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span class="stat-value text-green" id="result-correct">0</span>
+                        <span class="stat-label">Correct</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value text-red" id="result-wrong">0</span>
+                        <span class="stat-label">Review</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="replay-btn" class="btn btn-primary">
+                        Practice More
+                    </button>
+                    <button id="back-btn" class="btn btn-secondary">
+                        Back to List
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="services/StorageService.js"></script> 
     <script src="review.js"></script>
 </body>
 </html>
