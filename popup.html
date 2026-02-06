@@ -4,186 +4,100 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-i18n="settingsTitle">Highlighting Translate Settings</title>
+  <link rel="stylesheet" href="assets/styles/theme.css">
   <style>
-    :root {
-      /* Material Pale/Teal Theme */
-      --primary-color: #26A69A; /* Teal 400 */
-      --primary-variant: #00897B; /* Teal 600 */
-      --secondary-color: #FF7043; /* Deep Orange 400 - accent */
-      --background-color: #F5F7FA;
-      --surface-color: #ffffff;
-      --error-color: #EF5350;
-      --on-primary: #ffffff;
-      --on-surface: #37474F;
-      --on-surface-medium: #78909C;
-      --on-surface-disabled: rgba(0, 0, 0, 0.38);
-      --divider-color: rgba(0, 0, 0, 0.08);
-    }
-
     body {
-      width: 320px;
-      margin: 0;
+      width: 340px;
       padding: 0;
-      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      background-color: var(--background-color);
-      color: var(--on-surface);
-      overflow-x: hidden;
+      background-color: var(--bg-app);
     }
 
     header {
-      background-color: var(--primary-color);
+      background-color: var(--primary);
       color: var(--on-primary);
-      padding: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
       display: flex;
       align-items: center;
     }
 
     header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--on-primary);
       margin: 0;
-      font-size: 20px;
-      font-weight: 500;
     }
 
     .container {
-      padding: 8px 0;
-      background-color: var(--surface-color);
-    }
-
-    .setting-row {
-      padding: 12px 16px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      border-bottom: 1px solid var(--divider-color);
+      gap: 16px;
     }
 
-    .setting-row:last-child {
-      border-bottom: none;
+    /* Card-like rows for settings */
+    .setting-card {
+      background-color: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: box-shadow 0.2s;
+    }
+
+    .setting-card:hover {
+      box-shadow: var(--shadow-md);
     }
 
     .setting-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
     }
 
     .setting-label {
-      font-size: 16px;
-      font-weight: 400;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
     }
 
     .setting-description {
-      font-size: 12px;
-      color: var(--on-surface-medium);
-      margin-top: 2px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
     }
 
-    /* Select and Input styling */
+    /* Customized Inputs */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
     select, input[type="number"] {
-      margin-top: 8px;
-      padding: 8px 12px;
-      font-size: 14px;
-      border: 1px solid var(--divider-color);
-      border-radius: 4px;
-      background-color: transparent;
-      outline: none;
-      transition: border-color 0.2s;
+      width: 100%;
+      box-sizing: border-box;
     }
-
-    select:focus, input[type="number"]:focus {
-      border-color: var(--primary-color);
-      border-width: 2px;
-      padding: 7px 11px; /* Adjust padding for thicker border */
-    }
-
-    /* Toggle Switch styling */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 36px;
-      height: 20px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 20px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 14px;
-      width: 14px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-    }
-
-    input:checked + .slider {
-      background-color: var(--primary-color);
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(16px);
-    }
-
-    /* Legacy toggle class support */
-    .toggle { display: none; } /* We will use the new switch structure */
 
     .footer {
-        margin-top: 28px;
-        margin-bottom: 28px;
-        text-align: center;
+        padding: 0 20px 24px 20px;
         display: flex;
         justify-content: center;
-    }
-    .secondary-btn {
-        background-color: var(--surface-color);
-        color: var(--primary-color);
-        border: 1px solid rgba(0,0,0,0.1);
-        padding: 8px 24px;
-        border-radius: 24px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        transition: background-color 0.2s, box-shadow 0.2s;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    }
-    .secondary-btn:hover {
-        background-color: rgba(126, 87, 194, 0.04);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    .secondary-btn:active {
-        background-color: rgba(126, 87, 194, 0.12);
+        gap: 12px;
     }
 
     /* Snackbar styling */
     #snackbar {
       visibility: hidden;
       min-width: 200px;
-      background-color: #333;
+      background-color: #323232;
       color: #fff;
       text-align: center;
-      border-radius: 4px;
+      border-radius: var(--radius-md);
       padding: 12px;
       position: fixed;
       z-index: 1;
@@ -191,7 +105,7 @@
       bottom: 20px;
       transform: translateX(-50%);
       font-size: 14px;
-      box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+      box-shadow: var(--shadow-lg);
     }
 
     #snackbar.show {
@@ -208,6 +122,62 @@
       from {bottom: 20px; opacity: 1;}
       to {bottom: 0; opacity: 0;}
     }
+
+    /* Theme Picker Styles */
+    .theme-swatches {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+    .swatch {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: transform 0.2s, border-color 0.2s;
+        position: relative;
+    }
+    .swatch:hover {
+        transform: scale(1.1);
+    }
+    .swatch.active {
+        border-color: var(--text-primary);
+        transform: scale(1.1);
+    }
+    .swatch.active::after {
+        content: '✓';
+        color: white;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .color-input-hidden {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        position: absolute;
+    }
+    .color-picker-btn {
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 50%;
+        color: var(--text-secondary);
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .color-picker-btn:hover {
+        background: rgba(0,0,0,0.05);
+        color: var(--text-primary);
+    }
   </style>
 </head>
 <body>
@@ -216,7 +186,26 @@
   </header>
   
   <div class="container">
-    <div class="setting-row">
+    <!-- Theme Color -->
+    <div class="setting-card">
+      <div class="setting-header">
+        <label class="setting-label" data-i18n="themeColorLabel">主題配色</label>
+        <div class="theme-picker-header">
+            <input type="color" id="customColorPicker" class="color-input-hidden">
+            <label for="customColorPicker" class="color-picker-btn" title="Custom Color">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+            </label>
+        </div>
+      </div>
+      <div class="setting-description" data-i18n="themeColorDesc">選擇介面主色調</div>
+      
+      <div class="theme-swatches" id="themeSwatches">
+        <!-- Swatches injected by JS -->
+      </div>
+    </div>
+
+    <!-- Auto Translate -->
+    <div class="setting-card">
       <div class="setting-header">
         <label class="setting-label" for="autoTranslateCheck" data-i18n="autoTranslateLabel">自動顯示翻譯</label>
         <label class="switch">
@@ -225,11 +214,11 @@
         </label>
       </div>
       <div class="setting-description" data-i18n="autoTranslateDesc">選取文字後自動顯示彈窗</div>
-      <!-- Hidden element for backward compatibility with existing popup.js logic if needed -->
       <div id="autoTranslate" style="display:none"></div>
     </div>
 
-    <div class="setting-row">
+    <!-- Auto Play Speech -->
+    <div class="setting-card">
       <div class="setting-header">
         <label class="setting-label" for="autoPlaySpeechCheck" data-i18n="autoPlaySpeechLabel">自動播放語音</label>
         <label class="switch">
@@ -240,9 +229,10 @@
       <div class="setting-description" data-i18n="autoPlaySpeechDesc">翻譯完成後自動朗讀結果</div>
     </div>
     
-    <div class="setting-row">
+    <!-- Source Language -->
+    <div class="setting-card input-group">
       <label class="setting-label" for="sourceLang" data-i18n="sourceLangLabel">源語言</label>
-      <select id="sourceLang">
+      <select id="sourceLang" class="input-field">
         <option value="auto">Auto Detect</option>
         <option value="zh-TW">繁體中文</option>
         <option value="zh-CN">简体中文</option>
@@ -257,9 +247,10 @@
       <div class="setting-description" data-i18n="sourceLangDesc">智慧判斷網頁原始語言</div>
     </div>
     
-    <div class="setting-row">
+    <!-- Target Language -->
+    <div class="setting-card input-group">
       <label class="setting-label" for="targetLang" data-i18n="targetLangLabel">目標語言</label>
-      <select id="targetLang">
+      <select id="targetLang" class="input-field">
         <option value="zh-TW">繁體中文</option>
         <option value="zh-CN">简体中文</option>
         <option value="en">English</option>
@@ -273,13 +264,15 @@
       <div class="setting-description" data-i18n="targetLangDesc">翻譯後的結果語言</div>
     </div>
     
-    <div class="setting-row">
+    <!-- Delay -->
+    <div class="setting-card input-group">
       <label class="setting-label" for="delay" data-i18n="delayLabel">顯示延遲 (毫秒)</label>
-      <input type="number" id="delay" min="0" max="2000" step="100">
+      <input type="number" id="delay" class="input-field" min="0" max="2000" step="100">
       <div class="setting-description" data-i18n="delayDesc">選取文字後到彈窗出現的時間</div>
     </div>
 
-    <div class="setting-row">
+    <!-- Limit Site (Highlight) -->
+    <div class="setting-card">
       <div class="setting-header">
         <label class="setting-label" for="enableHighlightCheck" data-i18n="enableHighlightLabel">智能高亮</label>
         <label class="switch">
@@ -288,17 +281,18 @@
         </label>
       </div>
       <div class="setting-description" data-i18n="enableHighlightDesc">在網頁中自動高亮已收藏的單字</div>
-      <button id="blacklistBtn" class="secondary-btn" style="margin-top: 12px; width: 100%; display: none;">在此網站禁用</button>
+      <button id="blacklistBtn" class="btn btn-secondary btn-sm" style="margin-top: 12px; width: 100%; display: none;">在此網站禁用</button>
     </div>
   </div>
   
   <div class="footer">
-      <button id="historyBtn" class="secondary-btn" data-i18n="historyBtn">單字本</button>
-      <button id="reviewBtn" class="secondary-btn" style="margin-left: 10px;" data-i18n="reviewBtn">開始複習</button>
+      <button id="historyBtn" class="btn btn-secondary" data-i18n="historyBtn">單字本</button>
+      <button id="reviewBtn" class="btn btn-primary" data-i18n="reviewBtn">開始複習</button>
   </div>
   
   <div id="snackbar" data-i18n="settingsSaved">設定已儲存</div>
   
+  <script src="services/ThemeService.js"></script>
   <script src="services/I18nService.js"></script>
   <script src="popup.js"></script>
 </body>

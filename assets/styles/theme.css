@@ -1,0 +1,246 @@
+/* Highlighting Translate - Central Design System */
+
+/* Import Inter Font */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+:root {
+  /* =========================================
+     Color Palette (Material Inspired)
+     ========================================= */
+
+  /* Primary Brand Colors */
+  --primary: #26a69a; /* Teal 400 */
+  --primary-hover: #00897b; /* Teal 600 */
+  --primary-light: #e0f2f1; /* Teal 50 */
+  --on-primary: #ffffff;
+
+  /* Secondary / Accent */
+  --secondary: #ff7043; /* Deep Orange 400 */
+  --secondary-hover: #f4511e;
+
+  /* Surfaces & Backgrounds */
+  --bg-app: #f5f7fa;
+  --bg-surface: #ffffff;
+  --bg-surface-alt: #fafafa;
+
+  /* Text Colors */
+  --text-primary: #37474f; /* Blue Grey 800 */
+  --text-secondary: #78909c; /* Blue Grey 400 */
+  --text-disabled: #b0bec5;
+
+  /* Functional Colors */
+  --error: #ef5350;
+  --success: #66bb6a;
+  --success-bg: #e8f5e9;
+  --success-text: #2e7d32;
+  --error-bg: #ffebee;
+  --error-text: #c62828;
+
+  /* Borders & Dividers */
+  --border-color: #eceff1;
+  --divider-color: rgba(0, 0, 0, 0.08);
+
+  /* =========================================
+     Typography
+     ========================================= */
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* =========================================
+     Spacing & Shapes
+     ========================================= */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 50px;
+
+  /* =========================================
+     Shadows (Material Elevation)
+     ========================================= */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-primary: 0 4px 14px 0 rgba(38, 166, 154, 0.39);
+}
+
+/* =========================================
+   Global Reset & Defaults
+   ========================================= */
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* =========================================
+   Utility Classes & Components
+   ========================================= */
+
+/* Use for containers that need the card look */
+.card {
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+/* Base Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  outline: none;
+  font-family: var(--font-family);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* Primary Button */
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  box-shadow: 0 6px 20px rgba(38, 166, 154, 0.23);
+}
+
+/* Secondary Button (Outline) */
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border-color: #cfd8dc;
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: #b0bec5;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Danger Button */
+.btn-danger {
+  background-color: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid transparent;
+}
+
+.btn-danger:hover {
+  background-color: #ffebee;
+  border-color: var(--error-bg);
+}
+
+/* Inputs & Selects */
+.input-field,
+select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cfd8dc;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-size: 14px;
+  background-color: var(--bg-surface);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  color: var(--text-primary);
+  appearance: none; /* Remove default arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2378909C'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px; /* Space for arrow */
+  cursor: pointer;
+}
+
+select:hover, .input-field:hover {
+  border-color: #b0bec5;
+  background-color: #fcfcfc;
+}
+
+.input-field:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.15);
+  background-color: #ffffff;
+}
+
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cfd8dc;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .slider {
+  background-color: var(--primary);
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}

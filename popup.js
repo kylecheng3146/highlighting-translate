@@ -160,11 +160,32 @@ async function toggleBlacklist() {
 
 // I18nService instance
 const i18nService = new I18nService();
+const themeService = new ThemeService();
 
 // 事件監聽
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     i18nService.localizePage();
+    
+    // Load Theme First (Visual Priority)
+    const currentColor = await themeService.loadAndApply();
+    renderThemeSwatches(currentColor);
+    
+    // Load other settings
     loadSettings();
+
+    const customColorPicker = document.getElementById('customColorPicker');
+    if (customColorPicker) {
+        customColorPicker.value = currentColor;
+        customColorPicker.addEventListener('input', (e) => {
+            handleThemeChange(e.target.value);
+        });
+        customColorPicker.addEventListener('change', (e) => {
+             // Final save on change
+             themeService.saveTheme(e.target.value);
+        });
+    }
+
+    // ... existing listeners ...
 
     const autoTranslateCheck = document.getElementById('autoTranslateCheck');
     if (autoTranslateCheck) autoTranslateCheck.addEventListener('change', saveSettings);
@@ -201,6 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+// ... existing code ...
     const reviewBtn = document.getElementById('reviewBtn');
     if (reviewBtn) {
         reviewBtn.addEventListener('click', () => {
@@ -208,3 +230,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+function renderThemeSwatches(activeColor) {
+    const container = document.getElementById('themeSwatches');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    themeService.presets.forEach(preset => {
+        const swatch = document.createElement('div');
+        swatch.className = 'swatch';
+        swatch.style.backgroundColor = preset.color;
+        swatch.title = preset.name;
+        
+        // Check equality (case insensitive)
+        if (preset.color.toLowerCase() === activeColor.toLowerCase()) {
+            swatch.classList.add('active');
+        }
+        
+        swatch.addEventListener('click', () => {
+             handleThemeChange(preset.color);
+             themeService.saveTheme(preset.color);
+             // Update active state UI
+             document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+             swatch.classList.add('active');
+             
+             // Update picker value
+             const picker = document.getElementById('customColorPicker');
+             if (picker) picker.value = preset.color;
+        });
+        
+        container.appendChild(swatch);
+    });
+}
+
+function handleThemeChange(color) {
+    themeService.applyTheme(color);
+}

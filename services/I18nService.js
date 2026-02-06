@@ -26,7 +26,9 @@ class I18nService {
                 "enableHighlightDesc": "Highlight saved words in web pages",
                 "blacklistBtn": "Disable for this site",
                 "whitelistBtn": "Enable for this site",
-                "reviewBtn": "Start Review"
+                "reviewBtn": "Start Review",
+                "themeColorLabel": "Theme Color",
+                "themeColorDesc": "Choose primary interface color"
             },
             "zh-CN": {
                 "settingsTitle": "翻译设置",
@@ -53,7 +55,9 @@ class I18nService {
                 "enableHighlightDesc": "在网页中自动高亮已收藏的单词",
                 "blacklistBtn": "在此网站禁用",
                 "whitelistBtn": "在此网站启用",
-                "reviewBtn": "开始复习"
+                "reviewBtn": "开始复习",
+                "themeColorLabel": "主题配色",
+                "themeColorDesc": "选择界面主色调"
             },
             "zh-TW": {
                 "settingsTitle": "翻譯設定",
@@ -80,7 +84,9 @@ class I18nService {
                 "enableHighlightDesc": "在網頁中自動高亮已收藏的單字",
                 "blacklistBtn": "在此網站禁用",
                 "whitelistBtn": "在此網站啟用",
-                "reviewBtn": "開始複習"
+                "reviewBtn": "開始複習",
+                "themeColorLabel": "主題配色",
+                "themeColorDesc": "選擇介面主色調"
             },
             "ja": {
                 "settingsTitle": "翻訳設定",
@@ -107,7 +113,9 @@ class I18nService {
                 "enableHighlightDesc": "保存した単語をページ内でハイライト表示",
                 "blacklistBtn": "このサイトで無効にする",
                 "whitelistBtn": "このサイトで有効にする",
-                "reviewBtn": "復習開始"
+                "reviewBtn": "復習開始",
+                "themeColorLabel": "テーマカラー",
+                "themeColorDesc": "インターフェースのメインカラーを選択"
             },
             "ko": {
                 "settingsTitle": "번역 설정",
@@ -134,7 +142,9 @@ class I18nService {
                 "enableHighlightDesc": "저장된 단어를 페이지에서 하이라이트",
                 "blacklistBtn": "이 사이트에서 비활성화",
                 "whitelistBtn": "이 사이트에서 활성화",
-                "reviewBtn": "복습 시작"
+                "reviewBtn": "복습 시작",
+                "themeColorLabel": "테마 색상",
+                "themeColorDesc": "인터페이스 기본 색상 선택"
             },
             "es": {
                 "settingsTitle": "Configuración de traducción",
@@ -161,7 +171,9 @@ class I18nService {
                 "enableHighlightDesc": "Resaltar palabras guardadas en las páginas",
                 "blacklistBtn": "Desactivar para este sitio",
                 "whitelistBtn": "Activar para este sitio",
-                "reviewBtn": "Iniciar repaso"
+                "reviewBtn": "Iniciar repaso",
+                "themeColorLabel": "Color del tema",
+                "themeColorDesc": "Elegir color principal de la interfaz"
             },
             "fr": {
                 "settingsTitle": "Paramètres de traduction",
@@ -188,7 +200,9 @@ class I18nService {
                 "enableHighlightDesc": "Surligner les mots enregistrés",
                 "blacklistBtn": "Désactiver pour ce site",
                 "whitelistBtn": "Activer pour ce site",
-                "reviewBtn": "Commencer la révision"
+                "reviewBtn": "Commencer la révision",
+                "themeColorLabel": "Couleur du thème",
+                "themeColorDesc": "Choisir la couleur principale"
             },
             "de": {
                 "settingsTitle": "Übersetzungseinstellungen",
@@ -215,7 +229,9 @@ class I18nService {
                 "enableHighlightDesc": "Gespeicherte Wörter in Seiten hervorheben",
                 "blacklistBtn": "Für diese Seite deaktivieren",
                 "whitelistBtn": "Für diese Seite aktivieren",
-                "reviewBtn": "Überprüfung starten"
+                "reviewBtn": "Überprüfung starten",
+                "themeColorLabel": "Designfarbe",
+                "themeColorDesc": "Hauptfarbe der Oberfläche wählen"
             },
             "vi": {
                 "settingsTitle": "Cài đặt Dịch",
@@ -242,7 +258,9 @@ class I18nService {
                 "enableHighlightDesc": "Làm nổi bật các từ đã lưu trên trang web",
                 "blacklistBtn": "Vô hiệu hóa trang này",
                 "whitelistBtn": "Kích hoạt trang này",
-                "reviewBtn": "Bắt đầu ôn tập"
+                "reviewBtn": "Bắt đầu ôn tập",
+                "themeColorLabel": "Màu chủ đề",
+                "themeColorDesc": "Chọn màu giao diện chính"
             }
         };
     }

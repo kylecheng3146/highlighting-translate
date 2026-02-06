@@ -1,38 +1,12 @@
 /* review.css */
 
-:root {
-    /* Material Design 3 inspired Pale/Light Theme */
-    /* Primary: Soft Teal/Cyan */
-    --primary: #26A69A; /* Teal 400 */
-    --primary-hover: #00897B; /* Teal 600 */
-    --on-primary: #FFFFFF;
-    
-    /* Backgrounds */
-    --bg-color: #F5F7FA; /* Very light grey-blue */
-    --surface-color: #FFFFFF;
-    
-    /* Text */
-    --text-primary: #37474F; /* Blue Grey 800 */
-    --text-secondary: #78909C; /* Blue Grey 400 */
-    
-    /* Status Colors (Pastel/Soft) */
-    --green-bg: #E8F5E9;
-    --green-border: #A5D6A7;
-    --green-text: #2E7D32;
-    
-    --red-bg: #FFEBEE;
-    --red-border: #EF9A9A;
-    --red-text: #C62828;
-    
-    /* Shadows (Material Elevation) */
-    --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
     --shadow-2: 0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12);
     --shadow-3: 0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10);
 }
 
 body {
     font-family: 'Roboto', 'Inter', sans-serif; /* Roboto is standard for Material */
-    background-color: var(--bg-color);
+    background-color: var(--bg-app);
     color: var(--text-primary);
     margin: 0;
     height: 100vh;
@@ -43,12 +17,12 @@ body {
 
 /* Header */
 .app-header {
-    background-color: var(--surface-color);
+    background-color: var(--bg-surface);
     padding: 1rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: var(--shadow-1);
+    box-shadow: var(--shadow-sm);
     z-index: 10;
 }
 
@@ -203,10 +177,10 @@ body {
 }
 
 .option-card {
-    background-color: var(--surface-color);
+    background-color: var(--bg-surface);
     padding: 1.5rem;
     border-radius: 16px; /* Material 3 styled rounded corners */
-    box-shadow: var(--shadow-1);
+    box-shadow: var(--shadow-sm);
     font-size: 1.25rem;
     font-weight: 500;
     color: var(--text-primary);
@@ -224,26 +198,26 @@ body {
 /* Ripple effect simulation would go here, but hover lift is fine for now */
 .option-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-2);
+    box-shadow: var(--shadow-md);
     border-color: #B2DFDB; /* Light teal border on hover */
 }
 
 .option-card:active {
     transform: translateY(0);
-    box-shadow: var(--shadow-1);
+    box-shadow: var(--shadow-sm);
 }
 
 .option-correct {
-    background-color: var(--green-bg) !important;
-    border-color: var(--green-border) !important;
-    color: var(--green-text) !important;
+    background-color: var(--success-bg) !important;
+    border-color: var(--success) !important;
+    color: var(--success-text) !important;
     box-shadow: none !important;
 }
 
 .option-wrong {
-    background-color: var(--red-bg) !important;
-    border-color: var(--red-border) !important;
-    color: var(--red-text) !important;
+    background-color: var(--error-bg) !important;
+    border-color: var(--error) !important;
+    color: var(--error-text) !important;
     opacity: 0.9;
     box-shadow: none !important;
 }
@@ -263,8 +237,8 @@ body {
     font-weight: 500;
     opacity: 1;
 }
-.text-green { color: var(--green-text); }
-.text-red { color: var(--red-text); }
+.text-green { color: var(--success-text); }
+.text-red { color: var(--error-text); }
 
 /* Results */
 .results-container {
@@ -274,9 +248,9 @@ body {
 }
 
 .results-card {
-    background-color: var(--surface-color);
+    background-color: var(--bg-surface);
     border-radius: 24px;
-    box-shadow: var(--shadow-3);
+    box-shadow: var(--shadow-lg);
     padding: 3rem 2rem;
     text-align: center;
 }

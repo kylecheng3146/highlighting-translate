@@ -3,325 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <title>Translation History - Highlighting Translate</title>
+    <link rel="stylesheet" href="assets/styles/theme.css">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: var(--bg-app) !important;
+            padding: 30px;
         }
+
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
+
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
         }
+
         h1 {
-            margin: 0;
-            font-size: 24px;
+            font-size: 28px;
+            font-weight: 700;
         }
-        .actions {
-            display: flex;
-            gap: 10px;
-        }
-        button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.2s;
-        }
-        button.danger {
-            background-color: #ffebee;
-            color: #d32f2f;
-        }
-        button.danger:hover {
-            background-color: #ffcdd2;
-        }
-        button.secondary-btn {
-            background-color: #f5f5f5;
-            color: #333;
-            border: 1px solid #ddd;
-        }
-        button.secondary-btn:hover {
-            background-color: #eee;
-        }
-        
-        .history-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 0;
-            margin: 0;
-        }
-        .history-item {
-            background: white;
-            border: 1px solid #eee;
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .history-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            background-color: white;
-        }
-        .item-content {
-            margin-right: 0;
-            margin-bottom: 15px;
-        }
-        .original {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #1a1a1a;
-        }
-        .translation {
-            font-size: 16px;
-            color: #1976d2;
-            margin-bottom: 12px;
-            font-weight: 500;
-        }
-        .context {
-            font-size: 14px;
-            color: #555;
-            line-height: 1.6;
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            border-left: 3px solid #f5b041;
-            font-style: italic;
-        }
-        .context mark {
-            background-color: rgba(245, 176, 65, 0.3);
-            color: #333;
-            font-weight: 600;
-            border-radius: 2px;
-            padding: 0 2px;
-        }
-        .meta {
-            font-size: 12px;
-            color: #999;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid #f0f0f0;
-            padding-top: 10px;
-        }
-        .meta-info {
-            display: flex;
-            gap: 8px;
-        }
-        .meta a {
-            color: #1976d2;
-            text-decoration: none;
-        }
-        .meta a:hover {
-            text-decoration: underline;
-        }
-        .delete-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: #ddd;
-            cursor: pointer;
-            padding: 5px;
-            font-size: 20px;
-            line-height: 1;
-            transition: color 0.2s;
-        }
-        .delete-btn:hover {
-            color: #d32f2f;
-        }
-        
-        /* New Styles for Quiz/Archive */
-        .progress-wrapper {
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .item-progress-bar {
-            flex-grow: 1;
-            height: 6px;
-            background-color: #eee;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        .item-progress-fill {
-            height: 100%;
-            background-color: #4caf50;
-            width: 0%;
-            transition: width 0.3s;
-        }
-        .archive-btn {
-            background: none;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 12px;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .archive-btn:hover {
-            background-color: #f0f0f0;
-            color: #333;
-            border-color: #ccc;
-        }
-        .archive-btn.archived {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border-color: #a5d6a7;
-            /* pointer-events: none; Removed to allow un-archiving */
-        }
-        .history-item.is-archived {
-            opacity: 0.85; /* Increased opacity for better readability */
-            background-color: #fcfcfc;
-            border: 1px dashed #ddd; /* Dotted border to signify "filed away" */
-            box-shadow: none; /* Flatter look for archived */
-        }
-        /* Hover effect for unarchiving */
-        .history-item.is-archived .archive-btn:hover {
-             background-color: #ffebee;
-             color: #c62828;
-             border-color: #ef9a9a;
-        }
-        .history-item.is-archived .archive-btn::after {
-            /* content: " (Undo)"; Optional hint */
-        }
-        
-        #toggleArchivedBtn {
-            background-color: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 15px;
-            color: #555;
-            font-weight: 500;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: all 0.2s;
-        }
-        #toggleArchivedBtn:hover {
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-            border-color: #b0bec5;
-            color: #333;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        /* Dashboard Styles */
+
         .dashboard {
             background: linear-gradient(135deg, #ffffff 0%, #fcfcfc 100%);
-            border-radius: 16px;
+            border-radius: var(--radius-xl);
             padding: 24px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
         }
+
         .stat-card {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
+
         .stat-label {
             font-size: 14px;
-            color: #666;
+            color: var(--text-secondary);
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
         .stat-value {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 700;
-            color: #1a1a1a;
+            color: var(--text-primary);
         }
+
         .progress-container {
             grid-column: span 2;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
         }
+
         @media (max-width: 600px) {
             .progress-container { grid-column: span 1; }
         }
+
         .progress-row {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
+
         .progress-label-row {
             display: flex;
             justify-content: space-between;
             font-size: 13px;
-            color: #555;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
+
         .progress-bar-bg {
             height: 10px;
-            background: #eee;
+            background: #EEEEEE;
             border-radius: 5px;
             overflow: hidden;
-            position: relative;
         }
+
         .progress-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #26A69A 0%, #80CBC4 100%);
+            background: linear-gradient(90deg, var(--primary) 0%, #80CBC4 100%);
             border-radius: 5px;
             width: 0%;
             transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+
         .progress-bar-fill.level-b2 {
-            background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);
+            background: linear-gradient(90deg, #42A5F5 0%, #1E88E5 100%);
         }
-        
-        body {
-            background-color: #f8f9fa;
+
+        /* History List */
+        .history-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 0;
+            margin: 0;
+            list-style: none;
         }
-        header {
-            border-bottom: none;
-            margin-bottom: 30px;
+
+        .history-item {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
         }
-        .empty-state {
-            text-align: center;
-            padding: 50px 0;
-            color: #999;
+
+        .history-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: #B2DFDB;
         }
-        .empty-state svg {
-            width: 80px;
-            height: 80px;
-            fill: #eee;
+
+        .item-content {
             margin-bottom: 20px;
         }
-        .empty-state p {
-            font-size: 18px;
-            margin: 0 0 10px 0;
-            color: #666;
+
+        .original {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            line-height: 1.4;
         }
-        .empty-state span {
+
+        .translation {
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .context {
             font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            background: var(--bg-app);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            border-left: 3px solid #FFCC80;
+            font-style: italic;
+        }
+
+        .context mark {
+            background-color: rgba(255, 204, 128, 0.4);
+            color: var(--text-primary);
+            font-weight: 600;
+            border-radius: 2px;
+            padding: 0 4px;
+        }
+
+        .meta {
+            font-size: 12px;
+            color: var(--text-disabled);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            margin-top: auto;
+        }
+
+        .actions-overlay {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .history-item:hover .actions-overlay {
+            opacity: 1;
+        }
+
+        .icon-btn {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .icon-btn.delete:hover {
+            color: var(--error);
+            background-color: var(--error-bg);
+            border-color: var(--error-bg);
+        }
+
+        .icon-btn.archive:hover {
+            color: var(--primary);
+            background-color: var(--primary-light);
+            border-color: var(--primary-light);
+        }
+
+        /* Archived State */
+        .history-item.is-archived {
+            opacity: 0.7;
+            background-color: #FAFAFA;
+            border-style: dashed;
+            box-shadow: none !important;
+        }
+
+        .history-item.is-archived:hover {
+            transform: none;
+            opacity: 1;
+        }
+
+        /* Toggle Button for Archives */
+        #toggleArchivedBtn {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            font-size: 15px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+            margin-bottom: 20px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #toggleArchivedBtn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 0;
+            color: var(--text-disabled);
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            fill: #E0E0E0;
+            margin-bottom: 24px;
+        }
+
+        .empty-state p {
+            font-size: 20px;
+            margin: 0 0 12px 0;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .empty-state span {
+            font-size: 15px;
+            max-width: 400px;
+            display: inline-block;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -330,7 +300,7 @@
         <header>
             <h1 data-i18n="historyTitle">單字本 (History)</h1>
             <div class="actions">
-                <button id="clearAll" class="danger" data-i18n="clearAllBtn">Clear All</button>
+                <button id="clearAll" class="btn btn-danger" data-i18n="clearAllBtn">Clear All</button>
             </div>
         </header>
 
@@ -372,7 +342,7 @@
 
         <!-- Archived Section -->
         <div id="archivedContainer" style="margin-top: 40px; display: none;">
-            <button id="toggleArchivedBtn" class="secondary-btn" style="width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+            <button id="toggleArchivedBtn">
                 <span>📂 Archived Vocabulary (<span id="archivedCount">0</span>)</span>
                 <span id="archivedChevron">▼</span>
             </button>
@@ -389,11 +359,13 @@
             <span data-i18n="emptyStateText">選取網頁上的文字，並點擊翻譯視窗中的星號開始建立您的單字本！</span>
         </div>
         
-        <div id="loadMoreContainer" style="text-align: center; padding: 20px; display: none;">
-            <button id="loadMoreBtn" class="secondary-btn" data-i18n="loadMoreBtn">顯示更多</button>
+        <div id="loadMoreContainer" style="text-align: center; padding: 40px; display: none;">
+            <button id="loadMoreBtn" class="btn btn-secondary" data-i18n="loadMoreBtn">顯示更多</button>
         </div>
     </div>
     <script src="services/StorageService.js"></script>
+    <script src="services/ThemeService.js"></script>
+    <script>const themeService = new ThemeService(); themeService.loadAndApply();</script>
     <script src="services/I18nService.js"></script>
     <script src="history.js"></script>
 </body>

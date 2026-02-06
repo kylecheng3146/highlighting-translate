@@ -27,10 +27,18 @@ async function loadSettings() {
             targetLang: 'zh-TW',
             delay: 500,
             enableHighlighting: true,
-            domainBlacklist: []
+            domainBlacklist: [],
+            themeColor: '#26A69A' // Default Teal
         });
         settings = items;
         
+        // Apply initial theme
+        if (items.themeColor) {
+             document.documentElement.style.setProperty('--ht-primary', items.themeColor);
+             const host = document.getElementById('translate-popup-host');
+             if (host) host.style.setProperty('--ht-primary', items.themeColor);
+        }
+
         applyHighlightSettings();
         
         return settings;
@@ -118,6 +126,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         checkAndRetranslate();
         applyHighlightSettings();
         sendResponse({success: true});
+    } else if (request.action === 'updateTheme') {
+        const color = request.themeColor;
+        // Update document root
+        document.documentElement.style.setProperty('--ht-primary', color);
+        
+        // Host (Shadow DOM wrapper style)
+        const hostStyle = document.getElementById('highlighting-translate-styles');
+        if (hostStyle) {
+            // We can't easily edit inner text of style, but we can append a new rule or just set property on host
+            // Since we used :root, setting on documentElement is enough for global
+            // But for Shadow DOM isolated styles if they don't inherit...
+            // Our style uses :root, :host.
+            // Setting property on the shadow host element is best
+            const host = document.getElementById('translate-popup-host');
+            if (host) {
+                host.style.setProperty('--ht-primary', color);
+                // Calculate hover
+                // Simple darkening logic implementation inline or reuse?
+                // For simplicity, let's just use the color. Hover effect might be less visible if we don't calculate defaults.
+                // Or we can rely on opacity.
+            }
+        }
     }
 });
 
@@ -138,18 +168,18 @@ function injectStyles(root) {
     const style = document.createElement('style');
     style.id = 'highlighting-translate-styles';
     style.textContent = `
-        :host {
-            --ht-primary: #f5b041;
-            --ht-primary-hover: #d68910;
-            --ht-bg: rgba(255, 255, 255, 0.95);
-            --ht-text: #333;
-            --ht-text-secondary: #666;
-            --ht-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            --ht-radius: 12px;
-            --ht-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            --ht-anim-duration: 0.25s;
+        :root, :host {
+            --ht-primary: #26A69A;
+            --ht-primary-hover: #00897B;
+            --ht-bg: rgba(255, 255, 255, 0.98);
+            --ht-text: #37474F;
+            --ht-text-secondary: #78909C;
+            --ht-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+            --ht-radius: 16px;
+            --ht-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --ht-anim-duration: 0.2s;
             --ht-anim-ease: cubic-bezier(0.4, 0.0, 0.2, 1);
-            all: initial; /* Reset all inherited styles */
+            /* all: initial; - Removed because it resets too much in global scope */
         }
         .ht-popup {
             position: absolute;
@@ -173,6 +203,7 @@ function injectStyles(root) {
             box-sizing: border-box;
             color: var(--ht-text);
         }
+        /* ... existing styles ... */
         .ht-popup.ht-show {
             opacity: 1;
             transform: translateY(0);
@@ -293,35 +324,35 @@ function injectStyles(root) {
             transform: translateX(-50%) translateY(0);
         }
         mark.ht-highlight {
-            background: linear-gradient(120deg, rgba(245, 176, 65, 0.3) 0%, rgba(245, 176, 65, 0.5) 100%);
-            border-bottom: 2px solid rgba(245, 176, 65, 0.6);
+            background: rgba(38, 166, 154, 0.4); /* Increased opacity */
+            border-bottom: 2px solid rgba(38, 166, 154, 0.5);
             color: inherit;
-            cursor: help;
-            border-radius: 3px;
-            padding: 0 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 0 1px;
             transition: background 0.2s, border-color 0.2s;
         }
         mark.ht-highlight:hover {
-            background: rgba(245, 176, 65, 0.6);
+            background: rgba(38, 166, 154, 0.6);
+            border-bottom-color: rgba(38, 166, 154, 0.9);
         }
         /* Frequency Based Highlighting */
         mark.ht-highlight.hl-freq-high {
-            background: rgba(255, 130, 0, 0.25); /* Bright orange tint */
-            border-bottom: 2px solid rgba(255, 130, 0, 0.8);
+            background: rgba(239, 83, 80, 0.3); /* Increased opacity */
+            border-bottom: 2px solid rgba(239, 83, 80, 0.6);
         }
         mark.ht-highlight.hl-freq-high:hover {
-            background: rgba(255, 130, 0, 0.45);
+            background: rgba(239, 83, 80, 0.45);
         }
         mark.ht-highlight.hl-freq-mid {
-            background: rgba(245, 176, 65, 0.15); /* Standard yellow tint */
-            border-bottom: 2px solid rgba(245, 176, 65, 0.5);
+            background: rgba(38, 166, 154, 0.35); /* Increased opacity */
         }
         mark.ht-highlight.hl-freq-low {
             background: transparent;
-            border-bottom: 1px dashed #adb5bd; /* Subtle gray dashed line */
+            border-bottom: 1px dashed #B0BEC5; 
         }
         mark.ht-highlight.hl-freq-low:hover {
-            background: rgba(173, 181, 189, 0.1);
+            background: rgba(176, 190, 197, 0.3);
         }
 
         .ht-tooltip {
@@ -353,16 +384,17 @@ function injectStyles(root) {
             gap: 12px;
         }
         .ht-rank-badge {
-            background: #ff8200;
+            background: var(--ht-primary);
             color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .ht-rank-badge.level-mid { background: #3498db; }
-        .ht-rank-badge.level-low { background: #7f8c8d; }
+        .ht-rank-badge.level-mid { background: #42A5F5; }
+        .ht-rank-badge.level-low { background: #B0BEC5; }
         
         .ht-tooltip-translation {
             font-size: 14px;
@@ -383,7 +415,18 @@ function injectStyles(root) {
             color: var(--ht-text-secondary);
         }
     `;
-    root.appendChild(style);
+    if (root.nodeType === Node.DOCUMENT_NODE) { // Handle document head specifically or check if it's head
+         root.head.appendChild(style);
+    } else {
+         root.appendChild(style);
+    }
+}
+
+// Inject global styles immediately to ensure highlights work
+if (document.head) {
+    injectStyles(document);
+} else {
+    document.addEventListener('DOMContentLoaded', () => injectStyles(document));
 }
 
 // Check if current translation is saved

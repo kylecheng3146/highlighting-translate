@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vocabulary Review - Highlighting Translate</title>
+    <link rel="stylesheet" href="assets/styles/theme.css">
     <link rel="stylesheet" href="review.css">
     <style>
         /* Custom Font */
@@ -102,6 +103,12 @@
     </main>
 
     <script src="services/StorageService.js"></script> 
+    <script src="services/ThemeService.js"></script>
+    <script>
+        // Init Theme
+        const themeService = new ThemeService();
+        themeService.loadAndApply();
+    </script>
     <script src="review.js"></script>
 </body>
 </html>
