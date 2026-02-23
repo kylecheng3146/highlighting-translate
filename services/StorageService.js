@@ -165,13 +165,93 @@ class StorageService {
      * @param {number} limit 
      * @param {number} offset 
      */
-    async getTranslations(limit = 100, offset = 0) {
+    /**
+     * Migrates items with 'auto' sourceLang to detected language.
+     * Note: Requires TranslationService to be available globally or passed in.
+     * In background script, TranslationService matches existing pattern.
+     */
+    async migrateAutoSourceLang() {
         if (!this.isBackground) {
-            return this._request('STORAGE_GET', { limit, offset });
+            return this._request('STORAGE_MIGRATE_AUTO_LANG');
         }
 
         await this._ensureCache();
-        return this.cache.slice(offset, offset + limit);
+        let migratedCount = 0;
+        
+        let detectFn = null;
+        if (typeof TranslationService !== 'undefined') {
+            const ts = new TranslationService();
+            detectFn = (text) => ts.detectLanguage(text);
+        }
+
+        if (!detectFn) {
+            console.warn('TranslationService not found for migration');
+            return 0;
+        }
+
+        let updated = false;
+        this.cache = this.cache.map(item => {
+            // Check 'auto' OR if language is missing
+            if (item.sourceLang === 'auto' || !item.sourceLang) {
+                const detected = detectFn(item.text);
+                // IF detected is still 'auto' (e.g. uncertain), we leave it or default?
+                // The new detectLanguage detects 'en'.
+                if (detected !== 'auto') {
+                    item.sourceLang = detected;
+                    migratedCount++;
+                    updated = true;
+                }
+            }
+            return item;
+        });
+
+        if (updated) {
+            await chrome.storage.local.set({ [this.STORAGE_KEY]: this.cache });
+            console.log(`Migrated ${migratedCount} items from auto sourceLang.`);
+        }
+        return migratedCount;
+    }
+
+    /**
+     * Gets a list of unique source languages with counts.
+     * @returns {Promise<Array<{code: string, count: number}>>}
+     */
+    async getSourceLanguages() {
+        if (!this.isBackground) {
+            return this._request('STORAGE_GET_SOURCE_LANGS');
+        }
+
+        await this._ensureCache();
+        const counts = {};
+        this.cache.forEach(item => {
+            const lang = item.sourceLang || 'unknown';
+            counts[lang] = (counts[lang] || 0) + 1;
+        });
+
+        return Object.entries(counts)
+            .map(([code, count]) => ({ code, count }))
+            .sort((a, b) => b.count - a.count);
+    }
+
+    /**
+     * Retrieves saved translations.
+     * @param {number} limit 
+     * @param {number} offset 
+     * @param {string} sourceLangFilter - Optional language code to filter by
+     */
+    async getTranslations(limit = 100, offset = 0, sourceLangFilter = null) {
+        if (!this.isBackground) {
+            return this._request('STORAGE_GET', { limit, offset, sourceLangFilter });
+        }
+
+        await this._ensureCache();
+        
+        let result = this.cache;
+        if (sourceLangFilter && sourceLangFilter !== 'all') {
+            result = result.filter(item => item.sourceLang === sourceLangFilter);
+        }
+        
+        return result.slice(offset, offset + limit);
     }
 
     /**
@@ -193,15 +273,26 @@ class StorageService {
     }
 
     /**
-     * Clears all saved translations.
+     * Clears translations, optionally filtered by language.
+     * @param {string} sourceLangFilter - Optional language code to delete only specific lang
      */
-    async clearAll() {
+    async clearAll(sourceLangFilter = null) {
         if (!this.isBackground) {
-            return this._request('STORAGE_CLEAR');
+            return this._request('STORAGE_CLEAR', { sourceLangFilter });
         }
 
-        this.cache = [];
-        await chrome.storage.local.set({ [this.STORAGE_KEY]: [] });
+        await this._ensureCache();
+
+        if (sourceLangFilter && sourceLangFilter !== 'all') {
+            const initialLength = this.cache.length;
+            this.cache = this.cache.filter(item => item.sourceLang !== sourceLangFilter);
+            if (this.cache.length !== initialLength) {
+                await chrome.storage.local.set({ [this.STORAGE_KEY]: this.cache });
+            }
+        } else {
+            this.cache = [];
+            await chrome.storage.local.set({ [this.STORAGE_KEY]: [] });
+        }
         return true;
     }
 

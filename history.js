@@ -2,9 +2,24 @@ const storageService = new StorageService();
 const i18nService = new I18nService();
 let currentOffset = 0;
 const PAGE_SIZE = 50;
+let currentSourceLang = 'all'; // Default filter
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   i18nService.localizePage();
+
+  // 1. Migrate Data (if needed)
+  if (storageService.isBackground) {
+     // Direct call
+     await storageService.migrateAutoSourceLang();
+  } else {
+     // Via message
+     await chrome.runtime.sendMessage({ action: 'STORAGE_MIGRATE_AUTO_LANG' });
+  }
+
+  // 2. Initialize Sidebar
+  await loadLanguageSidebar();
+
+  // 3. Load Content
   loadHistory(true);
   updateDashboard();
 
@@ -27,10 +42,102 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+async function loadLanguageSidebar() {
+    try {
+        const langs = await storageService.getSourceLanguages();
+        const list = document.getElementById('languageList');
+        
+        // Keep "All" but reset others
+        list.innerHTML = `
+            <li class="language-item ${currentSourceLang === 'all' ? 'active' : ''}" data-lang="all" tabindex="0" role="button" aria-pressed="${currentSourceLang === 'all'}">
+                <span class="lang-name" data-i18n="allLanguages">All Languages</span>
+                <span class="lang-count" id="totalLangCount">0</span>
+            </li>
+        `;
+
+        let totalCount = 0;
+        langs.forEach(l => {
+            const li = document.createElement('li');
+            li.className = `language-item ${currentSourceLang === l.code ? 'active' : ''}`;
+            li.dataset.lang = l.code;
+            li.tabIndex = 0;
+            li.setAttribute('role', 'button');
+            li.setAttribute('aria-pressed', currentSourceLang === l.code);
+            
+            // Display name map (optional, could use Intl.DisplayNames)
+            const displayName = getLanguageName(l.code);
+            
+            li.innerHTML = `
+                <span class="lang-name">${displayName}</span>
+                <span class="lang-count">${l.count}</span>
+            `;
+            
+            const activate = () => switchLanguage(l.code);
+            li.addEventListener('click', activate);
+            li.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    activate();
+                }
+            });
+            
+            list.appendChild(li);
+            totalCount += l.count;
+        });
+
+        // Update All count
+        document.getElementById('totalLangCount').innerText = totalCount;
+        
+        // Bind click for All
+        const allItem = list.querySelector('[data-lang="all"]');
+        const activateAll = () => switchLanguage('all');
+        allItem.addEventListener('click', activateAll);
+        allItem.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                activateAll();
+            }
+        });
+
+    } catch (e) {
+        console.error("Failed to load languages", e);
+    }
+}
+
+function getLanguageName(code) {
+    // Simple map or Intl
+    try {
+        const regionNames = new Intl.DisplayNames([navigator.language], {type: 'language'});
+        return regionNames.of(code) || code;
+    } catch (e) {
+        return code;
+    }
+}
+
+async function switchLanguage(langCode) {
+    if (currentSourceLang === langCode) return;
+    
+    currentSourceLang = langCode;
+    
+    // Update UI active state
+    document.querySelectorAll('.language-item').forEach(el => {
+        const isActive = el.dataset.lang === langCode;
+        if (isActive) el.classList.add('active');
+        else el.classList.remove('active');
+        el.setAttribute('aria-pressed', isActive);
+    });
+    
+    // Reload data
+    loadHistory(true);
+    updateDashboard(); // Check if dashboard needs filtering
+}
+
 async function updateDashboard() {
   try {
-    // Load all items to calculate stats
-    const allItems = await storageService.getTranslations(5000, 0);
+    // Load all items (filtered) to calculate stats
+    // Note: getTranslations supports filter now
+    // For specific stats we might want to fetch all for that language
+    const allItems = await storageService.getTranslations(5000, 0, currentSourceLang);
     const totalCount = allItems.length;
 
     // Mastery Index based on SRS stage (assuming stage 5+ is mastered)
@@ -115,19 +222,11 @@ async function loadHistory(reset = true) {
   }
 
   try {
-    // Load MORE items to facilitate separation (or filter in memory? StorageService pagination is generic)
-    // Since we need to split active/archived, simple pagination gets tricky if we want ALL archived at bottom.
-    // Option 1: Load generic page, sort them. (Might have mixed pages)
-    // Option 2: Fetch ALL and render client side (cleanest for "Archived at bottom")
-    // Option 3: Request separate Active/Archived lists from StorageService (Best for perf)
-    // Let's stick to generic fetch for now but render into two buckets.
-    // NOTE: This simple pagination approach means "Archived" items might appear in later "pages".
-    // For the user request "Move to hidden row", usually implies seeing them all.
-    // Let's assume fetching a larger batch or handling simply by rendering.
-
+    // Pass currentSourceLang to filter
     const items = await storageService.getTranslations(
       PAGE_SIZE,
       currentOffset,
+      currentSourceLang
     );
 
     // If no items at all (and reset), show empty
@@ -144,6 +243,7 @@ async function loadHistory(reset = true) {
     const nextItems = await storageService.getTranslations(
       1,
       currentOffset + PAGE_SIZE,
+      currentSourceLang
     );
     loadMoreContainer.style.display = nextItems.length > 0 ? "block" : "none";
 
@@ -166,12 +266,15 @@ async function loadHistory(reset = true) {
 
       li.innerHTML = `
                 <div class="actions-overlay">
-                    <button class="icon-btn archive" title="${item.isArchived ? "Unarchive" : "Archive"}">
+                    <button class="icon-btn tts-btn" title="Listen" aria-label="Listen to pronunciation">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                    </button>
+                    <button class="icon-btn archive" title="${item.isArchived ? "Unarchive" : "Archive"}" aria-label="${item.isArchived ? "Unarchive item" : "Archive item"}">
                         ${item.isArchived 
                             ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>' 
                             : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>'}
                     </button>
-                    <button class="icon-btn delete" title="Delete">
+                    <button class="icon-btn delete" title="Delete" aria-label="Delete item">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     </button>
                 </div>
@@ -196,6 +299,12 @@ async function loadHistory(reset = true) {
                     </div>
                 </div>
             `;
+
+      // TTS event
+      li.querySelector(".tts-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        playTTS(item.text, item.sourceLang || 'en');
+      });
 
       // Archive event
       const archiveBtn = li.querySelector(".archive");
@@ -240,7 +349,9 @@ async function deleteItem(text, translation) {
   }
   try {
     await storageService.removeTranslation(text, translation);
-    loadHistory(true); // Reload list from start to reflect changes
+    // Reload sidebar counts too
+    await loadLanguageSidebar();
+    loadHistory(true); 
   } catch (error) {
     console.error("Failed to delete item:", error);
   }
@@ -258,12 +369,17 @@ async function archiveItem(text, translation, newState = true) {
 }
 
 async function clearAllHistory() {
-  if (!confirm(i18nService.getText("clearConfirm"))) {
+  const confirmMsg = currentSourceLang === 'all' 
+    ? i18nService.getText("clearConfirm")
+    : `${i18nService.getText("clearConfirm")} (${getLanguageName(currentSourceLang)})`;
+
+  if (!confirm(confirmMsg)) {
     return;
   }
 
   try {
-    await storageService.clearAll();
+    await storageService.clearAll(currentSourceLang);
+    await loadLanguageSidebar();
     loadHistory(true);
   } catch (error) {
     console.error("Failed to clear history:", error);
@@ -280,6 +396,15 @@ function highlightContext(context, text) {
   } catch (e) {
     return escapeHtml(context);
   }
+}
+
+function playTTS(text, lang) {
+  if (!text) return;
+  chrome.runtime.sendMessage({
+      action: 'playTTS',
+      text: text,
+      lang: lang
+  });
 }
 
 function escapeHtml(text) {

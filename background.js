@@ -93,15 +93,23 @@ async function handleMessage(request, sender, sendResponse) {
                 sendResponse({success: true});
                 break;
             case 'STORAGE_GET':
-                const items = await storageService.getTranslations(request.limit, request.offset);
-                sendResponse({success: true, data: items});
+                const requestItems = await storageService.getTranslations(request.limit, request.offset, request.sourceLangFilter);
+                sendResponse({success: true, data: requestItems});
+                break;
+            case 'STORAGE_GET_SOURCE_LANGS':
+                const langs = await storageService.getSourceLanguages();
+                sendResponse({success: true, data: langs});
+                break;
+            case 'STORAGE_MIGRATE_AUTO_LANG':
+                const migrated = await storageService.migrateAutoSourceLang();
+                sendResponse({success: true, data: migrated});
                 break;
             case 'STORAGE_REMOVE':
                 await storageService.removeTranslation(request.text, request.translation);
                 sendResponse({success: true});
                 break;
             case 'STORAGE_CLEAR':
-                await storageService.clearAll();
+                await storageService.clearAll(request.sourceLangFilter);
                 sendResponse({success: true});
                 break;
             case 'STORAGE_IS_STARRED':

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Translation History - Highlighting Translate</title>
     <link rel="stylesheet" href="assets/styles/theme.css">
+    <link rel="stylesheet" href="assets/styles/history.css">
     <style>
         body {
             background-color: var(--bg-app) !important;
@@ -296,72 +297,87 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1 data-i18n="historyTitle">單字本 (History)</h1>
-            <div class="actions">
-                <button id="clearAll" class="btn btn-danger" data-i18n="clearAllBtn">Clear All</button>
+    <div class="main-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2 data-i18n="languagesTitle">Languages</h2>
             </div>
-        </header>
-
-        <!-- Dashboard Section -->
-        <div class="dashboard">
-            <div class="stat-card">
-                <div class="stat-label">Total Vocabulary</div>
-                <div id="stat-total-count" class="stat-value">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Mastery Index</div>
-                <div id="stat-mastery-index" class="stat-value">0%</div>
-            </div>
-            <div class="progress-container">
-                <div class="progress-row">
-                    <div class="progress-label-row">
-                        <span>Top 2000 Coverage (Common Words)</span>
-                        <span id="label-coverage-2k">0 / 2000</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div id="bar-coverage-2k" class="progress-bar-fill"></div>
-                    </div>
-                </div>
-                <div class="progress-row">
-                    <div class="progress-label-row">
-                        <span>Top 5000 Coverage (Fluent Level)</span>
-                        <span id="label-coverage-5k">0 / 5000</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div id="bar-coverage-5k" class="progress-bar-fill level-b2"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <ul id="historyList" class="history-list">
-            <!-- Active Items will be injected here -->
-        </ul>
-
-        <!-- Archived Section -->
-        <div id="archivedContainer" style="margin-top: 40px; display: none;">
-            <button id="toggleArchivedBtn">
-                <span>📂 Archived Vocabulary (<span id="archivedCount">0</span>)</span>
-                <span id="archivedChevron">▼</span>
-            </button>
-            <ul id="archivedList" class="history-list" style="margin-top: 20px; display: none;">
-                <!-- Archived Items injected here -->
+            <ul id="languageList" class="language-list">
+                <!-- Languages injected here -->
+                <li class="language-item active" data-lang="all">
+                    <span class="lang-name" data-i18n="allLanguages">All Languages</span>
+                    <span class="lang-count" id="totalLangCount">0</span>
+                </li>
             </ul>
-        </div>
-        
-        <div id="emptyState" class="empty-state" style="display: none;">
-            <svg viewBox="0 0 24 24">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-            </svg>
-            <p data-i18n="emptyStateTitle">尚未收藏任何翻譯</p>
-            <span data-i18n="emptyStateText">選取網頁上的文字，並點擊翻譯視窗中的星號開始建立您的單字本！</span>
-        </div>
-        
-        <div id="loadMoreContainer" style="text-align: center; padding: 40px; display: none;">
-            <button id="loadMoreBtn" class="btn btn-secondary" data-i18n="loadMoreBtn">顯示更多</button>
-        </div>
+        </aside>
+
+        <main class="content">
+            <header>
+                <h1 data-i18n="historyTitle">單字本 (History)</h1>
+                <div class="actions">
+                    <button id="clearAll" class="btn btn-danger" data-i18n="clearAllBtn">Clear All</button>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <div class="dashboard">
+                <div class="stat-card">
+                    <div class="stat-label">Total Vocabulary</div>
+                    <div id="stat-total-count" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Mastery Index</div>
+                    <div id="stat-mastery-index" class="stat-value">0%</div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-row">
+                        <div class="progress-label-row">
+                            <span>Top 2000 Coverage (Common Words)</span>
+                            <span id="label-coverage-2k">0 / 2000</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="bar-coverage-2k" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                    <div class="progress-row">
+                        <div class="progress-label-row">
+                            <span>Top 5000 Coverage (Fluent Level)</span>
+                            <span id="label-coverage-5k">0 / 5000</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="bar-coverage-5k" class="progress-bar-fill level-b2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <ul id="historyList" class="history-list">
+                <!-- Active Items will be injected here -->
+            </ul>
+
+            <!-- Archived Section -->
+            <div id="archivedContainer" style="margin-top: 40px; display: none;">
+                <button id="toggleArchivedBtn">
+                    <span>📂 Archived Vocabulary (<span id="archivedCount">0</span>)</span>
+                    <span id="archivedChevron">▼</span>
+                </button>
+                <ul id="archivedList" class="history-list" style="margin-top: 20px; display: none;">
+                    <!-- Archived Items injected here -->
+                </ul>
+            </div>
+            
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                </svg>
+                <p data-i18n="emptyStateTitle">尚未收藏任何翻譯</p>
+                <span data-i18n="emptyStateText">選取網頁上的文字，並點擊翻譯視窗中的星號開始建立您的單字本！</span>
+            </div>
+            
+            <div id="loadMoreContainer" style="text-align: center; padding: 40px; display: none;">
+                <button id="loadMoreBtn" class="btn btn-secondary" data-i18n="loadMoreBtn">顯示更多</button>
+            </div>
+        </main>
     </div>
     <script src="services/StorageService.js"></script>
     <script src="services/ThemeService.js"></script>
