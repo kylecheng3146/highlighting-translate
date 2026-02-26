@@ -43,4 +43,18 @@ describe('I18nService', () => {
         global.chrome.i18n.getUILanguage.mockReturnValue('en-US');
         expect(i18nService.getText('nonExistentKey')).toBe('nonExistentKey');
     });
+
+    test('returns locale metadata for ar-EG and reports RTL', () => {
+        jest.spyOn(i18nService, 'getLanguage').mockReturnValue('ar-EG');
+        const locale = i18nService.getActiveLocale();
+        expect(locale.code).toBe('ar-EG');
+        expect(locale.direction).toBe('rtl');
+        expect(i18nService.isRTL()).toBe(true);
+    });
+
+    test('serves ar-EG strings', () => {
+        jest.spyOn(i18nService, 'getLanguage').mockReturnValue('ar-EG');
+        expect(i18nService.getText('settingsTitle')).toBe('إعدادات الترجمة');
+        expect(i18nService.getText('historyBtn')).toBe('السجل');
+    });
 });

@@ -1,8 +1,9 @@
-class I18nService {
-    constructor() {
-        this.translations = {
-            "en": {
-                "settingsTitle": "Highlighting Translate Settings",
+const LOCALES = {
+    "en": {
+        label: "English",
+        direction: "ltr",
+        strings: {
+            "settingsTitle": "Highlighting Translate Settings",
                 "autoTranslateLabel": "Auto Translate",
                 "autoTranslateDesc": "Show popup automatically after selecting text",
                 "autoPlaySpeechLabel": "Auto Play Speech",
@@ -30,8 +31,12 @@ class I18nService {
                 "themeColorLabel": "Theme Color",
                 "themeColorDesc": "Choose primary interface color"
             },
-            "zh-CN": {
-                "settingsTitle": "翻译设置",
+    },
+    "zh-CN": {
+        label: "简体中文",
+        direction: "ltr",
+        strings: {
+            "settingsTitle": "翻译设置",
                 "autoTranslateLabel": "自动显示翻译",
                 "autoTranslateDesc": "选取文字后自动显示弹窗",
                 "autoPlaySpeechLabel": "自动播放语音",
@@ -59,8 +64,12 @@ class I18nService {
                 "themeColorLabel": "主题配色",
                 "themeColorDesc": "选择界面主色调"
             },
-            "zh-TW": {
-                "settingsTitle": "翻譯設定",
+    },
+    "zh-TW": {
+        label: "繁體中文",
+        direction: "ltr",
+        strings: {
+            "settingsTitle": "翻譯設定",
                 "autoTranslateLabel": "自動顯示翻譯",
                 "autoTranslateDesc": "選取文字後自動顯示彈窗",
                 "autoPlaySpeechLabel": "自動播放語音",
@@ -88,8 +97,12 @@ class I18nService {
                 "themeColorLabel": "主題配色",
                 "themeColorDesc": "選擇介面主色調"
             },
-            "ja": {
-                "settingsTitle": "翻訳設定",
+    },
+    "ja": {
+        label: "日本語",
+        direction: "ltr",
+        strings: {
+            "settingsTitle": "翻訳設定",
                 "autoTranslateLabel": "自動翻訳表示",
                 "autoTranslateDesc": "テキストを選択すると自動的にポップアップを表示",
                 "autoPlaySpeechLabel": "自動音声再生",
@@ -117,8 +130,12 @@ class I18nService {
                 "themeColorLabel": "テーマカラー",
                 "themeColorDesc": "インターフェースのメインカラーを選択"
             },
-            "ko": {
-                "settingsTitle": "번역 설정",
+    },
+    "ko": {
+        label: "한국어",
+        direction: "ltr",
+        strings: {
+            "settingsTitle": "번역 설정",
                 "autoTranslateLabel": "자동 번역 표시",
                 "autoTranslateDesc": "텍스트 선택 시 자동으로 팝업 표시",
                 "autoPlaySpeechLabel": "자동 음성 재생",
@@ -146,8 +163,12 @@ class I18nService {
                 "themeColorLabel": "테마 색상",
                 "themeColorDesc": "인터페이스 기본 색상 선택"
             },
-            "es": {
-                "settingsTitle": "Configuración de traducción",
+    },
+    "es": {
+        label: "Español",
+        direction: "ltr",
+        strings: {
+            "settingsTitle": "Configuración de traducción",
                 "autoTranslateLabel": "Traducción automática",
                 "autoTranslateDesc": "Mostrar popup automáticamente al seleccionar texto",
                 "autoPlaySpeechLabel": "Reproducción automática",
@@ -175,8 +196,12 @@ class I18nService {
                 "themeColorLabel": "Color del tema",
                 "themeColorDesc": "Elegir color principal de la interfaz"
             },
-            "fr": {
-                "settingsTitle": "Paramètres de traduction",
+    },
+    "fr": {
+        label: "Français",
+        direction: "ltr",
+        strings: {
+            "settingsTitle": "Paramètres de traduction",
                 "autoTranslateLabel": "Traduction automatique",
                 "autoTranslateDesc": "Afficher le popup après la sélection du texte",
                 "autoPlaySpeechLabel": "Lecture vocale auto",
@@ -204,8 +229,12 @@ class I18nService {
                 "themeColorLabel": "Couleur du thème",
                 "themeColorDesc": "Choisir la couleur principale"
             },
-            "de": {
-                "settingsTitle": "Übersetzungseinstellungen",
+    },
+    "de": {
+        label: "Deutsch",
+        direction: "ltr",
+        strings: {
+            "settingsTitle": "Übersetzungseinstellungen",
                 "autoTranslateLabel": "Automatische Übersetzung",
                 "autoTranslateDesc": "Popup nach Textauswahl automatisch anzeigen",
                 "autoPlaySpeechLabel": "Automatische Sprachausgabe",
@@ -233,8 +262,12 @@ class I18nService {
                 "themeColorLabel": "Designfarbe",
                 "themeColorDesc": "Hauptfarbe der Oberfläche wählen"
             },
-            "vi": {
-                "settingsTitle": "Cài đặt Dịch",
+    },
+    "vi": {
+        label: "Tiếng Việt",
+        direction: "ltr",
+        strings: {
+            "settingsTitle": "Cài đặt Dịch",
                 "autoTranslateLabel": "Tự động dịch",
                 "autoTranslateDesc": "Tự động hiện cửa sổ khi chọn văn bản",
                 "autoPlaySpeechLabel": "Tự động phát âm",
@@ -261,8 +294,46 @@ class I18nService {
                 "reviewBtn": "Bắt đầu ôn tập",
                 "themeColorLabel": "Màu chủ đề",
                 "themeColorDesc": "Chọn màu giao diện chính"
-            }
-        };
+        }
+    },
+    "ar-EG": {
+        label: "العربية المصرية",
+        direction: "rtl",
+        strings: {
+            "settingsTitle": "إعدادات الترجمة",
+            "autoTranslateLabel": "ترجمة تلقائية",
+            "autoTranslateDesc": "إظهار النافذة المنبثقة تلقائياً بعد تحديد النص",
+            "autoPlaySpeechLabel": "تشغيل الصوت تلقائياً",
+            "autoPlaySpeechDesc": "قراءة النتيجة تلقائياً بعد الترجمة",
+            "sourceLangLabel": "اللغة المصدر",
+            "sourceLangDesc": "تعرّف ذكي على لغة الصفحة",
+            "targetLangLabel": "اللغة الهدف",
+            "targetLangDesc": "لغة نتيجة الترجمة",
+            "delayLabel": "زمن الظهور (مللي ثانية)",
+            "delayDesc": "الوقت قبل ظهور النافذة",
+            "settingsSaved": "تم حفظ الإعدادات",
+            "historyBtn": "السجل",
+            "historyTitle": "سجل المفردات",
+            "clearAllBtn": "مسح الكل",
+            "emptyStateTitle": "لا توجد ترجمات محفوظة بعد",
+            "emptyStateText": "حدد نصاً على صفحة الويب واضغط على أيقونة النجمة لبدء بناء قائمة المفردات الخاصة بك!",
+            "deleteConfirm": "هل أنت متأكد أنك تريد حذف هذا العنصر؟",
+            "clearConfirm": "هل أنت متأكد أنك تريد مسح السجل بالكامل؟",
+            "loadMoreBtn": "تحميل المزيد",
+            "enableHighlightLabel": "تمييز ذكي",
+            "enableHighlightDesc": "تمييز الكلمات المحفوظة داخل الصفحات",
+            "blacklistBtn": "تعطيل لهذا الموقع",
+            "whitelistBtn": "تفعيل لهذا الموقع",
+            "reviewBtn": "ابدأ المراجعة",
+            "themeColorLabel": "لون الواجهة",
+            "themeColorDesc": "اختر اللون الأساسي للواجهة"
+        }
+    }
+};
+
+class I18nService {
+    constructor() {
+        this.locales = LOCALES;
     }
 
     getLanguage() {
@@ -273,55 +344,44 @@ class I18nService {
         return lang;
     }
 
-    getText(key) {
+    getActiveLocale() {
         const lang = this.getLanguage();
-        
-        let t = this.translations['en']; // Default
+        const localeEntry = Object.entries(this.locales).find(([code]) => {
+            if (code === 'zh-CN' && (lang === 'zh-CN' || lang === 'zh-SG')) {
+                return true;
+            }
+            if (code === 'zh-TW' && lang.startsWith('zh')) {
+                return true;
+            }
+            if (lang === code) {
+                return true;
+            }
+            if (!code.includes('-')) {
+                return lang.startsWith(code);
+            }
+            return false;
+        });
 
-        if (lang === 'zh-CN' || lang === 'zh-SG') {
-            t = this.translations['zh-CN'];
-        } else if (lang.startsWith('zh')) {
-            t = this.translations['zh-TW'];
-        } else if (lang.startsWith('ja')) {
-            t = this.translations['ja'];
-        } else if (lang.startsWith('ko')) {
-            t = this.translations['ko'];
-        } else if (lang.startsWith('es')) {
-            t = this.translations['es'];
-        } else if (lang.startsWith('fr')) {
-            t = this.translations['fr'];
-        } else if (lang.startsWith('de')) {
-            t = this.translations['de'];
-        } else if (lang.startsWith('vi')) {
-            t = this.translations['vi'];
-        }
+        const [code, metadata] = localeEntry || ['en', this.locales['en']];
+        return {
+            code,
+            label: metadata.label,
+            direction: metadata.direction,
+            strings: metadata.strings
+        };
+    }
 
-        return t[key] || key;
+    isRTL() {
+        return this.getActiveLocale().direction === 'rtl';
+    }
+
+    getText(key) {
+        const locale = this.getActiveLocale();
+        return locale.strings[key] || key;
     }
 
     localizePage() {
-        const lang = this.getLanguage();
-        
-        let t = this.translations['en'];
-
-        if (lang === 'zh-CN' || lang === 'zh-SG') {
-            t = this.translations['zh-CN'];
-        } else if (lang.startsWith('zh')) {
-            t = this.translations['zh-TW'];
-        } else if (lang.startsWith('ja')) {
-            t = this.translations['ja'];
-        } else if (lang.startsWith('ko')) {
-            t = this.translations['ko'];
-        } else if (lang.startsWith('es')) {
-            t = this.translations['es'];
-        } else if (lang.startsWith('fr')) {
-            t = this.translations['fr'];
-        } else if (lang.startsWith('de')) {
-            t = this.translations['de'];
-        } else if (lang.startsWith('vi')) {
-            t = this.translations['vi'];
-        }
-
+        const { strings: t } = this.getActiveLocale();
         const elements = document.querySelectorAll('[data-i18n]');
         elements.forEach(el => {
             const key = el.getAttribute('data-i18n');
