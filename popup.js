@@ -3,6 +3,7 @@ async function loadSettings() {
     try {
         const settings = await chrome.storage.sync.get({
             autoTranslate: true,
+            autoCopy: false,
             autoPlaySpeech: false,
             sourceLang: 'auto',
             targetLang: 'zh-TW',
@@ -14,6 +15,9 @@ async function loadSettings() {
         // 更新 UI
         const autoTranslateCheck = document.getElementById('autoTranslateCheck');
         if (autoTranslateCheck) autoTranslateCheck.checked = settings.autoTranslate;
+
+        const autoCopyCheck = document.getElementById('autoCopyCheck');
+        if (autoCopyCheck) autoCopyCheck.checked = settings.autoCopy;
 
         const autoPlaySpeechCheck = document.getElementById('autoPlaySpeechCheck');
         if (autoPlaySpeechCheck) autoPlaySpeechCheck.checked = settings.autoPlaySpeech;
@@ -102,6 +106,7 @@ function showSnackbar() {
 async function saveSettings() {
     const settings = {
         autoTranslate: document.getElementById('autoTranslateCheck').checked,
+        autoCopy: document.getElementById('autoCopyCheck').checked,
         autoPlaySpeech: document.getElementById('autoPlaySpeechCheck').checked,
         sourceLang: document.getElementById('sourceLang').value,
         targetLang: document.getElementById('targetLang').value,
@@ -160,11 +165,24 @@ async function toggleBlacklist() {
 
 // I18nService instance
 const i18nService = new I18nService();
+const LocaleDropdownClass = typeof LocaleDropdown !== 'undefined'
+    ? LocaleDropdown
+    : (typeof module !== 'undefined' ? require('./services/LocaleDropdown.js') : null);
+const localeDropdown = LocaleDropdownClass ? new LocaleDropdownClass(i18nService) : null;
 const themeService = new ThemeService();
+
+function renderLanguageOptions() {
+    const sourceSelect = document.getElementById('sourceLang');
+    const targetSelect = document.getElementById('targetLang');
+    if (!localeDropdown) return;
+    localeDropdown.render(sourceSelect, { includeAuto: true });
+    localeDropdown.render(targetSelect);
+}
 
 // 事件監聽
 document.addEventListener('DOMContentLoaded', async () => {
     i18nService.localizePage();
+    renderLanguageOptions();
     
     // Load Theme First (Visual Priority)
     const currentColor = await themeService.loadAndApply();
@@ -189,6 +207,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const autoTranslateCheck = document.getElementById('autoTranslateCheck');
     if (autoTranslateCheck) autoTranslateCheck.addEventListener('change', saveSettings);
+
+    const autoCopyCheck = document.getElementById('autoCopyCheck');
+    if (autoCopyCheck) autoCopyCheck.addEventListener('change', saveSettings);
 
     const autoPlaySpeechCheck = document.getElementById('autoPlaySpeechCheck');
     if (autoPlaySpeechCheck) autoPlaySpeechCheck.addEventListener('change', saveSettings);
@@ -266,4 +287,9 @@ function renderThemeSwatches(activeColor) {
 
 function handleThemeChange(color) {
     themeService.applyTheme(color);
+}
+
+if (typeof window !== 'undefined') {
+    window.i18nService = i18nService;
+    window.themeService = themeService;
 }

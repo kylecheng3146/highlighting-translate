@@ -1,6 +1,18 @@
+// HTML 轉義輔助函式，防止 XSS 攻擊
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // 預設設定
 let settings = {
     autoTranslate: true,
+    autoCopy: false,
     sourceLang: 'auto',
     targetLang: 'zh-TW',
     delay: 500
@@ -22,6 +34,7 @@ async function loadSettings() {
     try {
         const items = await chrome.storage.sync.get({
             autoTranslate: true,
+            autoCopy: false,
             autoPlaySpeech: false,
             sourceLang: 'auto',
             targetLang: 'zh-TW',
@@ -52,10 +65,11 @@ function applyHighlightSettings() {
     const domain = window.location.hostname;
     const isBlacklisted = settings.domainBlacklist && settings.domainBlacklist.includes(domain);
     
+    // Always remove old highlights before reapplying
+    removeHighlights();
+
     if (settings.enableHighlighting && !isBlacklisted) {
         scanPageForVocabulary();
-    } else {
-        removeHighlights();
     }
 }
 
@@ -82,6 +96,52 @@ async function scanPageForVocabulary() {
         console.error('Error scanning page for vocabulary:', e);
     }
 }
+
+let scanTimeout = null;
+function requestDebouncedScan() {
+    if (scanTimeout) clearTimeout(scanTimeout);
+    scanTimeout = setTimeout(() => {
+        const domain = window.location.hostname;
+        const isBlacklisted = settings.domainBlacklist && settings.domainBlacklist.includes(domain);
+        if (settings.enableHighlighting && !isBlacklisted) {
+            scanPageForVocabulary();
+        }
+    }, 1500);
+}
+
+// 監聽 DOM 變更，支援 SPA (單頁應用程式)
+const domObserver = new MutationObserver((mutations) => {
+    let shouldScan = false;
+    for (const m of mutations) {
+        if (m.addedNodes.length > 0) {
+            for (const node of m.addedNodes) {
+                // 忽略翻譯視窗和已標記節點的變更
+                if (node.id === 'translate-popup-host' || node.nodeName === 'MARK') continue;
+                if (node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0) {
+                    shouldScan = true; break;
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    shouldScan = true; break;
+                }
+            }
+        }
+        if (shouldScan) break;
+    }
+    if (shouldScan) {
+        requestDebouncedScan();
+    }
+});
+
+function startDomObserver() {
+    if (document.body) {
+        domObserver.observe(document.body, { childList: true, subtree: true });
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            domObserver.observe(document.body, { childList: true, subtree: true });
+        });
+    }
+}
+startDomObserver();
+
 
 // 檢查並重新翻譯
 function checkAndRetranslate() {
@@ -121,6 +181,10 @@ migrateSyncToLocal();
 
 // 監聽設定更新
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (chrome.runtime.lastError) {
+        console.warn('onMessage error:', chrome.runtime.lastError.message);
+        return;
+    }
     if (request.action === 'updateSettings') {
         settings = request.settings;
         checkAndRetranslate();
@@ -303,29 +367,29 @@ function injectStyles(root) {
             margin-left: 2px; /* Visual optical alignment */
         }
         .ht-toast {
-            position: absolute;
-            bottom: 16px;
+            position: fixed;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%) translateY(10px);
             background: rgba(30, 30, 30, 0.9);
             color: white;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: 14px;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s, transform 0.3s;
-            z-index: 100;
+            z-index: 2147483647;
             white-space: nowrap;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         .ht-toast.show {
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
         mark.ht-highlight {
-            background: rgba(38, 166, 154, 0.4); /* Increased opacity */
-            border-bottom: 2px solid rgba(38, 166, 154, 0.5);
+            background: color-mix(in srgb, var(--ht-primary) 30%, transparent);
+            border-bottom: 2px solid color-mix(in srgb, var(--ht-primary) 50%, transparent);
             color: inherit;
             cursor: pointer;
             border-radius: 4px;
@@ -333,8 +397,8 @@ function injectStyles(root) {
             transition: background 0.2s, border-color 0.2s;
         }
         mark.ht-highlight:hover {
-            background: rgba(38, 166, 154, 0.6);
-            border-bottom-color: rgba(38, 166, 154, 0.9);
+            background: color-mix(in srgb, var(--ht-primary) 50%, transparent);
+            border-bottom-color: var(--ht-primary);
         }
         /* Frequency Based Highlighting */
         mark.ht-highlight.hl-freq-high {
@@ -345,7 +409,7 @@ function injectStyles(root) {
             background: rgba(239, 83, 80, 0.45);
         }
         mark.ht-highlight.hl-freq-mid {
-            background: rgba(38, 166, 154, 0.35); /* Increased opacity */
+            background: color-mix(in srgb, var(--ht-primary) 20%, transparent);
         }
         mark.ht-highlight.hl-freq-low {
             background: transparent;
@@ -460,6 +524,9 @@ async function toggleStar(text, translation, sourceLang, targetLang, context = n
             isStarred = true;
         }
         
+        // Refresh highlights on the current page immediately
+        applyHighlightSettings();
+        
         return isStarred;
     } catch (e) {
         console.error('Error saving translation', e);
@@ -487,7 +554,7 @@ function createTranslatePopup() {
     const toast = document.createElement('div');
     toast.id = 'ht-toast';
     toast.className = 'ht-toast';
-    popup.appendChild(toast);
+
 
     // Initialize TooltipService
     tooltipService.init(shadowRoot);
@@ -504,6 +571,7 @@ function createTranslatePopup() {
 
     shadowRoot.appendChild(popup);
     shadowRoot.appendChild(floatingPlayBtn);
+    shadowRoot.appendChild(toast);
     document.body.appendChild(host);
     return host;
 }
@@ -787,8 +855,8 @@ async function showTranslatePopup(text, rect) {
           </div>
           <div class="ht-content" style="flex-direction: column;">
             ${freqHtml}
-            <div class="ht-translation-text">${translation}</div>
-            ${context ? `<div class="ht-context-preview" style="display:none;">${context}</div>` : ''} 
+            <div class="ht-translation-text">${escapeHtml(translation)}</div>
+            ${context ? `<div class="ht-context-preview" style="display:none;">${escapeHtml(context)}</div>` : ''} 
           </div>
         `;
         
@@ -828,7 +896,7 @@ async function showTranslatePopup(text, rect) {
                <div class="ht-close-btn">×</div>
           </div>
           <div class="ht-content">
-            <div class="ht-translation-text" style="color:red;">翻譯失敗: ${error.message}</div>
+            <div class="ht-translation-text" style="color:red;">翻譯失敗: ${escapeHtml(error.message)}</div>
           </div>
         `;
         contentContainer.querySelector('.ht-close-btn').onclick = closeHandler;
@@ -881,6 +949,14 @@ document.addEventListener('mouseup', (e) => {
         const selectedText = selection.toString().trim();
 
         if (selectedText && selectedText.length > 0 && selectedText.length < 1000) {
+            if (settings.autoCopy) {
+                try {
+                    navigator.clipboard.writeText(selectedText).then(() => {
+                        showToast('📋 已複製到剪貼簿');
+                    }).catch(() => {});
+                } catch (e) {}
+            }
+
             // 獲取選取範圍的位置
             const range = selection.getRangeAt(0);
             const rect = range.getBoundingClientRect();

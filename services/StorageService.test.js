@@ -65,6 +65,7 @@ describe('StorageService', () => {
     });
 
     test('clearAll should set empty array', async () => {
+        chrome.storage.local.get.mockResolvedValue({ savedTranslations: [{ text: 'old' }] });
         await service.clearAll();
         expect(chrome.storage.local.set).toHaveBeenCalledWith({
             savedTranslations: []

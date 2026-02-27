@@ -1,6 +1,22 @@
 const fs = require('fs');
 const path = require('path');
 
+jest.mock('./services/I18nService.js', () => {
+    return jest.fn().mockImplementation(() => ({
+        localizePage: jest.fn(),
+        getText: (key) => key,
+        getLocaleMetadata: () => ({
+            auto: { label: 'Auto Detect' },
+            en: { label: 'English' },
+            ja: { label: '日本語' },
+            'ar-EG': { label: 'العربية المصرية', direction: 'rtl' }
+        })
+    }));
+});
+
+global.I18nService = require('./services/I18nService.js');
+
+
 // Mock chrome API
 global.chrome = {
     storage: {
@@ -16,12 +32,17 @@ global.chrome = {
     tts: {
         getVoices: jest.fn().mockImplementation((cb) => cb([]))
     }
-};
+}; 
 
-// Mock I18nService
-global.I18nService = class MockI18nService {
-    localizePage() {}
-    getText(key) { return key; }
+global.ThemeService = class MockThemeService {
+    constructor() {
+        this.presets = [];
+    }
+    loadAndApply() {
+        return Promise.resolve('#ffffff');
+    }
+    applyTheme() {}
+    saveTheme() {}
 };
 
 // Simple DOM mock helper
@@ -29,7 +50,9 @@ function setupDOM() {
     const html = fs.readFileSync(path.resolve(__dirname, './popup.html'), 'utf8');
     document.body.innerHTML = html;
     jest.resetModules();
-    require('./popup.js');
+    jest.isolateModules(() => {
+        require('./popup.js');
+    });
     // Manually trigger DOMContentLoaded since we are in JSDOM and might have missed it
     document.dispatchEvent(new Event('DOMContentLoaded'));
 }
@@ -102,5 +125,28 @@ describe('popup.js', () => {
         expect(chrome.storage.sync.set).toHaveBeenCalledWith(expect.objectContaining({
             autoPlaySpeech: true
         }));
+    });
+
+    test('should render locale options from metadata', async () => {
+        setupDOM();
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const targetOptions = Array.from(document.querySelectorAll('#targetLang option'));
+        const sourceOptions = Array.from(document.querySelectorAll('#sourceLang option'));
+
+        const hasArabicTarget = targetOptions.some(opt => opt.value === 'ar-EG' && opt.textContent.includes('العربية'));
+        const hasArabicSource = sourceOptions.some(opt => opt.value === 'ar-EG');
+
+        expect(hasArabicTarget).toBe(true);
+        expect(hasArabicSource).toBe(true);
+    });
+
+    test('should annotate locale options with direction metadata', async () => {
+        setupDOM();
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const targetArabicOption = document.querySelector('#targetLang option[value="ar-EG"]');
+        expect(targetArabicOption).not.toBeNull();
+        expect(targetArabicOption.dataset.direction).toBe('rtl');
     });
 });

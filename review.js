@@ -4,6 +4,7 @@
  */
 
 const storageService = new StorageService();
+const i18nService = new I18nService();
 
 // Game State
 const state = {
@@ -35,6 +36,7 @@ const elements = {
 
 // Initialization
 document.addEventListener('DOMContentLoaded', async () => {
+    i18nService.localizePage();
     initEventListeners();
     await startQuiz();
 });
@@ -304,4 +306,64 @@ function shuffleArray(array) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
     }
+}
+
+/**
+ * ReviewManager: Model layer for the vocabulary review quiz.
+ * Separates state/logic from the view, enabling unit-testable review sessions.
+ */
+class ReviewManager {
+    constructor(view) {
+        this.view = view;
+        this.storage = new StorageService();
+        this.srs = new SRSService();
+        this.state = {
+            queue: [],
+            currentIndex: 0,
+            currentCard: null,
+            isFlipped: false,
+            finished: false
+        };
+    }
+
+    async init() {
+        const items = await this.storage.getTranslations();
+        this.state.queue = items || [];
+        this.state.currentIndex = 0;
+        this.state.currentCard = this.state.queue[0] || null;
+        this.state.isFlipped = false;
+        this.state.finished = this.state.queue.length === 0;
+        this.view.render({ ...this.state });
+    }
+
+    flipCard() {
+        this.state.isFlipped = true;
+        this.view.render({ ...this.state });
+        if (this.view.updateRatingPreviews) {
+            this.view.updateRatingPreviews({ ...this.state });
+        }
+    }
+
+    async handleRating(rating) {
+        const card = this.state.currentCard;
+        if (!card) return;
+
+        const result = this.srs.calculateNextReview(card, rating);
+        await this.storage.updateSRSStatus(card.text, card.translation, result);
+
+        this.state.currentIndex++;
+        if (this.state.currentIndex >= this.state.queue.length) {
+            this.state.finished = true;
+            this.state.currentCard = null;
+        } else {
+            this.state.currentCard = this.state.queue[this.state.currentIndex];
+        }
+        this.state.isFlipped = false;
+        this.view.render({ ...this.state });
+    }
+}
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { ReviewManager };
 }

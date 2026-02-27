@@ -39,7 +39,7 @@ class TooltipService {
         const tooltipHeight = this.tooltip.offsetHeight;
         
         let left = rect.left + window.scrollX + (rect.width / 2) - (tooltipWidth / 2);
-        let top = rect.top + window.scrollY - tooltipHeight - 12;
+        let top = rect.top + window.scrollY - tooltipHeight - 8;
 
         // Boundary checks
         if (left < 10) left = 10;
@@ -47,7 +47,7 @@ class TooltipService {
         
         // If it would go off the top of the screen, show it below the text
         if (top < window.scrollY + 10) {
-            top = rect.bottom + window.scrollY + 12;
+            top = rect.bottom + window.scrollY + 8;
         }
 
         this.tooltip.style.left = left + 'px';
@@ -61,11 +61,7 @@ class TooltipService {
     hide() {
         if (this.tooltip) {
             this.tooltip.classList.remove('ht-show');
-            setTimeout(() => {
-                if (!this.tooltip.classList.contains('ht-show')) {
-                    this.tooltip.style.display = 'none';
-                }
-            }, 200);
+            this.tooltip.style.display = 'none';
         }
     }
 }

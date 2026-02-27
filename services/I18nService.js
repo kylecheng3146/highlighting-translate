@@ -1,8 +1,15 @@
 const LOCALES = {
-    "en": {
-        label: "English",
-        direction: "ltr",
+	"auto": {
+		label: "Auto Detect",
+		direction: "ltr",
+		strings: {}
+	},
+	"en": {
+		label: "English",
+		direction: "ltr",
         strings: {
+                "autoCopyLabel": "Auto Copy",
+                "autoCopyDesc": "Automatically copy selected text to clipboard",
             "settingsTitle": "Highlighting Translate Settings",
                 "autoTranslateLabel": "Auto Translate",
                 "autoTranslateDesc": "Show popup automatically after selecting text",
@@ -36,6 +43,8 @@ const LOCALES = {
         label: "简体中文",
         direction: "ltr",
         strings: {
+                "autoCopyLabel": "自动复制",
+                "autoCopyDesc": "选取文字后自动复制到剪贴板",
             "settingsTitle": "翻译设置",
                 "autoTranslateLabel": "自动显示翻译",
                 "autoTranslateDesc": "选取文字后自动显示弹窗",
@@ -69,6 +78,8 @@ const LOCALES = {
         label: "繁體中文",
         direction: "ltr",
         strings: {
+                "autoCopyLabel": "自動複製",
+                "autoCopyDesc": "選取文字後自動複製到剪貼簿",
             "settingsTitle": "翻譯設定",
                 "autoTranslateLabel": "自動顯示翻譯",
                 "autoTranslateDesc": "選取文字後自動顯示彈窗",
@@ -102,6 +113,8 @@ const LOCALES = {
         label: "日本語",
         direction: "ltr",
         strings: {
+                "autoCopyLabel": "自動コピー",
+                "autoCopyDesc": "選択したテキストを自動的にクリップボードにコピー",
             "settingsTitle": "翻訳設定",
                 "autoTranslateLabel": "自動翻訳表示",
                 "autoTranslateDesc": "テキストを選択すると自動的にポップアップを表示",
@@ -135,6 +148,8 @@ const LOCALES = {
         label: "한국어",
         direction: "ltr",
         strings: {
+                "autoCopyLabel": "자동 복사",
+                "autoCopyDesc": "선택한 텍스트를 자동으로 클립보드에 복사",
             "settingsTitle": "번역 설정",
                 "autoTranslateLabel": "자동 번역 표시",
                 "autoTranslateDesc": "텍스트 선택 시 자동으로 팝업 표시",
@@ -168,6 +183,8 @@ const LOCALES = {
         label: "Español",
         direction: "ltr",
         strings: {
+                "autoCopyLabel": "Copia automática",
+                "autoCopyDesc": "Copiar automáticamente el texto seleccionado al portapapeles",
             "settingsTitle": "Configuración de traducción",
                 "autoTranslateLabel": "Traducción automática",
                 "autoTranslateDesc": "Mostrar popup automáticamente al seleccionar texto",
@@ -201,6 +218,8 @@ const LOCALES = {
         label: "Français",
         direction: "ltr",
         strings: {
+                "autoCopyLabel": "Copie automatique",
+                "autoCopyDesc": "Copier automatiquement le texte sélectionné dans le presse-papiers",
             "settingsTitle": "Paramètres de traduction",
                 "autoTranslateLabel": "Traduction automatique",
                 "autoTranslateDesc": "Afficher le popup après la sélection du texte",
@@ -234,6 +253,8 @@ const LOCALES = {
         label: "Deutsch",
         direction: "ltr",
         strings: {
+                "autoCopyLabel": "Automatisches Kopieren",
+                "autoCopyDesc": "Ausgewählten Text automatisch in die Zwischenablage kopieren",
             "settingsTitle": "Übersetzungseinstellungen",
                 "autoTranslateLabel": "Automatische Übersetzung",
                 "autoTranslateDesc": "Popup nach Textauswahl automatisch anzeigen",
@@ -267,6 +288,8 @@ const LOCALES = {
         label: "Tiếng Việt",
         direction: "ltr",
         strings: {
+                "autoCopyLabel": "Tự động sao chép",
+                "autoCopyDesc": "Tự động sao chép văn bản đã chọn vào khoảng nhớ tạm",
             "settingsTitle": "Cài đặt Dịch",
                 "autoTranslateLabel": "Tự động dịch",
                 "autoTranslateDesc": "Tự động hiện cửa sổ khi chọn văn bản",
@@ -300,33 +323,35 @@ const LOCALES = {
         label: "العربية المصرية",
         direction: "rtl",
         strings: {
+            "autoCopyLabel": "نسخ تلقائي",
+            "autoCopyDesc": "نسخ النص المحدد تلقائياً إلى الحافظة",
             "settingsTitle": "إعدادات الترجمة",
             "autoTranslateLabel": "ترجمة تلقائية",
-            "autoTranslateDesc": "إظهار النافذة المنبثقة تلقائياً بعد تحديد النص",
+            "autoTranslateDesc": "عرض النافذة المنبثقة تلقائياً عند تحديد النص",
             "autoPlaySpeechLabel": "تشغيل الصوت تلقائياً",
             "autoPlaySpeechDesc": "قراءة النتيجة تلقائياً بعد الترجمة",
-            "sourceLangLabel": "اللغة المصدر",
-            "sourceLangDesc": "تعرّف ذكي على لغة الصفحة",
-            "targetLangLabel": "اللغة الهدف",
+            "sourceLangLabel": "لغة المصدر",
+            "sourceLangDesc": "الكشف التلقائي عن لغة صفحة الويب",
+            "targetLangLabel": "لغة الهدف",
             "targetLangDesc": "لغة نتيجة الترجمة",
-            "delayLabel": "زمن الظهور (مللي ثانية)",
-            "delayDesc": "الوقت قبل ظهور النافذة",
+            "delayLabel": "تأخير العرض (مللي ثانية)",
+            "delayDesc": "الوقت قبل ظهور النافذة المنبثقة",
             "settingsSaved": "تم حفظ الإعدادات",
             "historyBtn": "السجل",
             "historyTitle": "سجل المفردات",
             "clearAllBtn": "مسح الكل",
             "emptyStateTitle": "لا توجد ترجمات محفوظة بعد",
-            "emptyStateText": "حدد نصاً على صفحة الويب واضغط على أيقونة النجمة لبدء بناء قائمة المفردات الخاصة بك!",
+            "emptyStateText": "حدد نصاً في صفحة الويب وانقر على أيقونة النجمة لبدء قائمة مفرداتك!",
             "deleteConfirm": "هل أنت متأكد أنك تريد حذف هذا العنصر؟",
-            "clearConfirm": "هل أنت متأكد أنك تريد مسح السجل بالكامل؟",
+            "clearConfirm": "هل أنت متأكد أنك تريد مسح كل السجل؟",
             "loadMoreBtn": "تحميل المزيد",
-            "enableHighlightLabel": "تمييز ذكي",
-            "enableHighlightDesc": "تمييز الكلمات المحفوظة داخل الصفحات",
+            "enableHighlightLabel": "التمييز الذكي",
+            "enableHighlightDesc": "تمييز الكلمات المحفوظة في صفحات الويب",
             "blacklistBtn": "تعطيل لهذا الموقع",
             "whitelistBtn": "تفعيل لهذا الموقع",
-            "reviewBtn": "ابدأ المراجعة",
-            "themeColorLabel": "لون الواجهة",
-            "themeColorDesc": "اختر اللون الأساسي للواجهة"
+            "reviewBtn": "بدء المراجعة",
+            "themeColorLabel": "لون الثيم",
+            "themeColorDesc": "اختر اللون الرئيسي للواجهة"
         }
     }
 };
@@ -334,6 +359,14 @@ const LOCALES = {
 class I18nService {
     constructor() {
         this.locales = LOCALES;
+    }
+
+    static getAllLocales() {
+        return LOCALES;
+    }
+
+    getLocaleMetadata() {
+        return this.locales;
     }
 
     getLanguage() {

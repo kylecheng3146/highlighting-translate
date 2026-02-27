@@ -30,12 +30,17 @@ class HighlightService {
 
         if (vocabMap.size === 0) return;
 
+        // Build regex ONCE here and reuse across all nodes
+        const escapedKeys = Array.from(vocabMap.keys())
+            .map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+            .sort((a, b) => b.length - a.length);
+        const regex = new RegExp(`\\b(${escapedKeys.join('|')})\\b`, 'gi');
+
         const walker = document.createTreeWalker(
             rootElement,
             NodeFilter.SHOW_TEXT,
             {
                 acceptNode: (node) => {
-                    // Skip script, style, and already highlighted nodes
                     const parent = node.parentNode;
                     if (!parent) return NodeFilter.FILTER_REJECT;
                     
@@ -58,33 +63,36 @@ class HighlightService {
             currentNode = walker.nextNode();
         }
 
-        // Process nodes in chunks to avoid blocking
-        this.processChunks(nodesToHighlight, vocabMap);
+        this.processChunks(nodesToHighlight, vocabMap, regex);
     }
 
     /**
      * Processes text nodes in chunks using requestIdleCallback if available.
      */
-    processChunks(nodes, vocabMap) {
+    processChunks(nodes, vocabMap, regex) {
         let index = 0;
         const CHUNK_SIZE = 50;
 
         const process = (deadline) => {
-            while (index < nodes.length && (deadline ? deadline.timeRemaining() > 0 : true)) {
+            while (index < nodes.length) {
+                // Yield back to browser if idle time is running out
+                if (deadline && deadline.timeRemaining() <= 0) {
+                    window.requestIdleCallback(process);
+                    return;
+                }
+
                 const chunkEnd = Math.min(index + CHUNK_SIZE, nodes.length);
                 for (; index < chunkEnd; index++) {
                     if (this.highlightCount >= this.maxHighlights) return;
-                    this.highlightNode(nodes[index], vocabMap);
+                    this.highlightNode(nodes[index], vocabMap, regex);
                 }
-                
-                if (this.highlightCount >= this.maxHighlights) return;
-            }
 
-            if (index < nodes.length) {
-                if (window.requestIdleCallback) {
-                    window.requestIdleCallback(process);
-                } else {
-                    setTimeout(() => process(), 10);
+                if (this.highlightCount >= this.maxHighlights) return;
+
+                // No deadline (setTimeout fallback): yield after each chunk
+                if (!deadline) {
+                    setTimeout(() => process(null), 10);
+                    return;
                 }
             }
         };
@@ -92,36 +100,28 @@ class HighlightService {
         if (window.requestIdleCallback) {
             window.requestIdleCallback(process);
         } else {
-            process();
+            setTimeout(() => process(null), 10);
         }
     }
 
     /**
      * Highlights words in a single text node.
      * @param {Text} node 
-     * @param {Map} vocabMap 
+     * @param {Map} vocabMap
+     * @param {RegExp} regex - Pre-compiled regex shared across all nodes
      */
-    highlightNode(node, vocabMap) {
+    highlightNode(node, vocabMap, regex) {
         const text = node.nodeValue;
         if (!text.trim()) return;
 
-        // Build a regex from vocab keys
-        // Escape special regex chars in keys
-        const escapedKeys = Array.from(vocabMap.keys()).map(key => key.replace(/[.*+?^${}()|[\\]/g, '\\$&'));
-        if (escapedKeys.length === 0) return;
-
-        // Sorting keys by length descending to match longest terms first
-        escapedKeys.sort((a, b) => b.length - a.length);
-        
-        const regex = new RegExp(`\\b(${escapedKeys.join('|')})\\b`, 'gi');
-        
+        // Reset stateful regex before each use (required for /g flag)
+        regex.lastIndex = 0;
         if (!regex.test(text)) return;
 
         const fragment = document.createDocumentFragment();
         let lastIndex = 0;
         let match;
         
-        // Reset regex state
         regex.lastIndex = 0;
 
         while ((match = regex.exec(text)) !== null) {

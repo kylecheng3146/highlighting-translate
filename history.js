@@ -226,7 +226,7 @@ async function loadHistory(reset = true) {
     const items = await storageService.getTranslations(
       PAGE_SIZE,
       currentOffset,
-      currentSourceLang
+      currentSourceLang === 'all' ? undefined : currentSourceLang
     );
 
     // If no items at all (and reset), show empty

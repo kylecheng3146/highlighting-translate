@@ -44,17 +44,19 @@ describe('I18nService', () => {
         expect(i18nService.getText('nonExistentKey')).toBe('nonExistentKey');
     });
 
-    test('returns locale metadata for ar-EG and reports RTL', () => {
-        jest.spyOn(i18nService, 'getLanguage').mockReturnValue('ar-EG');
-        const locale = i18nService.getActiveLocale();
-        expect(locale.code).toBe('ar-EG');
-        expect(locale.direction).toBe('rtl');
-        expect(i18nService.isRTL()).toBe(true);
-    });
+    describe('locale metadata helpers', () => {
+        test('reads metadata and RTL flag from injected locale', () => {
+            i18nService.locales['mock-rtl'] = {
+                label: 'Mock RTL',
+                direction: 'rtl',
+                strings: { settingsTitle: 'Mock' }
+            };
+            jest.spyOn(i18nService, 'getLanguage').mockReturnValue('mock-rtl');
 
-    test('serves ar-EG strings', () => {
-        jest.spyOn(i18nService, 'getLanguage').mockReturnValue('ar-EG');
-        expect(i18nService.getText('settingsTitle')).toBe('إعدادات الترجمة');
-        expect(i18nService.getText('historyBtn')).toBe('السجل');
+            const locale = i18nService.getActiveLocale();
+            expect(locale.code).toBe('mock-rtl');
+            expect(locale.direction).toBe('rtl');
+            expect(i18nService.isRTL()).toBe(true);
+        });
     });
 });

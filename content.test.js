@@ -19,17 +19,32 @@ global.chrome = {
     }
 };
 
+const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0));
+const DEFAULT_RECT = { left: 0, top: 0, bottom: 0, width: 0, height: 0 };
+
+global.window = global.window || window;
+global.window.speechSynthesis = {
+    cancel: jest.fn(),
+    speak: jest.fn(),
+    getVoices: jest.fn().mockReturnValue([]),
+    onvoiceschanged: null,
+};
+global.SpeechSynthesisUtterance = function SpeechSynthesisUtterance(text) {
+    this.text = text;
+};
+
 const TranslationService = require('./services/TranslationService');
 global.TranslationService = TranslationService;
 const StorageService = require('./services/StorageService');
 global.StorageService = StorageService;
-const HighlightService = require('./services/HighlightService');
-global.HighlightService = HighlightService;
+const HighlightServiceClass = require('./services/HighlightService');
+global.HighlightService = HighlightServiceClass;
 const TooltipService = require('./services/TooltipService');
 global.TooltipService = TooltipService;
 
 const content = require('./content.js');
 const { createTranslatePopup, showTranslatePopup } = content;
+const HighlightService = require('./services/HighlightService');
 
 let onMessageListener;
 
@@ -65,6 +80,16 @@ describe('content.js Shadow DOM', () => {
                 },
                 sendMessage: jest.fn().mockResolvedValue({success: true, data: 'default mock'})
             }
+        };
+
+        global.window.speechSynthesis = {
+            cancel: jest.fn(),
+            speak: jest.fn(),
+            getVoices: jest.fn().mockReturnValue([{ name: 'English Voice', lang: 'en-US', localService: true }]),
+            onvoiceschanged: null,
+        };
+        global.SpeechSynthesisUtterance = function SpeechSynthesisUtterance(text) {
+            this.text = text;
         };
         
         // Need to define other globals like Audio if they are used at top level (they are not)
@@ -133,20 +158,16 @@ describe('content.js Shadow DOM', () => {
         expect(top).toBe(45);
     });
 
-    test('should call playTTS and send message to background', () => {
-        const sendMessageMock = jest.fn().mockResolvedValue({success: true});
-        global.chrome.runtime.sendMessage = sendMessageMock;
-
-        // Note: playTTS is internal but we can trigger it via exposed method if we want, 
-        // or just rely on the fact that we are testing the function logic.
-        // Since playTTS is exported for testing, we can call it directly.
+    test('playTTS should call Web Speech API', () => {
+        jest.useFakeTimers();
         content.playTTS('hello', 'en');
 
-        expect(sendMessageMock).toHaveBeenCalledWith(expect.objectContaining({
-            action: 'playTTS',
-            text: 'hello',
-            lang: 'en'
-        }));
+        expect(global.window.speechSynthesis.cancel).toHaveBeenCalled();
+        
+        // speak() is deferred via setTimeout(runSpeak, 50)
+        jest.advanceTimersByTime(100);
+        expect(global.window.speechSynthesis.speak).toHaveBeenCalled();
+        jest.useRealTimers();
     });
 
     test('should call TRANSLATE message and show result', async () => {
@@ -156,21 +177,26 @@ describe('content.js Shadow DOM', () => {
         
         // Mock sendMessage for TRANSLATE
         const sendMessageMock = jest.fn().mockImplementation((message) => {
-            if (message.action === 'TRANSLATE') {
-                return Promise.resolve({success: true, data: 'Translated Text'});
+            switch (message.action) {
+                case 'TRANSLATE':
+                    return Promise.resolve({success: true, data: { translation: 'Translated Text', detectedSourceLang: 'en' }});
+                case 'STORAGE_IS_STARRED':
+                    return Promise.resolve({success: true, data: false});
+                case 'STORAGE_GET_WORD_INFO':
+                    return Promise.resolve({success: true, data: null});
+                case 'STORAGE_GET':
+                    return Promise.resolve({success: true, data: []});
+                default:
+                    return Promise.resolve({success: true});
             }
-            if (message.action === 'playTTS') {
-                return Promise.resolve({success: true});
-            }
-            return Promise.resolve({success: false});
         });
         global.chrome.runtime.sendMessage = sendMessageMock;
 
         // Show popup
-        await content.showTranslatePopup('test', { left: 0, top: 0, bottom: 0, width: 0, height: 0 });
+        await content.showTranslatePopup('test', DEFAULT_RECT);
 
         // Wait for async operations
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await flushPromises();
 
         expect(sendMessageMock).toHaveBeenCalledWith(expect.objectContaining({
             action: 'TRANSLATE',
@@ -180,6 +206,7 @@ describe('content.js Shadow DOM', () => {
     });
 
     test('should add play button to popup and trigger playTTS on click', async () => {
+        jest.useFakeTimers();
         const host = content.createTranslatePopup();
         const popup = host.shadowRoot.getElementById('translate-popup');
         
@@ -193,29 +220,40 @@ describe('content.js Shadow DOM', () => {
             autoTranslate: true
         });
 
-        const sendMessageMock = jest.fn().mockResolvedValue({success: true});
+        const sendMessageMock = jest.fn().mockImplementation((message) => {
+            switch (message.action) {
+                case 'TRANSLATE':
+                    return Promise.resolve({ success: true, data: { translation: '你好', detectedSourceLang: 'zh-TW' } });
+                case 'STORAGE_IS_STARRED':
+                    return Promise.resolve({ success: true, data: false });
+                case 'STORAGE_GET_WORD_INFO':
+                    return Promise.resolve({ success: true, data: { rank: 100, level: 'A1' } });
+                case 'STORAGE_GET':
+                    return Promise.resolve({ success: true, data: [] });
+                default:
+                    return Promise.resolve({ success: true });
+            }
+        });
         global.chrome.runtime.sendMessage = sendMessageMock;
 
         // Show popup
-        content.showTranslatePopup('你好', { left: 0, top: 0, bottom: 0, width: 0, height: 0 });
-
-        // Wait for async operations
-        await new Promise(resolve => setTimeout(resolve, 0));
+        const showPromise = content.showTranslatePopup('你好', DEFAULT_RECT);
+        await jest.runAllTimersAsync();
+        await showPromise;
 
         const playBtn = host.shadowRoot.getElementById('floating-play-btn');
         expect(playBtn).not.toBeNull();
         
         // Simulate click
         playBtn.click();
-        
-        expect(sendMessageMock).toHaveBeenCalledWith({
-            action: 'playTTS',
-            text: '你好', // Source text
-            lang: 'zh-TW' // Detected from '你好'
-        });
+        jest.advanceTimersByTime(100);
+
+        expect(global.window.speechSynthesis.speak).toHaveBeenCalled();
+        jest.useRealTimers();
     });
 
     test('should auto play TTS if autoPlaySpeech setting is true', async () => {
+        jest.useFakeTimers();
         const host = content.createTranslatePopup();
         
         // Update settings using exposed helper
@@ -226,43 +264,42 @@ describe('content.js Shadow DOM', () => {
             autoTranslate: true
         });
 
-        const sendMessageMock = jest.fn().mockResolvedValue({success: true});
+        const sendMessageMock = jest.fn().mockImplementation((message) => {
+            switch (message.action) {
+                case 'TRANSLATE':
+                    return Promise.resolve({ success: true, data: { translation: 'Translated', detectedSourceLang: 'en' } });
+                case 'STORAGE_IS_STARRED':
+                    return Promise.resolve({ success: true, data: false });
+                case 'STORAGE_GET_WORD_INFO':
+                    return Promise.resolve({ success: true, data: { rank: 50, level: 'A1' } });
+                case 'STORAGE_GET':
+                    return Promise.resolve({ success: true, data: [] });
+                default:
+                    return Promise.resolve({ success: true });
+            }
+        });
         global.chrome.runtime.sendMessage = sendMessageMock;
 
         // Show popup
-        content.showTranslatePopup('Original Text', { left: 0, top: 0, bottom: 0, width: 0, height: 0 });
-
-        // Wait for async operations
-        await new Promise(resolve => setTimeout(resolve, 0));
+        const showPromise = content.showTranslatePopup('Original Text', DEFAULT_RECT);
+        await jest.runAllTimersAsync();
+        await showPromise;
         
-        expect(sendMessageMock).toHaveBeenCalledWith({
-            action: 'playTTS',
-            text: 'Original Text', // Source text
-            lang: 'en' // Detected from 'Original Text'
-        });
+        expect(global.window.speechSynthesis.speak).toHaveBeenCalled();
+        jest.useRealTimers();
     });
 
     test('should handle Extension context invalidated error gracefully', async () => {
         // Mock sendMessage to throw the specific error
         chrome.runtime.sendMessage.mockRejectedValue(new Error('Extension context invalidated'));
+
+        const host = content.createTranslatePopup();
+        await content.showTranslatePopup('test', DEFAULT_RECT);
+        await flushPromises();
         
-        // We can't access sendMessageSafe directly as it's not exported, 
-        // but we can test it via playTTS or showTranslatePopup which uses it.
-        
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-        
-        // Test via playTTS
-        content.playTTS('test', 'en');
-        
-        // Allow microtasks to run
-        await new Promise(resolve => setTimeout(resolve, 0));
-        
-        expect(consoleSpy).toHaveBeenCalledWith(
-            'Error sending TTS message:', 
-            expect.objectContaining({ message: expect.stringContaining('擴充功能已更新') })
-        );
-        
-        consoleSpy.mockRestore();
+        // When the extension context is invalidated, the error is caught and displayed in the popup UI
+        const contentContainer = host.shadowRoot.getElementById('ht-content-container');
+        expect(contentContainer.innerHTML).toContain('擴充功能已更新');
     });
     
     test('should show correct feedback when saveTranslation fails', async () => {
@@ -272,28 +309,75 @@ describe('content.js Shadow DOM', () => {
         // Mock sendMessage: 
         // 1. IS_STARRED -> false (not starred initially)
         // 2. SAVE -> fails
-        const sendMessageMock = jest.fn()
-            .mockResolvedValueOnce({success: true, data: 'Translated'}) // TRANSLATE
-            .mockResolvedValueOnce({success: true, data: false}) // IS_STARRED check
-            .mockResolvedValueOnce({success: false, error: 'Storage Error'}); // SAVE fails
+        const sendMessageMock = jest.fn((message) => {
+            switch (message.action) {
+                case 'TRANSLATE':
+                    return Promise.resolve({ success: true, data: { translation: 'Translated', detectedSourceLang: 'en' } });
+                case 'STORAGE_IS_STARRED':
+                    return Promise.resolve({ success: true, data: false });
+                case 'STORAGE_SAVE':
+                    return Promise.resolve({ success: false, error: 'Storage Error' });
+                case 'STORAGE_GET_WORD_INFO':
+                    return Promise.resolve({ success: true, data: null });
+                case 'STORAGE_GET':
+                    return Promise.resolve({ success: true, data: [] });
+                default:
+                    return Promise.resolve({ success: true });
+            }
+        });
 
         global.chrome.runtime.sendMessage = sendMessageMock;
 
         // Show popup
-        await content.showTranslatePopup('test', { left: 0, top: 0, bottom: 0, width: 0, height: 0 });
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await content.showTranslatePopup('test', DEFAULT_RECT);
+        await flushPromises();
 
         const starBtn = host.shadowRoot.getElementById('translate-popup').querySelector('.ht-star-btn');
         const toast = host.shadowRoot.getElementById('ht-toast');
         
         // Click star
         starBtn.click();
-        await new Promise(resolve => setTimeout(resolve, 0)); // Allow async callbacks
+        await flushPromises(); // Allow async callbacks
 
         // With fixed logic, toggleStar throws, so the catch block in onclick should trigger.
         // showToast('儲存失敗');
         
         expect(toast.textContent).toBe('儲存失敗'); 
         // This confirms the fix: user sees "Save Failed" 
+    });
+
+    test('should rescan highlights after starring a translation', async () => {
+        const scanSpy = jest.spyOn(HighlightService.prototype, 'scanAndHighlight').mockImplementation(() => {});
+        const sendMessageMock = jest.fn((message) => {
+            switch (message.action) {
+                case 'TRANSLATE':
+                    return Promise.resolve({ success: true, data: { translation: 'Translated', detectedSourceLang: 'en' } });
+                case 'STORAGE_IS_STARRED':
+                    return Promise.resolve({ success: true, data: false });
+                case 'STORAGE_SAVE':
+                    return Promise.resolve({ success: true });
+                case 'STORAGE_GET_WORD_INFO':
+                    return Promise.resolve({ success: true, data: { rank: 100, level: 'A1' } });
+                case 'STORAGE_GET':
+                    return Promise.resolve({ success: true, data: [{ text: 'test', translation: 'Translated' }] });
+                default:
+                    return Promise.resolve({ success: true });
+            }
+        });
+        global.chrome.runtime.sendMessage = sendMessageMock;
+
+        const host = content.createTranslatePopup();
+        await content.showTranslatePopup('test', DEFAULT_RECT);
+        await flushPromises();
+
+        scanSpy.mockClear();
+        const starBtn = host.shadowRoot.querySelector('.ht-star-btn');
+
+        starBtn.click();
+        await flushPromises();
+
+        expect(scanSpy).toHaveBeenCalled();
+
+        scanSpy.mockRestore();
     });
 });

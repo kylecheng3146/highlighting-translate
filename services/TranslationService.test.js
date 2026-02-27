@@ -84,7 +84,7 @@ describe('TranslationService', () => {
             expect(global.fetch).toHaveBeenCalledWith(
                 expect.stringContaining('sl=en&tl=zh-TW&dt=t&q=original%20text')
             );
-            expect(result).toBe('translated text');
+            expect(result).toEqual({ translation: 'translated text', detectedSourceLang: 'en' });
         });
 
         test('should handle auto source language by detecting it', async () => {

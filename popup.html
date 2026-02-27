@@ -229,38 +229,29 @@
       <div class="setting-description" data-i18n="autoPlaySpeechDesc">翻譯完成後自動朗讀結果</div>
     </div>
     
+    <!-- Auto Copy -->
+    <div class="setting-card">
+      <div class="setting-header">
+        <label class="setting-label" for="autoCopyCheck" data-i18n="autoCopyLabel">自動複製</label>
+        <label class="switch">
+          <input type="checkbox" id="autoCopyCheck">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-description" data-i18n="autoCopyDesc">選取文字後自動複製到剪貼簿</div>
+    </div>
+    
     <!-- Source Language -->
     <div class="setting-card input-group">
       <label class="setting-label" for="sourceLang" data-i18n="sourceLangLabel">源語言</label>
-      <select id="sourceLang" class="input-field">
-        <option value="auto">Auto Detect</option>
-        <option value="zh-TW">繁體中文</option>
-        <option value="zh-CN">简体中文</option>
-        <option value="en">English</option>
-        <option value="ja">日本語</option>
-        <option value="ko">한국어</option>
-        <option value="es">Español</option>
-        <option value="fr">Français</option>
-        <option value="de">Deutsch</option>
-        <option value="vi">Tiếng Việt</option>
-      </select>
+      <select id="sourceLang" class="input-field"></select>
       <div class="setting-description" data-i18n="sourceLangDesc">智慧判斷網頁原始語言</div>
     </div>
     
     <!-- Target Language -->
     <div class="setting-card input-group">
       <label class="setting-label" for="targetLang" data-i18n="targetLangLabel">目標語言</label>
-      <select id="targetLang" class="input-field">
-        <option value="zh-TW">繁體中文</option>
-        <option value="zh-CN">简体中文</option>
-        <option value="en">English</option>
-        <option value="ja">日本語</option>
-        <option value="ko">한국어</option>
-        <option value="es">Español</option>
-        <option value="fr">Français</option>
-        <option value="de">Deutsch</option>
-        <option value="vi">Tiếng Việt</option>
-      </select>
+      <select id="targetLang" class="input-field"></select>
       <div class="setting-description" data-i18n="targetLangDesc">翻譯後的結果語言</div>
     </div>
     
@@ -294,6 +285,7 @@
   
   <script src="services/ThemeService.js"></script>
   <script src="services/I18nService.js"></script>
+  <script src="services/LocaleDropdown.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

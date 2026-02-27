@@ -2,17 +2,22 @@
  * @jest-environment jsdom
  */
 
-const { ReviewManager } = require('./review');
-const StorageService = require('./services/StorageService');
-const SRSService = require('./services/SRSService');
-
-// Mock dependencies
+// Mock dependencies BEFORE requiring review.js (jest.mock is hoisted, but globals are not)
 jest.mock('./services/StorageService');
 jest.mock('./services/SRSService');
 
-// Mock Globals
-global.StorageService = require('./services/StorageService');
-global.SRSService = require('./services/SRSService');
+const StorageService = require('./services/StorageService');
+const SRSService = require('./services/SRSService');
+
+// Set globals so review.js top-level instantiation doesn't fail
+global.StorageService = StorageService;
+global.SRSService = SRSService;
+global.I18nService = class I18nService {
+    localizePage() {}
+    getString() { return ''; }
+};
+
+const { ReviewManager } = require('./review');
 
 describe('ReviewManager', () => {
     let reviewManager;

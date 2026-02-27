@@ -21,7 +21,7 @@
             </svg>
             Review Mode
         </h1>
-        <div class="header-controls">
+        <div class="header-controls" style="gap:1rem;flex-wrap:wrap;justify-content:flex-end;">
             <span id="progress-text" class="progress-info">1 / 10</span>
             <button id="exit-btn" class="icon-btn" title="Exit">
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,8 +104,8 @@
 
     <script src="services/StorageService.js"></script> 
     <script src="services/ThemeService.js"></script>
+    <script src="services/I18nService.js"></script>
     <script>
-        // Init Theme
         const themeService = new ThemeService();
         themeService.loadAndApply();
     </script>
