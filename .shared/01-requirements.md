@@ -86,3 +86,13 @@
   - Main: 大字顯示「中文」，下方 2x2 排列四張卡片。
   - Footer: 顯示目前分數或進度條。
 - **History UI**: 列表項目需顯示進度條、Archive 按鈕。
+
+## 附錄：Task 2026-02-26-03（Locale Metadata Dropdowns）
+
+- **目標**: 在 popup、history、review 三個 UI 中，語言下拉選單需動態讀取 `I18nService` 的 locale metadata，並顯示埃及阿拉伯語 (`ar-EG`、標籤「العربية المصرية」) 與所有既有語言。
+- **需求**:
+  - `I18nService` 暴露可供 UI 消費的 `getAvailableLocales()` 或等效資料結構，包含 `code`、`label`、`direction`。
+  - 介面程式碼（`popup.js`, `history.js`, `review.js`）使用該 metadata 產生 `<option>` 清單，而非硬編碼 HTML。
+  - dropdown 需保留使用者原有設定（source/target），並確保 `ar-EG` 可被選取與儲存。
+  - 測試需覆蓋 DOM 組態，證實 `ar-EG` 選項存在於 `targetLang` 選單。
+- **非目標**: 本 Task 不處理 RTL 佈局（屬於 Task 4），僅確保 metadata 可取得 `direction` 供後續使用。
