@@ -21,7 +21,15 @@
             </svg>
             Review Mode
         </h1>
-        <div class="header-controls" style="gap:1rem;flex-wrap:wrap;justify-content:flex-end;">
+        <div class="header-controls" style="gap:1rem;flex-wrap:wrap;justify-content:flex-end;align-items:center;">
+            <label class="toggle-container" title="Auto-advance to next question">
+                <span class="toggle-label" style="font-size:0.8rem; margin-right: 4px;">Auto-Next</span>
+                <div class="toggle-switch" style="transform: scale(0.85); transform-origin: right center;">
+                    <input type="checkbox" id="auto-next-toggle" checked>
+                    <span class="slider round"></span>
+                </div>
+            </label>
+            <div style="width: 1px; height: 16px; background-color: #E0E0E0; margin: 0 0.2rem;"></div>
             <span id="progress-text" class="progress-info">1 / 10</span>
             <button id="exit-btn" class="icon-btn" title="Exit">
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -59,6 +67,27 @@
             <!-- Options Grid -->
             <div id="options-grid" class="options-grid">
                 <!-- Buttons will be injected here -->
+            </div>
+
+            <!-- Context Container (NEW) -->
+            <div id="context-container" class="context-container hidden">
+                <span class="context-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    Original Sentence
+                </span>
+                <p id="context-text" class="context-text"></p>
+            </div>
+
+            <!-- Next Action Controls -->
+            <div id="next-action-controls" class="next-action-controls hidden">
+                <button id="next-btn" class="btn btn-primary btn-next hidden">
+                    Next Question
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </button>
             </div>
 
             <!-- Feedback Overlay -->
@@ -105,10 +134,6 @@
     <script src="services/StorageService.js"></script> 
     <script src="services/ThemeService.js"></script>
     <script src="services/I18nService.js"></script>
-    <script>
-        const themeService = new ThemeService();
-        themeService.loadAndApply();
-    </script>
     <script src="review.js"></script>
 </body>
 </html>

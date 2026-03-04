@@ -34,13 +34,13 @@ async function injectContentScripts() {
         if (!contentScripts || !contentScripts.length) return;
 
         for (const cs of contentScripts) {
-            // Convert simple match patterns to what tabs.query accepts
-            // Note: complex patterns might need more filtering, but for <all_urls> or simple hosts this works.
-            const tabs = await chrome.tabs.query({url: cs.matches});
+            // Query all tabs since we removed the 'tabs' permission
+            // Without 'tabs' permission, we can't query by URL or explicitly read tab.url
+            const tabs = await chrome.tabs.query({});
             
             for (const tab of tabs) {
-                // Skip restricted pages (chrome:// etc.)
-                if (tab.url.startsWith('chrome://') || tab.url.startsWith('edge://')) continue;
+                // If we somehow have the URL, skip restricted pages explicitly
+                if (tab.url && (tab.url.startsWith('chrome://') || tab.url.startsWith('edge://'))) continue;
 
                 try {
                     await chrome.scripting.executeScript({
@@ -48,7 +48,7 @@ async function injectContentScripts() {
                         files: cs.js,
                     });
                 } catch (err) {
-                    // Ignore errors for tabs where we can't inject (e.g. restricted domains)
+                    // Ignore errors for tabs where we can't inject (e.g. restricted domains or no access)
                     console.debug(`Failed to inject into tab ${tab.id}:`, err);
                 }
             }

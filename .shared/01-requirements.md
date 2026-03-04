@@ -1,98 +1,39 @@
-# 01. 需求規格書 (Requirements Specification)
+# 需求規格書 (Requirements Specification)
 
-## 專案資訊
+## 專案概述 (Project Overview)
 
-- **專案名稱**: Highlighting Translate
-- **功能迭代**: 單字複習功能 (Review / Quiz Mode)
-- **訪談模式**: Hell Interviewer (Completed)
+**Highlighting Translate (劃詞翻譯與高亮)** - 迭代升級項目：片語資料庫整合 (Phrasal Verbs DB Integration - Level 1)
 
-## 1. 核心目標 (Core Objectives)
+## 核心目標 (Core Objectives)
 
-建立一個「單字複習」系統，透過遊戲化 (Gamification) 的測驗方式，幫助使用者記憶已查詢過的單字。
+升級現有基於單字的難度分析與高亮機制，加入對常見片語（Phrasal Verbs）和慣用語的支援，讓擴充功能在網頁上能正確識別多詞彙組合（如 "look forward to", "give up"），並作為一個整體進行高亮標示和難度分級，而不是被拆解為獨立的單字。
 
-## 2. 核心機制 (Core Mechanics)
+## 功能需求 (Functional Requirements)
 
-### 2.1 測驗流程 (Quiz Flow)
+### 1. 片語資料庫 (Phrasal Verbs Database)
 
-- **入口**: Popup 視窗控制列新增 "Start Review" 按鈕。
-- **介面載體**: 點擊後開啟 **新分頁 (New Tab)** 進行測驗。
-- **模式**: 連續出題模式，一次測驗回合包含 **10 題**。
-- **題目形式**:
-  - **題目**: 顯示「中文翻譯」。
-  - **選項**: 顯示 4 個卡片，分別為不同的「英文單字」。
-    - 1 個正確答案 (Correct Answer)。
-    - 3 個干擾項 (Distractors)。
+- **資料來源**：建立或引入包含常見片語及其頻率排名或 CEFR 等級的資料（例如 `assets/phrasal_verbs_db.json`）。
+- **資料結構**：類似現有的 `frequency_db.json`，需包含 `text` (片語文字，含空格)、`cefr_level` 或 `frequency_rank`。
 
-### 2.2 干擾項生成 (Distractor Generation)
+### 2. 高亮邏輯升級 (`services/HighlightService.js`)
 
-- **策略 A (優先)**: 從使用者現有的「歷史紀錄 (History)」中隨機抽取其他單字。
-- **策略 B (備案)**: 若使用者歷史紀錄不足 (少於 4 個字)，則使用內建的 `fallback_words.json` (常見單字庫) 進行填充。
+- **多詞彙匹配 (Multi-word Matching)**：目前的 `HighlightService` 是用 `\b(word1|word2)\b` 進行正則表達式比對。片語包含空格，需確保能正確匹配。
+- **匹配優先級 (Priority)**：比對時，**片語必須優先於單字**（Longest match first）。例如若網頁出現 "give up"，必須高亮整個 "give up" (符合片語 DB)，而不是只高亮 "give" (符合單字 DB)。
+  - _實作利多_：目前 `.sort((a, b) => b.length - a.length)` 已經有長度優先排序機制，這對片語匹配非常有利。
 
-### 2.3 學習進度 (Progress Tracking)
+### 3. 單字庫整合與儲存 (Vocabulary Storage)
 
-- **計分公式**:
-  - 初始值: 0%
-  - 答對: +20%
-  - 答錯: -10% (最低 0%)
-- **顯示**: 在歷史卡片上顯示學習百分比 (Progress Bar 或 數字)。
+- **片語儲存**：當使用者將片語加入「已儲存單字庫」時，系統應能將包含空格的字串當作一個完整的 Vocabulary Item 儲存。
+- **後端判斷**：自動匹配高亮或手動儲存高亮功能，皆需支援片語格式。
 
-### 2.4 互動與回饋 (Interaction & Feedback)
+## 非功能需求 (Non-Functional Requirements)
 
-- **答對**:
-  - 顯示「綠色勾勾」動畫。
-  - 停留 **1 秒** 後自動跳轉下一題。
-- **答錯**:
-  - 顯示「紅色叉叉」。
-  - **提示正確選項** (例如高亮正確卡片)。
-  - 需手動點擊或停留較長時間後跳轉 (待實作細節確認，暫定停留 2 秒讓用戶看清楚)。
+- **效能 (Performance)**：擴容片語庫會增加 RegExp 的複雜度。目前已有 `requestIdleCallback` 分塊處理機制，需確保新增後不會造成正規表達式引擎回溯 (Catastrophic Backtracking) 過慢。
+- **擴充功能大小 (Size)**：新片語 DB 應以輕量為主（建議先收錄最常用的 500-1000 個片語），避免增加過多載入時間與體積。
 
-### 2.5 歸檔機制 (Archiving)
+## 待確認事項 (Open Questions) - 待回覆
 
-- **定義**: 標記單字為「已學會 (Mastered)」。
-- **行為**:
-  - 提供 Archive 按鈕 (可於達到 100% 時強調顯示)。
-  - 歸檔後，單字移至「已精通列表」。
-  - **不再出現**在未來的測驗中。
+為了確保 Level 1 的輕量化實踐，請您確認以下兩個邊界條件：
 
-## 3. 技術需求 (Technical Requirements)
-
-### 3.1 資料結構與遷移 (Data Structure & Migration)
-
-- **現狀**: 假設為簡單陣列 `[{ word, meaning, ... }]`。
-- **新結構 (Schema Update)**:
-  ```javascript
-  {
-    word: "apple",
-    meaning: "蘋果",
-    // 新增欄位
-    learningRate: 0, // 0-100
-    isArchived: false,
-    lastReviewedAt: Date.now()
-  }
-  ```
-- **遷移策略 (Migration)**:
-  - 必須實作 **舊用戶資料相容**。
-  - 在 Extension 啟動或讀取 History 時檢查資料版本，若無新欄位則自動補上預設值。
-
-### 3.2 內建資源
-
-- `fallback_words.json`: 包含約 100 個常見英文單字與對應中文，用於填充選項。
-
-## 4. UI/UX 規劃 (初步)
-
-- **Popup**: 新增 "Start Review" 入口。
-- **Quiz Page (New Tab)**:
-  - Header: 顯示目前題數 (e.g., 3/10)、離開按鈕。
-  - Main: 大字顯示「中文」，下方 2x2 排列四張卡片。
-  - Footer: 顯示目前分數或進度條。
-- **History UI**: 列表項目需顯示進度條、Archive 按鈕。
-
-## 附錄：Task 2026-02-26-03（Locale Metadata Dropdowns）
-
-- **目標**: 在 popup、history、review 三個 UI 中，語言下拉選單需動態讀取 `I18nService` 的 locale metadata，並顯示埃及阿拉伯語 (`ar-EG`、標籤「العربية المصرية」) 與所有既有語言。
-- **需求**:
-  - `I18nService` 暴露可供 UI 消費的 `getAvailableLocales()` 或等效資料結構，包含 `code`、`label`、`direction`。
-  - 介面程式碼（`popup.js`, `history.js`, `review.js`）使用該 metadata 產生 `<option>` 清單，而非硬編碼 HTML。
-  - dropdown 需保留使用者原有設定（source/target），並確保 `ar-EG` 可被選取與儲存。
-  - 測試需覆蓋 DOM 組態，證實 `ar-EG` 選項存在於 `targetLang` 選單。
-- **非目標**: 本 Task 不處理 RTL 佈局（屬於 Task 4），僅確保 metadata 可取得 `direction` 供後續使用。
+1. **詞形變化問題 (Morphology)**：由於英文有時態變化（如 "give up" -> "gave up"），Level 1 是否**先只精準匹配「原形」**？或者希望加入基礎支援（例如透過預先產生變化型的清單或簡單的正則）？
+2. **高亮斷行/跨標籤問題**：如果片語剛好跨越了 HTML 標籤（例如網頁原始碼為 `give <b>up</b>`），目前的 `TextNode` 邏輯無法跨節點匹配。Level 1 是否**同意先忽略跨標籤的片語**，僅處理在「同一個 TextNode 內的連續字串」？

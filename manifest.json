@@ -1,11 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Highlighting Translate",
-  "version": "1.10.0",
+  "version": "1.13.0",
   "description": "Translate selected text automatically with smart language detection",
   "permissions": [
     "contextMenus",
-    "tabs",
     "storage",
     "tts",
     "scripting"

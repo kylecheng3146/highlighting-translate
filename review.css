@@ -199,7 +199,7 @@ body {
 .option-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
-    border-color: #B2DFDB; /* Light teal border on hover */
+    border-color: var(--primary-light);
 }
 
 .option-card:active {
@@ -226,6 +226,141 @@ body {
     opacity: 0.4;
     pointer-events: none;
     box-shadow: none;
+}
+/* Next Action Controls */
+.next-action-controls {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+.toggle-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .slider {
+    background-color: var(--primary);
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+.slider.round {
+    border-radius: 24px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.btn-next {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    width: auto;
+}
+
+/* Context Container */
+.context-container {
+    margin-top: 2rem;
+    padding: 1.5rem 2rem;
+    background-color: var(--bg-surface);
+    border-radius: 16px;
+    text-align: left;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    animation: slideUpFade 0.4s ease-out forwards;
+}
+
+.context-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.icon-sm {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.context-text {
+    font-size: 1.15rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 400;
+}
+
+.context-highlight {
+    background-color: color-mix(in srgb, var(--primary) 20%, transparent);
+    color: var(--primary);
+    font-weight: 600;
+    padding: 0 4px;
+    border-radius: 4px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Feedback */
@@ -260,7 +395,7 @@ body {
     display: inline-flex;
     padding: 1.5rem;
     border-radius: 50%;
-    background-color: #E0F2F1; /* Teal 50 */
+    background-color: var(--primary-light);
     color: var(--primary);
 }
 
@@ -334,12 +469,12 @@ body {
     background-color: var(--primary);
     color: var(--on-primary);
     border: none;
-    box-shadow: 0 4px 10px rgba(38, 166, 154, 0.3); /* Teal shadow */
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .btn-primary:hover {
     background-color: var(--primary-hover);
-    box-shadow: 0 6px 15px rgba(38, 166, 154, 0.4);
+    box-shadow: 0 6px 15px color-mix(in srgb, var(--primary) 40%, transparent);
     transform: translateY(-1px);
 }
 

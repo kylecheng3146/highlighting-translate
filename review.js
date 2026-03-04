@@ -24,6 +24,8 @@ const elements = {
     resultsContainer: document.getElementById('results-container'),
     questionText: document.getElementById('question-text'),
     optionsGrid: document.getElementById('options-grid'),
+    contextContainer: document.getElementById('context-container'),
+    contextText: document.getElementById('context-text'),
     progressText: document.getElementById('progress-text'),
     progressBar: document.getElementById('progress-bar'),
     feedbackMsg: document.getElementById('feedback-msg'),
@@ -37,6 +39,11 @@ const elements = {
 // Initialization
 document.addEventListener('DOMContentLoaded', async () => {
     i18nService.localizePage();
+    
+    // Load and apply theme
+    const themeService = new ThemeService();
+    await themeService.loadAndApply();
+    
     initEventListeners();
     await startQuiz();
 });
@@ -175,10 +182,19 @@ function generateQuestions(candidates, fallback, count) {
     return questions;
 }
 
+// Globals for timeout to clear if needed
+let nextTimeoutId = null;
+
 function renderQuestion() {
     const q = state.questions[state.currentIndex];
     elements.questionText.textContent = q.target.translation || q.target.meaning; // Compatible with both structures?
     // Note: User spec says "Question: Chinese", "Options: English"
+    
+    // Clear context
+    if (elements.contextContainer) {
+        elements.contextContainer.classList.add('hidden');
+        elements.contextText.textContent = '';
+    }
     
     // Clear options
     elements.optionsGrid.innerHTML = '';
@@ -191,6 +207,12 @@ function renderQuestion() {
         btn.onclick = () => handleAnswer(opt, btn);
         elements.optionsGrid.appendChild(btn);
     });
+
+    // Hide Next Controls initially
+    const nextControls = document.getElementById('next-action-controls');
+    const nextBtn = document.getElementById('next-btn');
+    if (nextControls) nextControls.classList.add('hidden');
+    if (nextBtn) nextBtn.classList.add('hidden');
 
     state.isAnswering = false;
     updateProgress();
@@ -209,7 +231,18 @@ async function handleAnswer(selectedOption, btnElement) {
         showFeedback(true);
         state.correctCount++;
         
-        // Helper: Play simple sound? (Maybe later)
+        // Context playback & display
+        if (currentQ.target.context) {
+            if (elements.contextContainer) {
+                // Highlight the target word in the context sentence
+                const escapedWord = currentQ.target.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape regex chars
+                const regex = new RegExp(`(${escapedWord})`, 'gi');
+                const highlightedContext = currentQ.target.context.replace(regex, '<span class="context-highlight">$1</span>');
+                elements.contextText.innerHTML = highlightedContext;
+                elements.contextContainer.classList.remove('hidden');
+            }
+        }
+        playTTS(currentQ.target.text, currentQ.target.sourceLang);
     } else {
         btnElement.classList.add('option-wrong', 'animate-shake');
         showFeedback(false);
@@ -230,20 +263,40 @@ async function handleAnswer(selectedOption, btnElement) {
     });
 
     // Update Storage (Learning Progress)
-    // Only update if it's a real user word (has 'learningRate' or is compatible)
-    // We check if it exists in DB implicitly by trying to update.
     await updateWordProgress(currentQ.target, isCorrect);
 
-    // Delay next
-    const delay = isCorrect ? 1000 : 2000; // 1s for correct, 2s for wrong
-    setTimeout(() => {
-        state.currentIndex++;
-        if (state.currentIndex >= state.questions.length) {
-            endQuiz();
-        } else {
-            renderQuestion();
-        }
-    }, delay);
+    // Show Next Controls and Handle Auto-Next Logic
+    const nextControls = document.getElementById('next-action-controls');
+    const autoNextToggle = document.getElementById('auto-next-toggle');
+    const nextBtn = document.getElementById('next-btn');
+
+    if (nextControls) nextControls.classList.remove('hidden');
+
+    // Setup manual "Next Question" click
+    if (nextBtn) {
+        nextBtn.classList.remove('hidden');
+        nextBtn.onclick = () => {
+            if (nextTimeoutId) clearTimeout(nextTimeoutId);
+            goToNextQuestion();
+        };
+    }
+
+    const delay = isCorrect ? 1000 : 2000; // auto-next fast track settings: 1s correct, 2s incorrect to allow reading
+
+    if (autoNextToggle && autoNextToggle.checked) {
+        nextTimeoutId = setTimeout(() => {
+            goToNextQuestion();
+        }, delay);
+    }
+}
+
+function goToNextQuestion() {
+    state.currentIndex++;
+    if (state.currentIndex >= state.questions.length) {
+        endQuiz();
+    } else {
+        renderQuestion();
+    }
 }
 
 async function updateWordProgress(wordObj, isCorrect) {
@@ -306,6 +359,18 @@ function shuffleArray(array) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
     }
+}
+
+/**
+ * Sends a message to the background script to play TTS
+ */
+function playTTS(text, lang) {
+    if (!text) return;
+    chrome.runtime.sendMessage({
+        action: 'playTTS',
+        text: text,
+        lang: lang || 'en'
+    }).catch(error => console.error('Error sending TTS message:', error));
 }
 
 /**

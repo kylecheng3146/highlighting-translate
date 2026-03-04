@@ -31,8 +31,9 @@ class HighlightService {
         if (vocabMap.size === 0) return;
 
         // Build regex ONCE here and reuse across all nodes
+        // Replace escaped spaces '\ ' with '\s+' to allow matching phrasal verbs across arbitrary whitespace
         const escapedKeys = Array.from(vocabMap.keys())
-            .map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+            .map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\ /g, '\\s+'))
             .sort((a, b) => b.length - a.length);
         const regex = new RegExp(`\\b(${escapedKeys.join('|')})\\b`, 'gi');
 

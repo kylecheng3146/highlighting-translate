@@ -100,4 +100,40 @@ describe('HighlightService', () => {
         const marks = root.querySelectorAll('mark');
         expect(marks.length).toBe(100); // limited by maxHighlights
     });
+
+    test('should highlight phrasal verbs with multiple spaces', () => {
+        const root = document.getElementById('root');
+        // The text in DOM has multiple spaces and a newline
+        document.body.innerHTML = '<div id="root">I look   forward\\n to hearing from you.</div>';
+        const vocab = [{ text: 'look forward to', translation: '期待' }];
+
+        service.scanAndHighlight(root, vocab);
+
+        const marks = root.querySelectorAll('mark');
+        expect(marks.length).toBe(1);
+        expect(marks[0].textContent).toBe('look   forward\\n to');
+        expect(marks[0].dataset.translation).toBe('期待');
+    });
+
+    test('should prioritize longer phrasal verbs over single words', () => {
+        const root = document.getElementById('root');
+        document.body.innerHTML = '<div id="root">Never give up, just give it your best.</div>';
+        const vocab = [
+            { text: 'give', translation: '給予' },
+            { text: 'give up', translation: '放棄' }
+        ];
+
+        service.scanAndHighlight(root, vocab);
+
+        const marks = root.querySelectorAll('mark');
+        expect(marks.length).toBe(2);
+        
+        // First match should be the phrase
+        expect(marks[0].textContent).toBe('give up');
+        expect(marks[0].dataset.translation).toBe('放棄');
+        
+        // Second match should be the single word
+        expect(marks[1].textContent).toBe('give');
+        expect(marks[1].dataset.translation).toBe('給予');
+    });
 });
