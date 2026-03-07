@@ -2,50 +2,154 @@
 TASK: MV3 架構設計與實作規劃
 EXPECTED OUTCOME: .shared/04-tech-architecture.md
 REQUIRED AGENT: Extension Architect
-CONTEXT: .shared/01-requirements.md
+CONTEXT: .shared/01-requirements.md, background.js, services/HighlightService.js
 ```
 
 # 技術架構設計 (Technical Architecture)
 
+> **版本**: v2 — 片語資料庫 Level 1 整合 (2026-03-07)
+
 ## 專案概述
 
 **功能**：片語資料庫整合 (Phrasal Verbs DB Integration - Level 1)
+**擴充功能版本目標**：v1.14.0
+
+---
 
 ## 影響範圍 (Impacted Components)
 
-1. **HighlightService (`services/HighlightService.js`)**
-   - 負責核心的高亮多詞彙正則表達式構建與執行。
-2. **單字庫載入機制 (`services/TranslationService.js` / `background.js`)**
-   - 負責載入與整合新的片語外部資料來源。
-3. **資料來源 (`assets/phrasal_verbs_db.json`)**
-   - 新增：負責提供初始片語資料、詞頻與 CEFR 等級。
+| 檔案 | 變更類型 | 說明 |
+|------|---------|------|
+| `assets/phrasal_verbs_db.json` | **新增** | 片語資料庫（500-1000 個片語） |
+| `manifest.json` | **修改** | 加入 phrasal_verbs_db.json 到 web_accessible_resources |
+| `background.js` | **修改** | 新增片語 DB 載入、變形展開、合併邏輯 |
+| `services/HighlightService.js` | **維持** | 現有 `\s+` 替換機制已就緒，無需修改 |
+| `content.js` | **維持** | `scanPageForVocabulary` 接收合併後詞彙列表，邏輯不變 |
+
+---
 
 ## 核心技術方案設計
 
-### 1. 正則表達式升級 (RegExp Enhancement)
+### 1. 資料庫結構 (Data Schema)
 
-在 `HighlightService.js` 中，原有的 regex 建立邏輯為：
-`const regex = new RegExp(\`\\b(${escapedKeys.join('|')})\\b\`, 'gi');`
+`assets/phrasal_verbs_db.json` 採用與 `frequency_db.json` 相容的格式：
 
-需要修改以支援片語中的空格：
+```json
+[
+  {
+    "text": "give up",
+    "cefr_level": "B1",
+    "frequency_rank": 850,
+    "translation": "放棄",
+    "forms": ["gives up", "gave up", "giving up", "given up"]
+  },
+  {
+    "text": "look forward to",
+    "cefr_level": "B1",
+    "frequency_rank": 920,
+    "translation": "期待",
+    "forms": ["looks forward to", "looked forward to", "looking forward to"]
+  }
+]
+```
 
-- 對象：`vocabMap` 內的鍵（包含空格的片語）。
-- 問題：轉義後空格會變成 `\ `，但網頁上的實體空格可能是換行、多個空白符號。
-- 解法：在轉義後，將實體空格 `\ ` 替換為 `\s+`，增加網頁匹配的強健性：
-  `const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\ /g, '\\s+');`
-- 邊界確認 (Level 1 限制)：**忽略跨 HTML 標籤的片語**，維持原本利用 `TreeWalker` 在單一 `TextNode` 內進行正則表達式匹配的架構，以確保最佳效能。
+- `text`：片語原形（作為儲存鍵與顯示文字）
+- `forms`：預先手工指定的變形列表（不規則動詞需手工填入）
+- `translation`：中文翻譯（Tooltip 顯示用，不呼叫 API）
+- `cefr_level` / `frequency_rank`：與 frequency_db.json 相同用途
 
-### 2. 匹配優先級 (Match Priority)
+### 2. 載入與展開流程 (Load & Expand Pipeline)
 
-利用 JavaScript 正規表達式的特性：在 `(A|B)` 結構中，排在前面的選項優先匹配。
-因此，陣列排序非常關鍵：
-`escapedKeys.sort((a, b) => b.length - a.length);`
-這行程式碼**目前已存在**，能完美確保長度較長的「片語」會排在「單字」前，確保 "look forward to" 不會被 "look" 搶走匹配權。
+在 `background.js` 的 `chrome.runtime.onInstalled` 事件（及 `onStartup`）中：
 
-### 3. 片語對齊原形 (Morphology)
+```javascript
+async function loadPhrasalVerbsDB() {
+    // 1. Fetch DB from extension assets
+    const url = chrome.runtime.getURL('assets/phrasal_verbs_db.json');
+    const res = await fetch(url);
+    const phrasalVerbs = await res.json();
 
-依需求確認，第一版將**採用完全一致精準匹配**（Exact Match），也就是如果資料庫提供 "look forward to"，網頁上出現的 "looked forward to" 不會被高亮。這樣能將迴避引擎回溯效能問題，最快完成測試驗證。
+    // 2. 展開所有變形，全部映射到相同的翻譯資料
+    const expandedEntries = [];
+    for (const pv of phrasalVerbs) {
+        const base = {
+            text: pv.text,
+            translation: pv.translation,
+            cefr_level: pv.cefr_level,
+            frequency_rank: pv.frequency_rank
+        };
+        // 原形本身
+        expandedEntries.push(base);
+        // 所有變形
+        if (pv.forms) {
+            for (const form of pv.forms) {
+                expandedEntries.push({ ...base, text: form });
+            }
+        }
+    }
 
-### 4. 資料來源的載入與註冊
+    // 3. 儲存到 chrome.storage.local（content.js 從這裡讀取）
+    await chrome.storage.local.set({ phrasalVerbsExpanded: expandedEntries });
+}
+```
 
-需要在 `manifest.json` 中的 `web_accessible_resources` 加入新檔案 `assets/phrasal_verbs_db.json`，並在相關需要載入字典的地方（例如 `services/DictionaryService` 或直接在 `background.js` 設定載入）一併載入這份檔案補充進全局單字表中。
+### 3. Content Script 整合 (`content.js`)
+
+`scanPageForVocabulary` 函數需更新，合併單字與片語後傳給 `HighlightService`：
+
+```javascript
+async function scanPageForVocabulary() {
+    try {
+        // 取得已儲存單字
+        const vocabList = await storageService.getTranslations(1000);
+
+        // 取得展開後的片語列表
+        const { phrasalVerbsExpanded = [] } = await chrome.storage.local.get('phrasalVerbsExpanded');
+
+        // 合併：片語放前面（確保長優先匹配）
+        const combined = [...phrasalVerbsExpanded, ...(vocabList || [])];
+
+        if (combined.length > 0) {
+            highlightService.scanAndHighlight(document.body, combined);
+        }
+    } catch (e) {
+        console.error('Error scanning page for vocabulary:', e);
+    }
+}
+```
+
+### 4. 正則表達式升級確認 (RegExp)
+
+`HighlightService.js` 第 36 行現有邏輯：
+```javascript
+.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\ /g, '\\s+')
+```
+此邏輯**已完整支援片語**，無需修改。`\s+` 確保空格可匹配任意空白字符。
+
+### 5. 匹配優先級確認
+
+`HighlightService.js` 第 37 行：
+```javascript
+.sort((a, b) => b.length - a.length)
+```
+片語（如 `give up`）長度 > 單字（如 `give`），自然排在前面，確保片語整體優先匹配。
+
+---
+
+## MV3 合規性檢查
+
+| 項目 | 狀態 | 說明 |
+|------|------|------|
+| Service Worker (background.js) | 合規 | 使用 fetch() 載入資產，符合 MV3 |
+| web_accessible_resources | 需更新 | 加入 `assets/phrasal_verbs_db.json` |
+| 權限需求 | **不需新增** | 使用現有 `storage` 權限即可 |
+| host_permissions | 不需修改 | 片語 DB 為本地資產 |
+| Content Script | 不需修改 | 透過 chrome.storage 讀取 |
+
+---
+
+## 安全性考量
+
+- 片語 DB 為靜態 JSON，無動態執行風險
+- 片語翻譯顯示使用現有 `escapeHtml()` 函數防 XSS
+- `chrome.storage.local` 無跨域洩露風險

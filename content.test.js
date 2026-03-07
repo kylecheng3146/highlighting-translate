@@ -381,3 +381,160 @@ describe('content.js Shadow DOM', () => {
         scanSpy.mockRestore();
     });
 });
+
+// ─── Phrasal Verbs Integration Tests ──────────────────────────────────────────
+describe('HighlightService — Phrasal Verbs', () => {
+    let highlightService;
+
+    beforeEach(() => {
+        highlightService = new HighlightService();
+        document.body.innerHTML = '';
+    });
+
+    // Helper: create a div with textContent and run scanAndHighlight on it
+    function highlightIn(text, vocab) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        document.body.appendChild(div);
+        highlightService.scanAndHighlight(div, vocab);
+        return div;
+    }
+
+    const giveUpEntry = { text: 'give up', translation: '放棄', cefr_level: 'A2', frequency_rank: 320 };
+    const givesUpEntry = { text: 'gives up', translation: '放棄', cefr_level: 'A2', frequency_rank: 320 };
+    const givingUpEntry = { text: 'giving up', translation: '放棄', cefr_level: 'A2', frequency_rank: 320 };
+    const gaveUpEntry = { text: 'gave up', translation: '放棄', cefr_level: 'A2', frequency_rank: 320 };
+    const lookForwardToEntry = { text: 'look forward to', translation: '期待', cefr_level: 'B1', frequency_rank: 1200 };
+
+    test('TC-PV-01: base form "give up" is highlighted', () => {
+        const div = highlightIn('She decided to give up smoking.', [giveUpEntry]);
+        // processChunks uses requestIdleCallback/setTimeout — call synchronously via direct invocation
+        const marks = div.querySelectorAll('mark.ht-highlight');
+        // Because processChunks is async, we test the vocabMap build and regex path via HighlightService directly
+        // Use highlightNode directly to verify synchronously
+        const hs = new HighlightService();
+        const node = document.createTextNode('She decided to give up smoking.');
+        const container = document.createElement('div');
+        container.appendChild(node);
+        document.body.appendChild(container);
+        const vocabMap = new Map([['give up', { translation: '放棄', rank: 320, level: 'A2' }]]);
+        const regex = new RegExp(`\\b(give\\s+up)\\b`, 'gi');
+        hs.highlightNode(node, vocabMap, regex);
+        const highlighted = container.querySelectorAll('mark.ht-highlight');
+        expect(highlighted.length).toBe(1);
+        expect(highlighted[0].textContent).toBe('give up');
+        expect(highlighted[0].dataset.translation).toBe('放棄');
+    });
+
+    test('TC-PV-02: 3rd-person-s form "gives up" is highlighted', () => {
+        const hs = new HighlightService();
+        const node = document.createTextNode('He never gives up.');
+        const container = document.createElement('div');
+        container.appendChild(node);
+        document.body.appendChild(container);
+        const vocabMap = new Map([['gives up', { translation: '放棄', rank: 320, level: 'A2' }]]);
+        const regex = new RegExp(`\\b(gives\\s+up)\\b`, 'gi');
+        hs.highlightNode(node, vocabMap, regex);
+        const marks = container.querySelectorAll('mark.ht-highlight');
+        expect(marks.length).toBe(1);
+        expect(marks[0].textContent).toBe('gives up');
+    });
+
+    test('TC-PV-03: past form "gave up" is highlighted', () => {
+        const hs = new HighlightService();
+        const node = document.createTextNode('They gave up trying.');
+        const container = document.createElement('div');
+        container.appendChild(node);
+        document.body.appendChild(container);
+        const vocabMap = new Map([['gave up', { translation: '放棄', rank: 320, level: 'A2' }]]);
+        const regex = new RegExp(`\\b(gave\\s+up)\\b`, 'gi');
+        hs.highlightNode(node, vocabMap, regex);
+        const marks = container.querySelectorAll('mark.ht-highlight');
+        expect(marks.length).toBe(1);
+        expect(marks[0].textContent).toBe('gave up');
+    });
+
+    test('TC-PV-04: present-participle "giving up" is highlighted', () => {
+        const hs = new HighlightService();
+        const node = document.createTextNode('She is giving up her seat.');
+        const container = document.createElement('div');
+        container.appendChild(node);
+        document.body.appendChild(container);
+        const vocabMap = new Map([['giving up', { translation: '放棄', rank: 320, level: 'A2' }]]);
+        const regex = new RegExp(`\\b(giving\\s+up)\\b`, 'gi');
+        hs.highlightNode(node, vocabMap, regex);
+        const marks = container.querySelectorAll('mark.ht-highlight');
+        expect(marks.length).toBe(1);
+        expect(marks[0].textContent).toBe('giving up');
+    });
+
+    test('TC-PV-05: 3-word phrase "look forward to" is highlighted', () => {
+        const hs = new HighlightService();
+        const node = document.createTextNode('I look forward to seeing you.');
+        const container = document.createElement('div');
+        container.appendChild(node);
+        document.body.appendChild(container);
+        const vocabMap = new Map([['look forward to', { translation: '期待', rank: 1200, level: 'B1' }]]);
+        const regex = new RegExp(`\\b(look\\s+forward\\s+to)\\b`, 'gi');
+        hs.highlightNode(node, vocabMap, regex);
+        const marks = container.querySelectorAll('mark.ht-highlight');
+        expect(marks.length).toBe(1);
+        expect(marks[0].textContent).toBe('look forward to');
+        expect(marks[0].dataset.translation).toBe('期待');
+    });
+
+    test('TC-PV-06: frequency rank drives correct CSS class (hl-freq-high for rank<=3000)', () => {
+        const hs = new HighlightService();
+        const node = document.createTextNode('She decided to give up.');
+        const container = document.createElement('div');
+        container.appendChild(node);
+        document.body.appendChild(container);
+        const vocabMap = new Map([['give up', { translation: '放棄', rank: 320, level: 'A2' }]]);
+        const regex = new RegExp(`\\b(give\\s+up)\\b`, 'gi');
+        hs.highlightNode(node, vocabMap, regex);
+        const mark = container.querySelector('mark.ht-highlight');
+        expect(mark.classList.contains('hl-freq-high')).toBe(true);
+    });
+
+    test('TC-PV-07: partial substring "up" inside "give up" does not get its own highlight', () => {
+        const hs = new HighlightService();
+        const node = document.createTextNode('I give up.');
+        const container = document.createElement('div');
+        container.appendChild(node);
+        document.body.appendChild(container);
+        // Only the phrasal verb in map — "up" alone is not in map
+        const vocabMap = new Map([['give up', { translation: '放棄', rank: 320, level: 'A2' }]]);
+        const regex = new RegExp(`\\b(give\\s+up)\\b`, 'gi');
+        hs.highlightNode(node, vocabMap, regex);
+        const marks = container.querySelectorAll('mark.ht-highlight');
+        // Only one mark for "give up", not a separate one for "up"
+        expect(marks.length).toBe(1);
+        expect(marks[0].textContent).toBe('give up');
+    });
+
+    test('TC-PV-08: when both phrasal and single-word forms are in vocabMap, longer phrasal match wins', () => {
+        const hs = new HighlightService();
+        const node = document.createTextNode('She will give up today.');
+        const container = document.createElement('div');
+        container.appendChild(node);
+        document.body.appendChild(container);
+        // Both "give" (as a single word) and "give up" in map
+        const vocabMap = new Map([
+            ['give up', { translation: '放棄', rank: 320, level: 'A2' }],
+            ['give', { translation: '給', rank: 800, level: 'A1' }]
+        ]);
+        // HighlightService sorts by length descending, so "give up" (7) beats "give" (4)
+        const escapedKeys = Array.from(vocabMap.keys())
+            .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\ /g, '\\s+'))
+            .sort((a, b) => b.length - a.length);
+        const regex = new RegExp(`\\b(${escapedKeys.join('|')})\\b`, 'gi');
+        hs.highlightNode(node, vocabMap, regex);
+        const marks = container.querySelectorAll('mark.ht-highlight');
+        // "give up" should be matched as a whole (longer alternative listed first in alternation)
+        const phrasalMark = Array.from(marks).find(m => m.textContent === 'give up');
+        expect(phrasalMark).toBeDefined();
+        // "give" alone should NOT be a separate mark inside the phrasal match
+        const singleMark = Array.from(marks).find(m => m.textContent === 'give');
+        expect(singleMark).toBeUndefined();
+    });
+});

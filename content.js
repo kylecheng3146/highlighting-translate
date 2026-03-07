@@ -15,7 +15,8 @@ let settings = {
     autoCopy: false,
     sourceLang: 'auto',
     targetLang: 'zh-TW',
-    delay: 500
+    delay: 500,
+    enablePhrasalVerbs: true
 };
 
 let lastSelectedText = '';
@@ -40,6 +41,7 @@ async function loadSettings() {
             targetLang: 'zh-TW',
             delay: 500,
             enableHighlighting: true,
+            enablePhrasalVerbs: true,
             domainBlacklist: [],
             themeColor: '#26A69A' // Default Teal
         });
@@ -89,8 +91,22 @@ function removeHighlights() {
 async function scanPageForVocabulary() {
     try {
         const vocabList = await storageService.getTranslations(1000); // Get up to 1000 items
-        if (vocabList && vocabList.length > 0) {
-            highlightService.scanAndHighlight(document.body, vocabList);
+
+        // Load pre-expanded phrasal verbs from local storage (populated by background.js)
+        // only if the user has enabled the phrasal verbs feature
+        let phrasalVerbs = [];
+        if (settings.enablePhrasalVerbs) {
+            const localData = await chrome.storage.local.get('phrasalVerbsExpanded');
+            phrasalVerbs = localData.phrasalVerbsExpanded || [];
+        }
+
+        // Merge: phrasal verbs first so they are sorted by length ahead of single words
+        // HighlightService already sorts by length descending, so order here doesn't matter,
+        // but putting phrasal verbs first avoids duplicates when a form overlaps a saved word.
+        const combined = [...phrasalVerbs, ...(vocabList || [])];
+
+        if (combined.length > 0) {
+            highlightService.scanAndHighlight(document.body, combined);
         }
     } catch (e) {
         console.error('Error scanning page for vocabulary:', e);

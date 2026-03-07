@@ -1,0 +1,1563 @@
+[
+  {
+    "text": "give up",
+    "cefr_level": "A2",
+    "frequency_rank": 320,
+    "translation": "放棄",
+    "forms": ["gives up", "gave up", "giving up", "given up"]
+  },
+  {
+    "text": "give in",
+    "cefr_level": "B1",
+    "frequency_rank": 1850,
+    "translation": "讓步；屈服",
+    "forms": ["gives in", "gave in", "giving in", "given in"]
+  },
+  {
+    "text": "give out",
+    "cefr_level": "B1",
+    "frequency_rank": 2100,
+    "translation": "分發；耗盡",
+    "forms": ["gives out", "gave out", "giving out", "given out"]
+  },
+  {
+    "text": "give away",
+    "cefr_level": "B1",
+    "frequency_rank": 1600,
+    "translation": "贈送；洩露",
+    "forms": ["gives away", "gave away", "giving away", "given away"]
+  },
+  {
+    "text": "look up",
+    "cefr_level": "A2",
+    "frequency_rank": 580,
+    "translation": "查詢；抬頭看",
+    "forms": ["looks up", "looked up", "looking up"]
+  },
+  {
+    "text": "look forward to",
+    "cefr_level": "A2",
+    "frequency_rank": 620,
+    "translation": "期待；盼望",
+    "forms": ["looks forward to", "looked forward to", "looking forward to"]
+  },
+  {
+    "text": "look into",
+    "cefr_level": "B1",
+    "frequency_rank": 1200,
+    "translation": "調查；研究",
+    "forms": ["looks into", "looked into", "looking into"]
+  },
+  {
+    "text": "look out",
+    "cefr_level": "A2",
+    "frequency_rank": 870,
+    "translation": "小心；注意",
+    "forms": ["looks out", "looked out", "looking out"]
+  },
+  {
+    "text": "look after",
+    "cefr_level": "A2",
+    "frequency_rank": 760,
+    "translation": "照顧；照料",
+    "forms": ["looks after", "looked after", "looking after"]
+  },
+  {
+    "text": "look back",
+    "cefr_level": "B1",
+    "frequency_rank": 1350,
+    "translation": "回顧；回頭看",
+    "forms": ["looks back", "looked back", "looking back"]
+  },
+  {
+    "text": "take off",
+    "cefr_level": "A2",
+    "frequency_rank": 490,
+    "translation": "起飛；脫下",
+    "forms": ["takes off", "took off", "taking off", "taken off"]
+  },
+  {
+    "text": "take on",
+    "cefr_level": "B1",
+    "frequency_rank": 980,
+    "translation": "承擔；接受",
+    "forms": ["takes on", "took on", "taking on", "taken on"]
+  },
+  {
+    "text": "take over",
+    "cefr_level": "B1",
+    "frequency_rank": 1050,
+    "translation": "接管；接手",
+    "forms": ["takes over", "took over", "taking over", "taken over"]
+  },
+  {
+    "text": "take up",
+    "cefr_level": "B1",
+    "frequency_rank": 1150,
+    "translation": "開始從事；佔用",
+    "forms": ["takes up", "took up", "taking up", "taken up"]
+  },
+  {
+    "text": "take in",
+    "cefr_level": "B1",
+    "frequency_rank": 1420,
+    "translation": "吸收；接納；欺騙",
+    "forms": ["takes in", "took in", "taking in", "taken in"]
+  },
+  {
+    "text": "take out",
+    "cefr_level": "A2",
+    "frequency_rank": 710,
+    "translation": "取出；帶出去",
+    "forms": ["takes out", "took out", "taking out", "taken out"]
+  },
+  {
+    "text": "take back",
+    "cefr_level": "B1",
+    "frequency_rank": 1680,
+    "translation": "收回；帶回",
+    "forms": ["takes back", "took back", "taking back", "taken back"]
+  },
+  {
+    "text": "take care of",
+    "cefr_level": "A2",
+    "frequency_rank": 540,
+    "translation": "照顧；處理",
+    "forms": ["takes care of", "took care of", "taking care of", "taken care of"]
+  },
+  {
+    "text": "take part in",
+    "cefr_level": "A2",
+    "frequency_rank": 660,
+    "translation": "參加；參與",
+    "forms": ["takes part in", "took part in", "taking part in", "taken part in"]
+  },
+  {
+    "text": "make up",
+    "cefr_level": "A2",
+    "frequency_rank": 430,
+    "translation": "組成；化妝；編造",
+    "forms": ["makes up", "made up", "making up"]
+  },
+  {
+    "text": "make out",
+    "cefr_level": "B1",
+    "frequency_rank": 1100,
+    "translation": "辨認；理解；聲稱",
+    "forms": ["makes out", "made out", "making out"]
+  },
+  {
+    "text": "make up for",
+    "cefr_level": "B1",
+    "frequency_rank": 1750,
+    "translation": "彌補；補償",
+    "forms": ["makes up for", "made up for", "making up for"]
+  },
+  {
+    "text": "make sense",
+    "cefr_level": "A2",
+    "frequency_rank": 480,
+    "translation": "有道理；說得通",
+    "forms": ["makes sense", "made sense", "making sense"]
+  },
+  {
+    "text": "make sense of",
+    "cefr_level": "B1",
+    "frequency_rank": 1900,
+    "translation": "理解；弄懂",
+    "forms": ["makes sense of", "made sense of", "making sense of"]
+  },
+  {
+    "text": "turn off",
+    "cefr_level": "A1",
+    "frequency_rank": 390,
+    "translation": "關掉；關閉",
+    "forms": ["turns off", "turned off", "turning off"]
+  },
+  {
+    "text": "turn on",
+    "cefr_level": "A1",
+    "frequency_rank": 380,
+    "translation": "開啟；打開",
+    "forms": ["turns on", "turned on", "turning on"]
+  },
+  {
+    "text": "turn up",
+    "cefr_level": "A2",
+    "frequency_rank": 820,
+    "translation": "出現；調高",
+    "forms": ["turns up", "turned up", "turning up"]
+  },
+  {
+    "text": "turn down",
+    "cefr_level": "A2",
+    "frequency_rank": 900,
+    "translation": "拒絕；調低",
+    "forms": ["turns down", "turned down", "turning down"]
+  },
+  {
+    "text": "turn out",
+    "cefr_level": "A2",
+    "frequency_rank": 550,
+    "translation": "結果是；生產",
+    "forms": ["turns out", "turned out", "turning out"]
+  },
+  {
+    "text": "turn into",
+    "cefr_level": "A2",
+    "frequency_rank": 690,
+    "translation": "變成；轉變為",
+    "forms": ["turns into", "turned into", "turning into"]
+  },
+  {
+    "text": "turn back",
+    "cefr_level": "B1",
+    "frequency_rank": 1450,
+    "translation": "折返；轉回",
+    "forms": ["turns back", "turned back", "turning back"]
+  },
+  {
+    "text": "turn around",
+    "cefr_level": "A2",
+    "frequency_rank": 780,
+    "translation": "轉身；好轉",
+    "forms": ["turns around", "turned around", "turning around"]
+  },
+  {
+    "text": "come up",
+    "cefr_level": "A2",
+    "frequency_rank": 460,
+    "translation": "出現；提出",
+    "forms": ["comes up", "came up", "coming up"]
+  },
+  {
+    "text": "come up with",
+    "cefr_level": "B1",
+    "frequency_rank": 920,
+    "translation": "想出；提出（方案）",
+    "forms": ["comes up with", "came up with", "coming up with"]
+  },
+  {
+    "text": "come back",
+    "cefr_level": "A1",
+    "frequency_rank": 360,
+    "translation": "回來；返回",
+    "forms": ["comes back", "came back", "coming back"]
+  },
+  {
+    "text": "come out",
+    "cefr_level": "A2",
+    "frequency_rank": 520,
+    "translation": "出來；出版；結果",
+    "forms": ["comes out", "came out", "coming out"]
+  },
+  {
+    "text": "come across",
+    "cefr_level": "B1",
+    "frequency_rank": 1250,
+    "translation": "偶然遇見；給人印象",
+    "forms": ["comes across", "came across", "coming across"]
+  },
+  {
+    "text": "come down",
+    "cefr_level": "A2",
+    "frequency_rank": 810,
+    "translation": "下降；落下",
+    "forms": ["comes down", "came down", "coming down"]
+  },
+  {
+    "text": "come in",
+    "cefr_level": "A1",
+    "frequency_rank": 290,
+    "translation": "進來；到達",
+    "forms": ["comes in", "came in", "coming in"]
+  },
+  {
+    "text": "come from",
+    "cefr_level": "A1",
+    "frequency_rank": 280,
+    "translation": "來自；出身於",
+    "forms": ["comes from", "came from", "coming from"]
+  },
+  {
+    "text": "come on",
+    "cefr_level": "A1",
+    "frequency_rank": 310,
+    "translation": "加油；進展",
+    "forms": ["comes on", "came on", "coming on"]
+  },
+  {
+    "text": "come off",
+    "cefr_level": "B1",
+    "frequency_rank": 1380,
+    "translation": "脫落；成功",
+    "forms": ["comes off", "came off", "coming off"]
+  },
+  {
+    "text": "go on",
+    "cefr_level": "A1",
+    "frequency_rank": 300,
+    "translation": "繼續；發生",
+    "forms": ["goes on", "went on", "going on", "gone on"]
+  },
+  {
+    "text": "go back",
+    "cefr_level": "A1",
+    "frequency_rank": 340,
+    "translation": "回去；返回",
+    "forms": ["goes back", "went back", "going back", "gone back"]
+  },
+  {
+    "text": "go out",
+    "cefr_level": "A1",
+    "frequency_rank": 350,
+    "translation": "出去；熄滅",
+    "forms": ["goes out", "went out", "going out", "gone out"]
+  },
+  {
+    "text": "go up",
+    "cefr_level": "A2",
+    "frequency_rank": 600,
+    "translation": "上升；上漲",
+    "forms": ["goes up", "went up", "going up", "gone up"]
+  },
+  {
+    "text": "go down",
+    "cefr_level": "A2",
+    "frequency_rank": 630,
+    "translation": "下降；下跌",
+    "forms": ["goes down", "went down", "going down", "gone down"]
+  },
+  {
+    "text": "go through",
+    "cefr_level": "B1",
+    "frequency_rank": 1050,
+    "translation": "經歷；仔細檢查",
+    "forms": ["goes through", "went through", "going through", "gone through"]
+  },
+  {
+    "text": "go ahead",
+    "cefr_level": "A2",
+    "frequency_rank": 740,
+    "translation": "繼續；前進",
+    "forms": ["goes ahead", "went ahead", "going ahead", "gone ahead"]
+  },
+  {
+    "text": "go over",
+    "cefr_level": "B1",
+    "frequency_rank": 1300,
+    "translation": "複習；仔細查看",
+    "forms": ["goes over", "went over", "going over", "gone over"]
+  },
+  {
+    "text": "go off",
+    "cefr_level": "B1",
+    "frequency_rank": 1550,
+    "translation": "爆炸；響起；變質",
+    "forms": ["goes off", "went off", "going off", "gone off"]
+  },
+  {
+    "text": "go into",
+    "cefr_level": "B1",
+    "frequency_rank": 1160,
+    "translation": "進入；詳細討論",
+    "forms": ["goes into", "went into", "going into", "gone into"]
+  },
+  {
+    "text": "go with",
+    "cefr_level": "A2",
+    "frequency_rank": 850,
+    "translation": "搭配；隨同",
+    "forms": ["goes with", "went with", "going with", "gone with"]
+  },
+  {
+    "text": "get up",
+    "cefr_level": "A1",
+    "frequency_rank": 270,
+    "translation": "起床；起立",
+    "forms": ["gets up", "got up", "getting up"]
+  },
+  {
+    "text": "get out",
+    "cefr_level": "A1",
+    "frequency_rank": 330,
+    "translation": "出去；逃脫",
+    "forms": ["gets out", "got out", "getting out"]
+  },
+  {
+    "text": "get back",
+    "cefr_level": "A1",
+    "frequency_rank": 370,
+    "translation": "回來；取回",
+    "forms": ["gets back", "got back", "getting back"]
+  },
+  {
+    "text": "get in",
+    "cefr_level": "A1",
+    "frequency_rank": 320,
+    "translation": "進入；到達",
+    "forms": ["gets in", "got in", "getting in"]
+  },
+  {
+    "text": "get on",
+    "cefr_level": "A2",
+    "frequency_rank": 500,
+    "translation": "上車；進展；相處",
+    "forms": ["gets on", "got on", "getting on"]
+  },
+  {
+    "text": "get off",
+    "cefr_level": "A2",
+    "frequency_rank": 560,
+    "translation": "下車；離開",
+    "forms": ["gets off", "got off", "getting off"]
+  },
+  {
+    "text": "get over",
+    "cefr_level": "B1",
+    "frequency_rank": 1200,
+    "translation": "克服；恢復",
+    "forms": ["gets over", "got over", "getting over"]
+  },
+  {
+    "text": "get along",
+    "cefr_level": "A2",
+    "frequency_rank": 880,
+    "translation": "相處；進展",
+    "forms": ["gets along", "got along", "getting along"]
+  },
+  {
+    "text": "get away",
+    "cefr_level": "A2",
+    "frequency_rank": 790,
+    "translation": "逃跑；離開",
+    "forms": ["gets away", "got away", "getting away"]
+  },
+  {
+    "text": "get rid of",
+    "cefr_level": "B1",
+    "frequency_rank": 1500,
+    "translation": "擺脫；除去",
+    "forms": ["gets rid of", "got rid of", "getting rid of"]
+  },
+  {
+    "text": "get used to",
+    "cefr_level": "B1",
+    "frequency_rank": 1600,
+    "translation": "習慣於",
+    "forms": ["gets used to", "got used to", "getting used to"]
+  },
+  {
+    "text": "get in touch",
+    "cefr_level": "B1",
+    "frequency_rank": 1800,
+    "translation": "聯絡；取得聯繫",
+    "forms": ["gets in touch", "got in touch", "getting in touch"]
+  },
+  {
+    "text": "put off",
+    "cefr_level": "B1",
+    "frequency_rank": 1400,
+    "translation": "推遲；使反感",
+    "forms": ["puts off", "put off", "putting off"]
+  },
+  {
+    "text": "put on",
+    "cefr_level": "A1",
+    "frequency_rank": 350,
+    "translation": "穿上；戴上",
+    "forms": ["puts on", "putting on"]
+  },
+  {
+    "text": "put out",
+    "cefr_level": "B1",
+    "frequency_rank": 1250,
+    "translation": "撲滅；出版；伸出",
+    "forms": ["puts out", "putting out"]
+  },
+  {
+    "text": "put up",
+    "cefr_level": "B1",
+    "frequency_rank": 1350,
+    "translation": "張貼；建造；提供住宿",
+    "forms": ["puts up", "putting up"]
+  },
+  {
+    "text": "put away",
+    "cefr_level": "A2",
+    "frequency_rank": 950,
+    "translation": "收好；放好",
+    "forms": ["puts away", "putting away"]
+  },
+  {
+    "text": "put down",
+    "cefr_level": "A2",
+    "frequency_rank": 860,
+    "translation": "放下；貶低；記下",
+    "forms": ["puts down", "putting down"]
+  },
+  {
+    "text": "put forward",
+    "cefr_level": "B1",
+    "frequency_rank": 1650,
+    "translation": "提出（建議）",
+    "forms": ["puts forward", "putting forward"]
+  },
+  {
+    "text": "put in",
+    "cefr_level": "B1",
+    "frequency_rank": 1200,
+    "translation": "安裝；投入",
+    "forms": ["puts in", "putting in"]
+  },
+  {
+    "text": "put up with",
+    "cefr_level": "B1",
+    "frequency_rank": 1900,
+    "translation": "忍受；容忍",
+    "forms": ["puts up with", "putting up with"]
+  },
+  {
+    "text": "set up",
+    "cefr_level": "A2",
+    "frequency_rank": 680,
+    "translation": "設立；建立",
+    "forms": ["sets up", "set up", "setting up"]
+  },
+  {
+    "text": "set out",
+    "cefr_level": "B1",
+    "frequency_rank": 1450,
+    "translation": "出發；陳述",
+    "forms": ["sets out", "setting out"]
+  },
+  {
+    "text": "set off",
+    "cefr_level": "B1",
+    "frequency_rank": 1550,
+    "translation": "出發；引爆",
+    "forms": ["sets off", "setting off"]
+  },
+  {
+    "text": "set back",
+    "cefr_level": "B1",
+    "frequency_rank": 1750,
+    "translation": "阻礙；使倒退",
+    "forms": ["sets back", "setting back"]
+  },
+  {
+    "text": "set aside",
+    "cefr_level": "B1",
+    "frequency_rank": 1650,
+    "translation": "留出；擱置",
+    "forms": ["sets aside", "setting aside"]
+  },
+  {
+    "text": "find out",
+    "cefr_level": "A2",
+    "frequency_rank": 520,
+    "translation": "找出；查明",
+    "forms": ["finds out", "found out", "finding out"]
+  },
+  {
+    "text": "point out",
+    "cefr_level": "B1",
+    "frequency_rank": 1100,
+    "translation": "指出；說明",
+    "forms": ["points out", "pointed out", "pointing out"]
+  },
+  {
+    "text": "carry out",
+    "cefr_level": "B1",
+    "frequency_rank": 1050,
+    "translation": "執行；實施",
+    "forms": ["carries out", "carried out", "carrying out"]
+  },
+  {
+    "text": "work out",
+    "cefr_level": "A2",
+    "frequency_rank": 720,
+    "translation": "解決；鍛鍊；計算出",
+    "forms": ["works out", "worked out", "working out"]
+  },
+  {
+    "text": "work on",
+    "cefr_level": "A2",
+    "frequency_rank": 640,
+    "translation": "從事；努力做",
+    "forms": ["works on", "worked on", "working on"]
+  },
+  {
+    "text": "bring up",
+    "cefr_level": "B1",
+    "frequency_rank": 1200,
+    "translation": "提出；撫養",
+    "forms": ["brings up", "brought up", "bringing up"]
+  },
+  {
+    "text": "bring back",
+    "cefr_level": "A2",
+    "frequency_rank": 890,
+    "translation": "帶回；恢復",
+    "forms": ["brings back", "brought back", "bringing back"]
+  },
+  {
+    "text": "bring out",
+    "cefr_level": "B1",
+    "frequency_rank": 1400,
+    "translation": "推出；顯現",
+    "forms": ["brings out", "brought out", "bringing out"]
+  },
+  {
+    "text": "bring about",
+    "cefr_level": "B1",
+    "frequency_rank": 1550,
+    "translation": "導致；引起",
+    "forms": ["brings about", "brought about", "bringing about"]
+  },
+  {
+    "text": "run out",
+    "cefr_level": "A2",
+    "frequency_rank": 800,
+    "translation": "用完；耗盡",
+    "forms": ["runs out", "ran out", "running out"]
+  },
+  {
+    "text": "run out of",
+    "cefr_level": "A2",
+    "frequency_rank": 850,
+    "translation": "用完；耗盡（某物）",
+    "forms": ["runs out of", "ran out of", "running out of"]
+  },
+  {
+    "text": "run into",
+    "cefr_level": "B1",
+    "frequency_rank": 1300,
+    "translation": "偶然遇見；遭遇",
+    "forms": ["runs into", "ran into", "running into"]
+  },
+  {
+    "text": "run away",
+    "cefr_level": "A2",
+    "frequency_rank": 920,
+    "translation": "逃跑；逃走",
+    "forms": ["runs away", "ran away", "running away"]
+  },
+  {
+    "text": "break down",
+    "cefr_level": "B1",
+    "frequency_rank": 1100,
+    "translation": "分解；故障；崩潰",
+    "forms": ["breaks down", "broke down", "breaking down", "broken down"]
+  },
+  {
+    "text": "break out",
+    "cefr_level": "B1",
+    "frequency_rank": 1250,
+    "translation": "爆發；逃跑",
+    "forms": ["breaks out", "broke out", "breaking out", "broken out"]
+  },
+  {
+    "text": "break up",
+    "cefr_level": "B1",
+    "frequency_rank": 1350,
+    "translation": "分手；解散；打碎",
+    "forms": ["breaks up", "broke up", "breaking up", "broken up"]
+  },
+  {
+    "text": "break into",
+    "cefr_level": "B1",
+    "frequency_rank": 1500,
+    "translation": "闖入；突然開始",
+    "forms": ["breaks into", "broke into", "breaking into", "broken into"]
+  },
+  {
+    "text": "break through",
+    "cefr_level": "B1",
+    "frequency_rank": 1700,
+    "translation": "突破；衝破",
+    "forms": ["breaks through", "broke through", "breaking through", "broken through"]
+  },
+  {
+    "text": "pick up",
+    "cefr_level": "A2",
+    "frequency_rank": 580,
+    "translation": "撿起；接載；學會",
+    "forms": ["picks up", "picked up", "picking up"]
+  },
+  {
+    "text": "pick out",
+    "cefr_level": "B1",
+    "frequency_rank": 1450,
+    "translation": "挑選；辨認",
+    "forms": ["picks out", "picked out", "picking out"]
+  },
+  {
+    "text": "end up",
+    "cefr_level": "B1",
+    "frequency_rank": 1050,
+    "translation": "最終；結果是",
+    "forms": ["ends up", "ended up", "ending up"]
+  },
+  {
+    "text": "end up with",
+    "cefr_level": "B1",
+    "frequency_rank": 1400,
+    "translation": "最終擁有；以…收場",
+    "forms": ["ends up with", "ended up with", "ending up with"]
+  },
+  {
+    "text": "keep up",
+    "cefr_level": "B1",
+    "frequency_rank": 1150,
+    "translation": "保持；跟上",
+    "forms": ["keeps up", "kept up", "keeping up"]
+  },
+  {
+    "text": "keep up with",
+    "cefr_level": "B1",
+    "frequency_rank": 1500,
+    "translation": "跟上；了解最新情況",
+    "forms": ["keeps up with", "kept up with", "keeping up with"]
+  },
+  {
+    "text": "keep on",
+    "cefr_level": "B1",
+    "frequency_rank": 1300,
+    "translation": "繼續；不斷",
+    "forms": ["keeps on", "kept on", "keeping on"]
+  },
+  {
+    "text": "keep away",
+    "cefr_level": "B1",
+    "frequency_rank": 1700,
+    "translation": "遠離；不接近",
+    "forms": ["keeps away", "kept away", "keeping away"]
+  },
+  {
+    "text": "hold on",
+    "cefr_level": "A2",
+    "frequency_rank": 650,
+    "translation": "等一下；抓住",
+    "forms": ["holds on", "held on", "holding on"]
+  },
+  {
+    "text": "hold back",
+    "cefr_level": "B1",
+    "frequency_rank": 1300,
+    "translation": "阻止；抑制",
+    "forms": ["holds back", "held back", "holding back"]
+  },
+  {
+    "text": "hold out",
+    "cefr_level": "B1",
+    "frequency_rank": 1600,
+    "translation": "堅持；伸出",
+    "forms": ["holds out", "held out", "holding out"]
+  },
+  {
+    "text": "hold up",
+    "cefr_level": "B1",
+    "frequency_rank": 1450,
+    "translation": "撐起；延誤；搶劫",
+    "forms": ["holds up", "held up", "holding up"]
+  },
+  {
+    "text": "stand out",
+    "cefr_level": "B1",
+    "frequency_rank": 1550,
+    "translation": "突出；顯眼",
+    "forms": ["stands out", "stood out", "standing out"]
+  },
+  {
+    "text": "stand up",
+    "cefr_level": "A1",
+    "frequency_rank": 400,
+    "translation": "站起來",
+    "forms": ["stands up", "stood up", "standing up"]
+  },
+  {
+    "text": "stand up for",
+    "cefr_level": "B1",
+    "frequency_rank": 1900,
+    "translation": "支持；為…辯護",
+    "forms": ["stands up for", "stood up for", "standing up for"]
+  },
+  {
+    "text": "stand by",
+    "cefr_level": "B1",
+    "frequency_rank": 1650,
+    "translation": "支持；待命；袖手旁觀",
+    "forms": ["stands by", "stood by", "standing by"]
+  },
+  {
+    "text": "carry on",
+    "cefr_level": "A2",
+    "frequency_rank": 750,
+    "translation": "繼續；堅持",
+    "forms": ["carries on", "carried on", "carrying on"]
+  },
+  {
+    "text": "fall back on",
+    "cefr_level": "C1",
+    "frequency_rank": 4500,
+    "translation": "依賴；求助於",
+    "forms": ["falls back on", "fell back on", "falling back on", "fallen back on"]
+  },
+  {
+    "text": "fall behind",
+    "cefr_level": "B1",
+    "frequency_rank": 1800,
+    "translation": "落後；拖欠",
+    "forms": ["falls behind", "fell behind", "falling behind", "fallen behind"]
+  },
+  {
+    "text": "fall down",
+    "cefr_level": "A2",
+    "frequency_rank": 850,
+    "translation": "跌倒；倒塌",
+    "forms": ["falls down", "fell down", "falling down", "fallen down"]
+  },
+  {
+    "text": "fall out",
+    "cefr_level": "B1",
+    "frequency_rank": 1500,
+    "translation": "爭吵；脫落",
+    "forms": ["falls out", "fell out", "falling out", "fallen out"]
+  },
+  {
+    "text": "fall through",
+    "cefr_level": "B2",
+    "frequency_rank": 3200,
+    "translation": "失敗；落空",
+    "forms": ["falls through", "fell through", "falling through", "fallen through"]
+  },
+  {
+    "text": "figure out",
+    "cefr_level": "B1",
+    "frequency_rank": 1100,
+    "translation": "弄清楚；想出",
+    "forms": ["figures out", "figured out", "figuring out"]
+  },
+  {
+    "text": "fill in",
+    "cefr_level": "B1",
+    "frequency_rank": 1350,
+    "translation": "填寫；代替",
+    "forms": ["fills in", "filled in", "filling in"]
+  },
+  {
+    "text": "fill out",
+    "cefr_level": "B1",
+    "frequency_rank": 1400,
+    "translation": "填寫（表格）",
+    "forms": ["fills out", "filled out", "filling out"]
+  },
+  {
+    "text": "fill up",
+    "cefr_level": "A2",
+    "frequency_rank": 960,
+    "translation": "裝滿；填滿",
+    "forms": ["fills up", "filled up", "filling up"]
+  },
+  {
+    "text": "deal with",
+    "cefr_level": "A2",
+    "frequency_rank": 580,
+    "translation": "處理；應對",
+    "forms": ["deals with", "dealt with", "dealing with"]
+  },
+  {
+    "text": "depend on",
+    "cefr_level": "A2",
+    "frequency_rank": 620,
+    "translation": "依賴；取決於",
+    "forms": ["depends on", "depended on", "depending on"]
+  },
+  {
+    "text": "focus on",
+    "cefr_level": "A2",
+    "frequency_rank": 570,
+    "translation": "專注於；集中在",
+    "forms": ["focuses on", "focused on", "focusing on"]
+  },
+  {
+    "text": "rely on",
+    "cefr_level": "B1",
+    "frequency_rank": 1150,
+    "translation": "依靠；仰賴",
+    "forms": ["relies on", "relied on", "relying on"]
+  },
+  {
+    "text": "build up",
+    "cefr_level": "B1",
+    "frequency_rank": 1100,
+    "translation": "積累；建立；增強",
+    "forms": ["builds up", "built up", "building up"]
+  },
+  {
+    "text": "calm down",
+    "cefr_level": "A2",
+    "frequency_rank": 890,
+    "translation": "冷靜；平靜下來",
+    "forms": ["calms down", "calmed down", "calming down"]
+  },
+  {
+    "text": "catch up",
+    "cefr_level": "B1",
+    "frequency_rank": 1250,
+    "translation": "追上；補上",
+    "forms": ["catches up", "caught up", "catching up"]
+  },
+  {
+    "text": "catch up with",
+    "cefr_level": "B1",
+    "frequency_rank": 1600,
+    "translation": "追上；趕上",
+    "forms": ["catches up with", "caught up with", "catching up with"]
+  },
+  {
+    "text": "check in",
+    "cefr_level": "A2",
+    "frequency_rank": 780,
+    "translation": "辦理入住；報到",
+    "forms": ["checks in", "checked in", "checking in"]
+  },
+  {
+    "text": "check out",
+    "cefr_level": "A2",
+    "frequency_rank": 720,
+    "translation": "退房；查看；借出",
+    "forms": ["checks out", "checked out", "checking out"]
+  },
+  {
+    "text": "count on",
+    "cefr_level": "B1",
+    "frequency_rank": 1450,
+    "translation": "依靠；指望",
+    "forms": ["counts on", "counted on", "counting on"]
+  },
+  {
+    "text": "cut off",
+    "cefr_level": "B1",
+    "frequency_rank": 1350,
+    "translation": "切斷；中斷",
+    "forms": ["cuts off", "cut off", "cutting off"]
+  },
+  {
+    "text": "cut down",
+    "cefr_level": "B1",
+    "frequency_rank": 1550,
+    "translation": "砍倒；削減",
+    "forms": ["cuts down", "cut down", "cutting down"]
+  },
+  {
+    "text": "cut out",
+    "cefr_level": "B1",
+    "frequency_rank": 1600,
+    "translation": "剪出；停止",
+    "forms": ["cuts out", "cut out", "cutting out"]
+  },
+  {
+    "text": "draw up",
+    "cefr_level": "B2",
+    "frequency_rank": 2800,
+    "translation": "起草；擬定",
+    "forms": ["draws up", "drew up", "drawing up", "drawn up"]
+  },
+  {
+    "text": "drop off",
+    "cefr_level": "B1",
+    "frequency_rank": 1700,
+    "translation": "下降；送到；小睡",
+    "forms": ["drops off", "dropped off", "dropping off"]
+  },
+  {
+    "text": "drop out",
+    "cefr_level": "B1",
+    "frequency_rank": 1850,
+    "translation": "退出；輟學",
+    "forms": ["drops out", "dropped out", "dropping out"]
+  },
+  {
+    "text": "eat out",
+    "cefr_level": "A2",
+    "frequency_rank": 1000,
+    "translation": "外出用餐",
+    "forms": ["eats out", "ate out", "eating out", "eaten out"]
+  },
+  {
+    "text": "face up to",
+    "cefr_level": "B2",
+    "frequency_rank": 3500,
+    "translation": "正視；勇敢面對",
+    "forms": ["faces up to", "faced up to", "facing up to"]
+  },
+  {
+    "text": "hand in",
+    "cefr_level": "A2",
+    "frequency_rank": 900,
+    "translation": "交上；遞交",
+    "forms": ["hands in", "handed in", "handing in"]
+  },
+  {
+    "text": "hand out",
+    "cefr_level": "A2",
+    "frequency_rank": 850,
+    "translation": "分發；散發",
+    "forms": ["hands out", "handed out", "handing out"]
+  },
+  {
+    "text": "hang on",
+    "cefr_level": "B1",
+    "frequency_rank": 1200,
+    "translation": "等待；堅持",
+    "forms": ["hangs on", "hung on", "hanging on"]
+  },
+  {
+    "text": "hang out",
+    "cefr_level": "A2",
+    "frequency_rank": 930,
+    "translation": "閒逛；消磨時間",
+    "forms": ["hangs out", "hung out", "hanging out"]
+  },
+  {
+    "text": "hang up",
+    "cefr_level": "A2",
+    "frequency_rank": 870,
+    "translation": "掛斷電話；掛起",
+    "forms": ["hangs up", "hung up", "hanging up"]
+  },
+  {
+    "text": "leave out",
+    "cefr_level": "B1",
+    "frequency_rank": 1500,
+    "translation": "省略；遺漏",
+    "forms": ["leaves out", "left out", "leaving out"]
+  },
+  {
+    "text": "let down",
+    "cefr_level": "B1",
+    "frequency_rank": 1600,
+    "translation": "使失望；放下",
+    "forms": ["lets down", "let down", "letting down"]
+  },
+  {
+    "text": "let in",
+    "cefr_level": "A2",
+    "frequency_rank": 970,
+    "translation": "讓進來；允許進入",
+    "forms": ["lets in", "let in", "letting in"]
+  },
+  {
+    "text": "let out",
+    "cefr_level": "B1",
+    "frequency_rank": 1400,
+    "translation": "放出；發出（聲音）",
+    "forms": ["lets out", "let out", "letting out"]
+  },
+  {
+    "text": "lay off",
+    "cefr_level": "B2",
+    "frequency_rank": 2600,
+    "translation": "解雇；停止",
+    "forms": ["lays off", "laid off", "laying off"]
+  },
+  {
+    "text": "move on",
+    "cefr_level": "B1",
+    "frequency_rank": 1150,
+    "translation": "繼續前進；向前看",
+    "forms": ["moves on", "moved on", "moving on"]
+  },
+  {
+    "text": "move out",
+    "cefr_level": "A2",
+    "frequency_rank": 800,
+    "translation": "搬出；撤出",
+    "forms": ["moves out", "moved out", "moving out"]
+  },
+  {
+    "text": "pass on",
+    "cefr_level": "B1",
+    "frequency_rank": 1400,
+    "translation": "傳遞；傳授",
+    "forms": ["passes on", "passed on", "passing on"]
+  },
+  {
+    "text": "pass out",
+    "cefr_level": "B1",
+    "frequency_rank": 1600,
+    "translation": "暈倒；分發",
+    "forms": ["passes out", "passed out", "passing out"]
+  },
+  {
+    "text": "pay off",
+    "cefr_level": "B1",
+    "frequency_rank": 1300,
+    "translation": "還清；有回報",
+    "forms": ["pays off", "paid off", "paying off"]
+  },
+  {
+    "text": "pay back",
+    "cefr_level": "B1",
+    "frequency_rank": 1500,
+    "translation": "還錢；報復",
+    "forms": ["pays back", "paid back", "paying back"]
+  },
+  {
+    "text": "pull off",
+    "cefr_level": "B2",
+    "frequency_rank": 2500,
+    "translation": "成功做到；脫下",
+    "forms": ["pulls off", "pulled off", "pulling off"]
+  },
+  {
+    "text": "pull out",
+    "cefr_level": "B1",
+    "frequency_rank": 1450,
+    "translation": "拔出；退出",
+    "forms": ["pulls out", "pulled out", "pulling out"]
+  },
+  {
+    "text": "pull together",
+    "cefr_level": "B2",
+    "frequency_rank": 2800,
+    "translation": "齊心協力；振作",
+    "forms": ["pulls together", "pulled together", "pulling together"]
+  },
+  {
+    "text": "push back",
+    "cefr_level": "B1",
+    "frequency_rank": 1750,
+    "translation": "推回；反對",
+    "forms": ["pushes back", "pushed back", "pushing back"]
+  },
+  {
+    "text": "rule out",
+    "cefr_level": "B1",
+    "frequency_rank": 1600,
+    "translation": "排除；不考慮",
+    "forms": ["rules out", "ruled out", "ruling out"]
+  },
+  {
+    "text": "see through",
+    "cefr_level": "B2",
+    "frequency_rank": 2300,
+    "translation": "看穿；堅持到底",
+    "forms": ["sees through", "saw through", "seeing through", "seen through"]
+  },
+  {
+    "text": "show off",
+    "cefr_level": "A2",
+    "frequency_rank": 950,
+    "translation": "炫耀；展示",
+    "forms": ["shows off", "showed off", "showing off", "shown off"]
+  },
+  {
+    "text": "show up",
+    "cefr_level": "B1",
+    "frequency_rank": 1200,
+    "translation": "出現；露面",
+    "forms": ["shows up", "showed up", "showing up", "shown up"]
+  },
+  {
+    "text": "shut down",
+    "cefr_level": "B1",
+    "frequency_rank": 1550,
+    "translation": "關閉；停工",
+    "forms": ["shuts down", "shut down", "shutting down"]
+  },
+  {
+    "text": "sign up",
+    "cefr_level": "A2",
+    "frequency_rank": 780,
+    "translation": "報名；簽約",
+    "forms": ["signs up", "signed up", "signing up"]
+  },
+  {
+    "text": "slow down",
+    "cefr_level": "A2",
+    "frequency_rank": 830,
+    "translation": "減速；放慢",
+    "forms": ["slows down", "slowed down", "slowing down"]
+  },
+  {
+    "text": "sort out",
+    "cefr_level": "B1",
+    "frequency_rank": 1350,
+    "translation": "解決；整理；挑選",
+    "forms": ["sorts out", "sorted out", "sorting out"]
+  },
+  {
+    "text": "speak up",
+    "cefr_level": "B1",
+    "frequency_rank": 1450,
+    "translation": "大聲說；勇敢表達",
+    "forms": ["speaks up", "spoke up", "speaking up", "spoken up"]
+  },
+  {
+    "text": "start off",
+    "cefr_level": "A2",
+    "frequency_rank": 880,
+    "translation": "開始；出發",
+    "forms": ["starts off", "started off", "starting off"]
+  },
+  {
+    "text": "stay up",
+    "cefr_level": "A2",
+    "frequency_rank": 920,
+    "translation": "熬夜；不睡覺",
+    "forms": ["stays up", "stayed up", "staying up"]
+  },
+  {
+    "text": "step up",
+    "cefr_level": "B1",
+    "frequency_rank": 1500,
+    "translation": "加強；挺身而出",
+    "forms": ["steps up", "stepped up", "stepping up"]
+  },
+  {
+    "text": "sum up",
+    "cefr_level": "B1",
+    "frequency_rank": 1650,
+    "translation": "總結；歸納",
+    "forms": ["sums up", "summed up", "summing up"]
+  },
+  {
+    "text": "think over",
+    "cefr_level": "B1",
+    "frequency_rank": 1700,
+    "translation": "仔細考慮",
+    "forms": ["thinks over", "thought over", "thinking over"]
+  },
+  {
+    "text": "think through",
+    "cefr_level": "B2",
+    "frequency_rank": 2400,
+    "translation": "徹底想清楚",
+    "forms": ["thinks through", "thought through", "thinking through"]
+  },
+  {
+    "text": "throw away",
+    "cefr_level": "A2",
+    "frequency_rank": 880,
+    "translation": "扔掉；浪費",
+    "forms": ["throws away", "threw away", "throwing away", "thrown away"]
+  },
+  {
+    "text": "try out",
+    "cefr_level": "B1",
+    "frequency_rank": 1400,
+    "translation": "試用；試驗",
+    "forms": ["tries out", "tried out", "trying out"]
+  },
+  {
+    "text": "use up",
+    "cefr_level": "B1",
+    "frequency_rank": 1350,
+    "translation": "用完；耗盡",
+    "forms": ["uses up", "used up", "using up"]
+  },
+  {
+    "text": "wake up",
+    "cefr_level": "A1",
+    "frequency_rank": 260,
+    "translation": "醒來；叫醒",
+    "forms": ["wakes up", "woke up", "waking up", "woken up"]
+  },
+  {
+    "text": "wind up",
+    "cefr_level": "B2",
+    "frequency_rank": 2200,
+    "translation": "最終；結束；上緊",
+    "forms": ["winds up", "wound up", "winding up"]
+  },
+  {
+    "text": "wipe out",
+    "cefr_level": "B2",
+    "frequency_rank": 2500,
+    "translation": "消滅；徹底疲憊",
+    "forms": ["wipes out", "wiped out", "wiping out"]
+  },
+  {
+    "text": "write down",
+    "cefr_level": "A2",
+    "frequency_rank": 750,
+    "translation": "寫下；記下",
+    "forms": ["writes down", "wrote down", "writing down", "written down"]
+  },
+  {
+    "text": "zoom in",
+    "cefr_level": "B1",
+    "frequency_rank": 1800,
+    "translation": "放大（鏡頭）；聚焦",
+    "forms": ["zooms in", "zoomed in", "zooming in"]
+  },
+  {
+    "text": "zoom out",
+    "cefr_level": "B1",
+    "frequency_rank": 1850,
+    "translation": "縮小（鏡頭）",
+    "forms": ["zooms out", "zoomed out", "zooming out"]
+  },
+  {
+    "text": "account for",
+    "cefr_level": "B2",
+    "frequency_rank": 2200,
+    "translation": "說明；佔（比例）",
+    "forms": ["accounts for", "accounted for", "accounting for"]
+  },
+  {
+    "text": "add up",
+    "cefr_level": "B1",
+    "frequency_rank": 1300,
+    "translation": "合計；說得通",
+    "forms": ["adds up", "added up", "adding up"]
+  },
+  {
+    "text": "add up to",
+    "cefr_level": "B1",
+    "frequency_rank": 1750,
+    "translation": "總計達；意味著",
+    "forms": ["adds up to", "added up to", "adding up to"]
+  },
+  {
+    "text": "ask for",
+    "cefr_level": "A1",
+    "frequency_rank": 300,
+    "translation": "要求；請求",
+    "forms": ["asks for", "asked for", "asking for"]
+  },
+  {
+    "text": "ask out",
+    "cefr_level": "A2",
+    "frequency_rank": 1000,
+    "translation": "邀約（出去）",
+    "forms": ["asks out", "asked out", "asking out"]
+  },
+  {
+    "text": "back up",
+    "cefr_level": "B1",
+    "frequency_rank": 1200,
+    "translation": "備份；支持；後退",
+    "forms": ["backs up", "backed up", "backing up"]
+  },
+  {
+    "text": "blow up",
+    "cefr_level": "B1",
+    "frequency_rank": 1550,
+    "translation": "爆炸；大發雷霆",
+    "forms": ["blows up", "blew up", "blowing up", "blown up"]
+  },
+  {
+    "text": "boil down to",
+    "cefr_level": "C1",
+    "frequency_rank": 4000,
+    "translation": "歸根結柢是",
+    "forms": ["boils down to", "boiled down to", "boiling down to"]
+  },
+  {
+    "text": "burn out",
+    "cefr_level": "B2",
+    "frequency_rank": 2600,
+    "translation": "精疲力竭；燃盡",
+    "forms": ["burns out", "burnt out", "burned out", "burning out"]
+  },
+  {
+    "text": "call off",
+    "cefr_level": "B1",
+    "frequency_rank": 1600,
+    "translation": "取消",
+    "forms": ["calls off", "called off", "calling off"]
+  },
+  {
+    "text": "call out",
+    "cefr_level": "B1",
+    "frequency_rank": 1400,
+    "translation": "大聲呼喊；指責",
+    "forms": ["calls out", "called out", "calling out"]
+  },
+  {
+    "text": "call back",
+    "cefr_level": "A2",
+    "frequency_rank": 850,
+    "translation": "回電；叫回",
+    "forms": ["calls back", "called back", "calling back"]
+  },
+  {
+    "text": "care about",
+    "cefr_level": "A2",
+    "frequency_rank": 580,
+    "translation": "在乎；關心",
+    "forms": ["cares about", "cared about", "caring about"]
+  },
+  {
+    "text": "care for",
+    "cefr_level": "A2",
+    "frequency_rank": 650,
+    "translation": "照顧；喜歡",
+    "forms": ["cares for", "cared for", "caring for"]
+  },
+  {
+    "text": "close down",
+    "cefr_level": "B1",
+    "frequency_rank": 1650,
+    "translation": "關閉；停業",
+    "forms": ["closes down", "closed down", "closing down"]
+  },
+  {
+    "text": "cut back",
+    "cefr_level": "B1",
+    "frequency_rank": 1700,
+    "translation": "削減；縮減",
+    "forms": ["cuts back", "cut back", "cutting back"]
+  },
+  {
+    "text": "cool down",
+    "cefr_level": "A2",
+    "frequency_rank": 900,
+    "translation": "冷卻；平靜",
+    "forms": ["cools down", "cooled down", "cooling down"]
+  },
+  {
+    "text": "grow up",
+    "cefr_level": "A1",
+    "frequency_rank": 380,
+    "translation": "長大；成長",
+    "forms": ["grows up", "grew up", "growing up", "grown up"]
+  },
+  {
+    "text": "hurry up",
+    "cefr_level": "A1",
+    "frequency_rank": 420,
+    "translation": "趕快；快點",
+    "forms": ["hurries up", "hurried up", "hurrying up"]
+  },
+  {
+    "text": "log in",
+    "cefr_level": "A2",
+    "frequency_rank": 750,
+    "translation": "登入；登錄",
+    "forms": ["logs in", "logged in", "logging in"]
+  },
+  {
+    "text": "log out",
+    "cefr_level": "A2",
+    "frequency_rank": 780,
+    "translation": "登出；退出",
+    "forms": ["logs out", "logged out", "logging out"]
+  },
+  {
+    "text": "open up",
+    "cefr_level": "A2",
+    "frequency_rank": 680,
+    "translation": "打開；敞開心扉",
+    "forms": ["opens up", "opened up", "opening up"]
+  },
+  {
+    "text": "save up",
+    "cefr_level": "A2",
+    "frequency_rank": 860,
+    "translation": "儲蓄；攢錢",
+    "forms": ["saves up", "saved up", "saving up"]
+  },
+  {
+    "text": "settle down",
+    "cefr_level": "B1",
+    "frequency_rank": 1350,
+    "translation": "定居；安定下來",
+    "forms": ["settles down", "settled down", "settling down"]
+  },
+  {
+    "text": "speed up",
+    "cefr_level": "B1",
+    "frequency_rank": 1250,
+    "translation": "加速；加快",
+    "forms": ["speeds up", "sped up", "speeded up", "speeding up"]
+  },
+  {
+    "text": "split up",
+    "cefr_level": "B1",
+    "frequency_rank": 1700,
+    "translation": "分手；分開",
+    "forms": ["splits up", "split up", "splitting up"]
+  },
+  {
+    "text": "start over",
+    "cefr_level": "B1",
+    "frequency_rank": 1550,
+    "translation": "重新開始",
+    "forms": ["starts over", "started over", "starting over"]
+  },
+  {
+    "text": "stick to",
+    "cefr_level": "B1",
+    "frequency_rank": 1200,
+    "translation": "堅持；遵守",
+    "forms": ["sticks to", "stuck to", "sticking to"]
+  },
+  {
+    "text": "stick with",
+    "cefr_level": "B1",
+    "frequency_rank": 1400,
+    "translation": "堅持；繼續使用",
+    "forms": ["sticks with", "stuck with", "sticking with"]
+  },
+  {
+    "text": "stress out",
+    "cefr_level": "B1",
+    "frequency_rank": 1600,
+    "translation": "使緊張；倍感壓力",
+    "forms": ["stresses out", "stressed out", "stressing out"]
+  },
+  {
+    "text": "team up",
+    "cefr_level": "B1",
+    "frequency_rank": 1700,
+    "translation": "合作；組隊",
+    "forms": ["teams up", "teamed up", "teaming up"]
+  },
+  {
+    "text": "think about",
+    "cefr_level": "A1",
+    "frequency_rank": 250,
+    "translation": "考慮；思考",
+    "forms": ["thinks about", "thought about", "thinking about"]
+  },
+  {
+    "text": "throw out",
+    "cefr_level": "B1",
+    "frequency_rank": 1450,
+    "translation": "扔掉；驅逐",
+    "forms": ["throws out", "threw out", "throwing out", "thrown out"]
+  },
+  {
+    "text": "tidy up",
+    "cefr_level": "A2",
+    "frequency_rank": 1000,
+    "translation": "整理；收拾",
+    "forms": ["tidies up", "tidied up", "tidying up"]
+  },
+  {
+    "text": "watch out",
+    "cefr_level": "A2",
+    "frequency_rank": 700,
+    "translation": "小心；注意",
+    "forms": ["watches out", "watched out", "watching out"]
+  },
+  {
+    "text": "watch out for",
+    "cefr_level": "B1",
+    "frequency_rank": 1500,
+    "translation": "提防；小心留意",
+    "forms": ["watches out for", "watched out for", "watching out for"]
+  },
+  {
+    "text": "wear out",
+    "cefr_level": "B1",
+    "frequency_rank": 1550,
+    "translation": "磨損；使精疲力竭",
+    "forms": ["wears out", "wore out", "wearing out", "worn out"]
+  }
+]

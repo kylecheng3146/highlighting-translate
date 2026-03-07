@@ -18,9 +18,55 @@ chrome.runtime.onInstalled.addListener(async () => {
         contexts: ["selection"]
     });
 
+    // Load phrasal verbs DB into storage
+    await loadPhrasalVerbsDB();
+
     // Dynamic Injection: Inject content scripts into existing tabs
     await injectContentScripts();
 });
+
+// Service Workers are ephemeral — reload phrasal verbs DB on every startup
+chrome.runtime.onStartup.addListener(async () => {
+    await loadPhrasalVerbsDB();
+});
+
+/**
+ * Fetches phrasal_verbs_db.json, expands all forms into a flat lookup array,
+ * and stores it in chrome.storage.local as 'phrasalVerbsExpanded'.
+ * Each entry in the expanded array has: { text, translation, cefr_level, frequency_rank }
+ * where `text` is the inflected form (e.g. "giving up") and all other fields
+ * come from the base entry so HighlightService can resolve them directly.
+ */
+async function loadPhrasalVerbsDB() {
+    try {
+        const url = chrome.runtime.getURL('assets/phrasal_verbs_db.json');
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Failed to fetch phrasal_verbs_db.json: ${response.status}`);
+        const db = await response.json();
+
+        const expanded = [];
+        for (const entry of db) {
+            const base = {
+                translation: entry.translation,
+                cefr_level: entry.cefr_level,
+                frequency_rank: entry.frequency_rank
+            };
+            // Always include the canonical base form (e.g. "give up")
+            expanded.push({ text: entry.text, ...base });
+            // Expand all inflected forms (e.g. "gives up", "gave up", ...)
+            if (Array.isArray(entry.forms)) {
+                for (const form of entry.forms) {
+                    expanded.push({ text: form, ...base });
+                }
+            }
+        }
+
+        await chrome.storage.local.set({ phrasalVerbsExpanded: expanded });
+        console.log(`Phrasal verbs DB loaded: ${expanded.length} expanded entries from ${db.length} base entries.`);
+    } catch (error) {
+        console.error('Failed to load phrasal verbs DB:', error);
+    }
+}
 
 /**
  * Injects content scripts into all tabs that match the manifest patterns.

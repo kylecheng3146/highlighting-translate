@@ -9,6 +9,7 @@ async function loadSettings() {
             targetLang: 'zh-TW',
             delay: 500,
             enableHighlighting: true,
+            enablePhrasalVerbs: true,
             domainBlacklist: []
         });
 
@@ -33,6 +34,9 @@ async function loadSettings() {
 
         const enableHighlightCheck = document.getElementById('enableHighlightCheck');
         if (enableHighlightCheck) enableHighlightCheck.checked = settings.enableHighlighting;
+
+        const enablePhrasalVerbsCheck = document.getElementById('enablePhrasalVerbsCheck');
+        if (enablePhrasalVerbsCheck) enablePhrasalVerbsCheck.checked = settings.enablePhrasalVerbs;
 
         // Blacklist button logic
         updateBlacklistButton(settings.domainBlacklist);
@@ -111,7 +115,8 @@ async function saveSettings() {
         sourceLang: document.getElementById('sourceLang').value,
         targetLang: document.getElementById('targetLang').value,
         delay: parseInt(document.getElementById('delay').value) || 500,
-        enableHighlighting: document.getElementById('enableHighlightCheck').checked
+        enableHighlighting: document.getElementById('enableHighlightCheck').checked,
+        enablePhrasalVerbs: document.getElementById('enablePhrasalVerbsCheck').checked
     };
 
     try {
@@ -225,6 +230,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const enableHighlightCheck = document.getElementById('enableHighlightCheck');
     if (enableHighlightCheck) enableHighlightCheck.addEventListener('change', saveSettings);
+
+    const enablePhrasalVerbsCheck = document.getElementById('enablePhrasalVerbsCheck');
+    if (enablePhrasalVerbsCheck) enablePhrasalVerbsCheck.addEventListener('change', saveSettings);
 
     const blacklistBtn = document.getElementById('blacklistBtn');
     if (blacklistBtn) blacklistBtn.addEventListener('click', toggleBlacklist);
