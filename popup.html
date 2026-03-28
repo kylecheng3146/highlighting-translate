@@ -259,11 +259,11 @@
   <div class="container">
     <div class="setting-card mission-card" id="missionCard">
       <div class="mission-header">
-        <div class="mission-title">本週任務</div>
+        <div class="mission-title" data-i18n="missionTitle">本週任務</div>
         <div class="mission-week" id="missionWeek">--</div>
       </div>
       <div class="mission-progress-row">
-        <span>進度</span>
+        <span data-i18n="missionProgressLabel">進度</span>
         <span id="missionProgressText">0%</span>
       </div>
       <div class="mission-bar-bg">
@@ -271,8 +271,8 @@
       </div>
       <ul class="mission-list" id="missionTasks"></ul>
       <div class="mission-actions">
-        <button id="missionReviewBtn" class="btn btn-primary">前往複習</button>
-        <button id="missionDetailBtn" class="btn btn-secondary">查看詳情</button>
+        <button id="missionReviewBtn" class="btn btn-primary" data-i18n="missionReviewBtn">前往複習</button>
+        <button id="missionDetailBtn" class="btn btn-secondary" data-i18n="missionDetailBtn">查看詳情</button>
       </div>
     </div>
 
@@ -379,13 +379,13 @@
 
     <div class="setting-card">
       <div class="setting-header">
-        <label class="setting-label" for="enableMissionReminderCheck">每日任務提醒</label>
+        <label class="setting-label" for="enableMissionReminderCheck" data-i18n="missionReminderLabel">每日任務提醒</label>
         <label class="switch">
           <input type="checkbox" id="enableMissionReminderCheck">
           <span class="slider"></span>
         </label>
       </div>
-      <div class="setting-description">可選權限，開啟後每天提醒一次本週任務進度</div>
+      <div class="setting-description" data-i18n="missionReminderDesc">可選權限，開啟後每天提醒一次本週任務進度</div>
     </div>
   </div>
   

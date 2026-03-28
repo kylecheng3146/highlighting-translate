@@ -213,8 +213,8 @@ async function updateDashboard() {
       const summaryText = document.getElementById("mission-summary-text");
       if (summaryText) {
         summaryText.innerText = mission?.completed
-          ? `本週任務已完成 (${mission.weekId})`
-          : `本週任務進度 (${mission?.weekId || '--'})`;
+          ? `${i18nService.getText('missionSummaryCompleted')} (${mission.weekId})`
+          : `${i18nService.getText('missionSummaryProgress')} (${mission?.weekId || '--'})`;
       }
 
       document.getElementById("bar-coverage-2k").style.width =

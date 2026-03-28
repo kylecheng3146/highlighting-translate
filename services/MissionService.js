@@ -91,7 +91,9 @@ class MissionService {
         const weakBase = starterMode ? 3 : 6;
         const discoverBase = starterMode ? 2 : 4;
 
-        const dueTarget = this._roundTarget(Math.min(Math.max(3, stats.dueCount || 0), dueBase) * factor);
+        const dueTarget = stats.dueCount > 0
+            ? this._roundTarget(Math.min(Math.max(3, stats.dueCount || 0), dueBase) * factor)
+            : 0;
         const weakTarget = this._roundTarget(Math.min(Math.max(2, Math.ceil((stats.weakCount || 0) * 0.35)), weakBase) * factor);
         const discoverTarget = this._roundTarget(discoverBase * factor);
 
@@ -170,6 +172,24 @@ class MissionService {
         };
 
         return this._withSummary(mission);
+    }
+
+    reconcileWithCurrentData(mission, vocabList, now = Date.now()) {
+        if (!mission || !Array.isArray(mission.tasks)) return mission;
+
+        const stats = this._buildStats(vocabList, now);
+        const updated = {
+            ...mission,
+            focusWords: this._getFocusWords(stats),
+            tasks: mission.tasks.map((task) => ({ ...task }))
+        };
+
+        const dueTask = updated.tasks.find((task) => task.id === this.TASK_IDS.REVIEW_DUE_WORDS);
+        if (dueTask && stats.dueCount === 0) {
+            dueTask.target = Number(dueTask.progress || 0);
+        }
+
+        return this._withSummary(updated);
     }
 
     applyEvent(mission, event = {}) {

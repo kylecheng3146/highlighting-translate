@@ -38,7 +38,22 @@ const LOCALES = {
                 "whitelistBtn": "Enable for this site",
                 "reviewBtn": "Start Review",
                 "themeColorLabel": "Theme Color",
-                "themeColorDesc": "Choose primary interface color"
+                "themeColorDesc": "Choose primary interface color",
+                "missionTitle": "Weekly Mission",
+                "missionProgressLabel": "Progress",
+                "missionReviewBtn": "Go Review",
+                "missionDetailBtn": "View Details",
+                "missionNoData": "No Mission",
+                "missionNoTask": "No mission available",
+                "missionError": "Mission Error",
+                "missionReminderLabel": "Daily Mission Reminder",
+                "missionReminderDesc": "Optional permission. Remind once a day about weekly mission progress",
+                "missionTaskReviewDue": "Review due words",
+                "missionTaskMasterWeak": "Strengthen weak words",
+                "missionTaskDiscover": "Add new words",
+                "statWeeklyMission": "Weekly Mission",
+                "missionSummaryProgress": "Weekly mission progress",
+                "missionSummaryCompleted": "Weekly mission completed"
             },
     },
     "zh-CN": {
@@ -75,7 +90,22 @@ const LOCALES = {
                 "whitelistBtn": "在此网站启用",
                 "reviewBtn": "开始复习",
                 "themeColorLabel": "主题配色",
-                "themeColorDesc": "选择界面主色调"
+                "themeColorDesc": "选择界面主色调",
+                "missionTitle": "每周任务",
+                "missionProgressLabel": "进度",
+                "missionReviewBtn": "前往复习",
+                "missionDetailBtn": "查看详情",
+                "missionNoData": "暂无任务",
+                "missionNoTask": "暂无可用任务",
+                "missionError": "任务加载失败",
+                "missionReminderLabel": "每日任务提醒",
+                "missionReminderDesc": "可选权限，开启后每天提醒一次每周任务进度",
+                "missionTaskReviewDue": "复习到期词汇",
+                "missionTaskMasterWeak": "强化薄弱词汇",
+                "missionTaskDiscover": "新增新词",
+                "statWeeklyMission": "每周任务",
+                "missionSummaryProgress": "每周任务进度",
+                "missionSummaryCompleted": "每周任务已完成"
             },
     },
     "zh-TW": {
@@ -112,7 +142,22 @@ const LOCALES = {
                 "whitelistBtn": "在此網站啟用",
                 "reviewBtn": "開始複習",
                 "themeColorLabel": "主題配色",
-                "themeColorDesc": "選擇介面主色調"
+                "themeColorDesc": "選擇介面主色調",
+                "missionTitle": "本週任務",
+                "missionProgressLabel": "進度",
+                "missionReviewBtn": "前往複習",
+                "missionDetailBtn": "查看詳情",
+                "missionNoData": "尚無任務",
+                "missionNoTask": "尚無可用任務",
+                "missionError": "任務載入失敗",
+                "missionReminderLabel": "每日任務提醒",
+                "missionReminderDesc": "可選權限，開啟後每天提醒一次本週任務進度",
+                "missionTaskReviewDue": "複習到期詞彙",
+                "missionTaskMasterWeak": "強化弱項詞彙",
+                "missionTaskDiscover": "新增新詞",
+                "statWeeklyMission": "本週任務",
+                "missionSummaryProgress": "本週任務進度",
+                "missionSummaryCompleted": "本週任務已完成"
             },
     },
     "ja": {
@@ -430,7 +475,7 @@ class I18nService {
 
     getText(key) {
         const locale = this.getActiveLocale();
-        return locale.strings[key] || key;
+        return locale.strings[key] || this.locales.en.strings[key] || key;
     }
 
     localizePage() {
@@ -438,11 +483,12 @@ class I18nService {
         const elements = document.querySelectorAll('[data-i18n]');
         elements.forEach(el => {
             const key = el.getAttribute('data-i18n');
-            if (t[key]) {
+            const text = t[key] || this.locales.en.strings[key];
+            if (text) {
                 if (el.tagName === 'INPUT' && el.getAttribute('placeholder')) {
-                    el.placeholder = t[key];
+                    el.placeholder = text;
                 } else {
-                    el.textContent = t[key];
+                    el.textContent = text;
                 }
             }
         });
@@ -453,7 +499,8 @@ class I18nService {
         const titleEl = document.querySelector('title[data-i18n]');
         if (titleEl) {
             const key = titleEl.getAttribute('data-i18n');
-            if (t[key]) document.title = t[key];
+            const text = t[key] || this.locales.en.strings[key];
+            if (text) document.title = text;
         }
     }
 }

@@ -37,6 +37,17 @@ describe('MissionService', () => {
         ]);
     });
 
+    test('should set due-review target to 0 when there are no due words', () => {
+        const vocab = [
+            { text: 'future', nextReview: Date.now() + 86400000, learningRate: 30 },
+            { text: 'active', learningRate: 80 }
+        ];
+        const mission = service.generateWeeklyMission(vocab, null, Date.now());
+        const dueTask = mission.tasks.find((task) => task.id === service.TASK_IDS.REVIEW_DUE_WORDS);
+        expect(dueTask.target).toBe(0);
+        expect(dueTask.status).toBe('completed');
+    });
+
     test('should clamp personalization factor through target bounds', () => {
         const previousMission = {
             tasks: [
@@ -49,7 +60,7 @@ describe('MissionService', () => {
         };
         const mission = service.generateWeeklyMission([], previousMission, Date.now());
         mission.tasks.forEach((task) => {
-            expect(task.target).toBeGreaterThan(0);
+            expect(task.target).toBeGreaterThanOrEqual(0);
             expect(task.target).toBeLessThanOrEqual(20);
         });
     });
@@ -64,5 +75,24 @@ describe('MissionService', () => {
 
         const updated = mission.tasks.find((t) => t.id === service.TASK_IDS.DISCOVER_NEW_WORDS);
         expect(updated.progress).toBe(updated.target);
+    });
+
+    test('should reconcile existing mission and complete due task when none are due', () => {
+        const mission = {
+            weekId: '2026-W13',
+            tasks: [
+                { id: service.TASK_IDS.REVIEW_DUE_WORDS, target: 3, progress: 0, title: 'due' },
+                { id: service.TASK_IDS.MASTER_WEAK_WORDS, target: 2, progress: 0, title: 'weak' },
+                { id: service.TASK_IDS.DISCOVER_NEW_WORDS, target: 2, progress: 0, title: 'new' }
+            ],
+            summary: { weeklyStreak: 0 }
+        };
+
+        const vocab = [{ text: 'future', nextReview: Date.now() + 86400000, learningRate: 75 }];
+        const reconciled = service.reconcileWithCurrentData(mission, vocab, Date.now());
+        const dueTask = reconciled.tasks.find((task) => task.id === service.TASK_IDS.REVIEW_DUE_WORDS);
+
+        expect(dueTask.target).toBe(0);
+        expect(dueTask.status).toBe('completed');
     });
 });

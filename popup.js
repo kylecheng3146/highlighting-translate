@@ -184,11 +184,17 @@ async function loadWeeklyMission() {
         const response = await chrome.runtime.sendMessage({ action: 'GET_WEEKLY_MISSION' });
         const mission = response && response.success ? response.data : null;
 
+        const taskLabelMap = {
+            review_due_words: i18nService.getText('missionTaskReviewDue'),
+            master_weak_words: i18nService.getText('missionTaskMasterWeak'),
+            discover_new_words: i18nService.getText('missionTaskDiscover')
+        };
+
         if (!mission || !Array.isArray(mission.tasks)) {
-            weekEl.textContent = 'No Mission';
+            weekEl.textContent = i18nService.getText('missionNoData');
             progressTextEl.textContent = '0%';
             progressBarEl.style.width = '0%';
-            tasksEl.innerHTML = '<li>尚無可用任務</li>';
+            tasksEl.innerHTML = `<li>${i18nService.getText('missionNoTask')}</li>`;
             return;
         }
 
@@ -198,11 +204,14 @@ async function loadWeeklyMission() {
         progressBarEl.style.width = `${score}%`;
 
         tasksEl.innerHTML = mission.tasks
-            .map((task) => `<li>- ${task.title} ${task.progress}/${task.target}</li>`)
+            .map((task) => {
+                const taskLabel = taskLabelMap[task.id] || task.title || task.id;
+                return `<li>- ${taskLabel} ${task.progress}/${task.target}</li>`;
+            })
             .join('');
     } catch (error) {
         console.warn('Failed to load weekly mission:', error);
-        weekEl.textContent = 'Mission Error';
+        weekEl.textContent = i18nService.getText('missionError');
     }
 }
 

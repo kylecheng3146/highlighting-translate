@@ -41,15 +41,17 @@ async function ensureWeeklyMission(forceRegenerate = false) {
     try {
         const data = await chrome.storage.local.get(missionService.STORAGE_KEY);
         const existingMission = data[missionService.STORAGE_KEY];
+        const vocab = await storageService.getTranslations(5000, 0);
 
         if (!forceRegenerate && !missionService.shouldRegenerateWeek(existingMission)) {
-            if (Array.isArray(existingMission?.focusWords)) {
-                await chrome.storage.local.set({ [missionService.FOCUS_WORDS_KEY]: existingMission.focusWords });
-            }
-            return existingMission;
+            const reconciled = missionService.reconcileWithCurrentData(existingMission, vocab || [], Date.now());
+            await chrome.storage.local.set({
+                [missionService.STORAGE_KEY]: reconciled,
+                [missionService.FOCUS_WORDS_KEY]: reconciled?.focusWords || []
+            });
+            return reconciled;
         }
 
-        const vocab = await storageService.getTranslations(5000, 0);
         const nextMission = missionService.generateWeeklyMission(vocab || [], existingMission || null, Date.now());
         await chrome.storage.local.set({
             [missionService.STORAGE_KEY]: nextMission,

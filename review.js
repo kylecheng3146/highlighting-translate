@@ -300,7 +300,7 @@ async function handleAnswer(selectedOption, btnElement) {
         };
     }
 
-    const delay = isCorrect ? 1000 : 2000; // auto-next fast track settings: 1s correct, 2s incorrect to allow reading
+    const delay = 5000; // auto-next unified delay: 5s
 
     if (autoNextToggle && autoNextToggle.checked) {
         nextTimeoutId = setTimeout(() => {
