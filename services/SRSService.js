@@ -106,7 +106,6 @@ class SRSService {
 }
 
 // Make it available globally
-// Make it available globally
 if (typeof window !== 'undefined') {
     window.SRSService = SRSService;
 } else if (typeof self !== 'undefined') {

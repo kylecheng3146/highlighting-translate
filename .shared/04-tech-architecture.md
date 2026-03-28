@@ -2,154 +2,112 @@
 TASK: MV3 架構設計與實作規劃
 EXPECTED OUTCOME: .shared/04-tech-architecture.md
 REQUIRED AGENT: Extension Architect
-CONTEXT: .shared/01-requirements.md, background.js, services/HighlightService.js
+CONTEXT: .shared/01-requirements.md, background.js, popup.js, history.js, review.js
 ```
 
-# 技術架構設計 (Technical Architecture)
+# 技術架構設計 (Personalized Weekly Mission)
 
-> **版本**: v2 — 片語資料庫 Level 1 整合 (2026-03-07)
+## 1. 架構總覽
 
-## 專案概述
+### 核心元件
 
-**功能**：片語資料庫整合 (Phrasal Verbs DB Integration - Level 1)
-**擴充功能版本目標**：v1.14.0
+- `MissionService` (新增): 任務生成、進度計算、週結算
+- `background.js` (修改): 週切換偵測、任務重算、提醒排程
+- `popup.js` (修改): 任務摘要讀取與 CTA
+- `history.js` (修改): 任務儀表摘要顯示
+- `review.js` (修改): 作答事件回寫任務進度
 
----
+### MV3 與 Message 流
 
-## 影響範圍 (Impacted Components)
+- UI -> Background: `chrome.runtime.sendMessage`
+- Background -> storage: `chrome.storage.local/sync`
+- Content -> Background: 收藏事件可用既有 storage save 路徑觸發任務更新
 
-| 檔案 | 變更類型 | 說明 |
-|------|---------|------|
-| `assets/phrasal_verbs_db.json` | **新增** | 片語資料庫（500-1000 個片語） |
-| `manifest.json` | **修改** | 加入 phrasal_verbs_db.json 到 web_accessible_resources |
-| `background.js` | **修改** | 新增片語 DB 載入、變形展開、合併邏輯 |
-| `services/HighlightService.js` | **維持** | 現有 `\s+` 替換機制已就緒，無需修改 |
-| `content.js` | **維持** | `scanPageForVocabulary` 接收合併後詞彙列表，邏輯不變 |
+## 2. 資料模型
 
----
-
-## 核心技術方案設計
-
-### 1. 資料庫結構 (Data Schema)
-
-`assets/phrasal_verbs_db.json` 採用與 `frequency_db.json` 相容的格式：
+`chrome.storage.local` 新增 key:
 
 ```json
-[
-  {
-    "text": "give up",
-    "cefr_level": "B1",
-    "frequency_rank": 850,
-    "translation": "放棄",
-    "forms": ["gives up", "gave up", "giving up", "given up"]
-  },
-  {
-    "text": "look forward to",
-    "cefr_level": "B1",
-    "frequency_rank": 920,
-    "translation": "期待",
-    "forms": ["looks forward to", "looked forward to", "looking forward to"]
+{
+  "weeklyMission": {
+    "weekId": "2026-W13",
+    "generatedAt": 1774636800000,
+    "completed": false,
+    "tasks": [
+      {
+        "id": "review_due_words",
+        "target": 12,
+        "progress": 6,
+        "status": "in_progress",
+        "reason": "上週到期未複習數偏高"
+      }
+    ],
+    "stretchTasks": [],
+    "summary": {
+      "score": 45,
+      "weeklyStreak": 2
+    }
   }
-]
-```
-
-- `text`：片語原形（作為儲存鍵與顯示文字）
-- `forms`：預先手工指定的變形列表（不規則動詞需手工填入）
-- `translation`：中文翻譯（Tooltip 顯示用，不呼叫 API）
-- `cefr_level` / `frequency_rank`：與 frequency_db.json 相同用途
-
-### 2. 載入與展開流程 (Load & Expand Pipeline)
-
-在 `background.js` 的 `chrome.runtime.onInstalled` 事件（及 `onStartup`）中：
-
-```javascript
-async function loadPhrasalVerbsDB() {
-    // 1. Fetch DB from extension assets
-    const url = chrome.runtime.getURL('assets/phrasal_verbs_db.json');
-    const res = await fetch(url);
-    const phrasalVerbs = await res.json();
-
-    // 2. 展開所有變形，全部映射到相同的翻譯資料
-    const expandedEntries = [];
-    for (const pv of phrasalVerbs) {
-        const base = {
-            text: pv.text,
-            translation: pv.translation,
-            cefr_level: pv.cefr_level,
-            frequency_rank: pv.frequency_rank
-        };
-        // 原形本身
-        expandedEntries.push(base);
-        // 所有變形
-        if (pv.forms) {
-            for (const form of pv.forms) {
-                expandedEntries.push({ ...base, text: form });
-            }
-        }
-    }
-
-    // 3. 儲存到 chrome.storage.local（content.js 從這裡讀取）
-    await chrome.storage.local.set({ phrasalVerbsExpanded: expandedEntries });
 }
 ```
 
-### 3. Content Script 整合 (`content.js`)
+`chrome.storage.sync` 新增 key:
 
-`scanPageForVocabulary` 函數需更新，合併單字與片語後傳給 `HighlightService`：
-
-```javascript
-async function scanPageForVocabulary() {
-    try {
-        // 取得已儲存單字
-        const vocabList = await storageService.getTranslations(1000);
-
-        // 取得展開後的片語列表
-        const { phrasalVerbsExpanded = [] } = await chrome.storage.local.get('phrasalVerbsExpanded');
-
-        // 合併：片語放前面（確保長優先匹配）
-        const combined = [...phrasalVerbsExpanded, ...(vocabList || [])];
-
-        if (combined.length > 0) {
-            highlightService.scanAndHighlight(document.body, combined);
-        }
-    } catch (e) {
-        console.error('Error scanning page for vocabulary:', e);
-    }
+```json
+{
+  "enableMissionReminder": false,
+  "missionReminderHour": 20
 }
 ```
 
-### 4. 正則表達式升級確認 (RegExp)
+## 3. 任務生成策略
 
-`HighlightService.js` 第 36 行現有邏輯：
-```javascript
-.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\ /g, '\\s+')
-```
-此邏輯**已完整支援片語**，無需修改。`\s+` 確保空格可匹配任意空白字符。
+### 輸入訊號
 
-### 5. 匹配優先級確認
+- 到期卡數量 (`nextReview <= now`)
+- 低熟練詞數 (`learningRate < threshold`)
+- 上週新詞新增數
+- 上週任務完成率
 
-`HighlightService.js` 第 37 行：
-```javascript
-.sort((a, b) => b.length - a.length)
-```
-片語（如 `give up`）長度 > 單字（如 `give`），自然排在前面，確保片語整體優先匹配。
+### 輸出規則
 
----
+- 產生 3 個主任務（複習/弱項/新詞）
+- `target` 由基準值 * 個人化係數計算
+- 個人化係數範圍: 0.8 - 1.2
 
-## MV3 合規性檢查
+## 4. 事件回寫與一致性
+
+- 收藏成功時: `STORAGE_SAVE` 完成後觸發 `MISSION_RECALC_PROGRESS`
+- review 作答時: 既有 `updateSRSStatus` 後觸發 `MISSION_APPLY_EVENT`
+- 背景每次喚醒時檢查 `weekId`，切週即重新生成
+
+## 5. 可選提醒權限策略
+
+- `manifest.json`:
+  - `optional_permissions`: `notifications`
+- 使用者開啟提醒時:
+  1. `chrome.permissions.request({ permissions: ['notifications'] })`
+  2. 成功後由 background 建立每日提醒
+
+## 6. 與既有功能相容性
+
+- 不修改翻譯 API 呼叫路徑
+- 不增加 content script 權限
+- 高亮引擎僅增補 `mission` 標記資料，不改 regex 核心
+
+## 7. MV3 合規檢查
 
 | 項目 | 狀態 | 說明 |
-|------|------|------|
-| Service Worker (background.js) | 合規 | 使用 fetch() 載入資產，符合 MV3 |
-| web_accessible_resources | 需更新 | 加入 `assets/phrasal_verbs_db.json` |
-| 權限需求 | **不需新增** | 使用現有 `storage` 權限即可 |
-| host_permissions | 不需修改 | 片語 DB 為本地資產 |
-| Content Script | 不需修改 | 透過 chrome.storage 讀取 |
+|---|---|---|
+| Service Worker | 合規 | 任務計算在 background 中執行 |
+| 遠端程式碼 | 合規 | 無新增遠端腳本 |
+| 權限最小化 | 合規 | 通知採 optional_permissions |
+| Host permissions | 合規 | 不新增 host 權限 |
 
----
+## 8. 風險與緩解
 
-## 安全性考量
-
-- 片語 DB 為靜態 JSON，無動態執行風險
-- 片語翻譯顯示使用現有 `escapeHtml()` 函數防 XSS
-- `chrome.storage.local` 無跨域洩露風險
+| 風險 | 影響 | 緩解 |
+|---|---|---|
+| 任務目標過高導致放棄 | 留存下降 | 設上限 + 新手保護 |
+| 背景喚醒不穩定 | 任務延遲更新 | 每次 UI 進入時補一次重算 |
+| 資料欄位不一致 | 任務錯誤 | MissionService 統一 schema validator |

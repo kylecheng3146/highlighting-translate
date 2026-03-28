@@ -53,6 +53,77 @@
       box-shadow: var(--shadow-md);
     }
 
+    .mission-card {
+      background: linear-gradient(145deg, var(--bg-surface) 0%, #f3fbfa 100%);
+      border: 1px solid #d5efeb;
+    }
+
+    .mission-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .mission-title {
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 15px;
+    }
+
+    .mission-week {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .mission-progress-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .mission-bar-bg {
+      width: 100%;
+      height: 8px;
+      border-radius: 6px;
+      background: #e6f1ef;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .mission-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary) 0%, #6ec7be 100%);
+      transition: width 0.45s ease-out;
+    }
+
+    .mission-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .mission-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mission-actions .btn {
+      flex: 1;
+      font-size: 12px;
+      padding: 6px 10px;
+    }
+
     .setting-header {
       display: flex;
       justify-content: space-between;
@@ -186,6 +257,25 @@
   </header>
   
   <div class="container">
+    <div class="setting-card mission-card" id="missionCard">
+      <div class="mission-header">
+        <div class="mission-title">本週任務</div>
+        <div class="mission-week" id="missionWeek">--</div>
+      </div>
+      <div class="mission-progress-row">
+        <span>進度</span>
+        <span id="missionProgressText">0%</span>
+      </div>
+      <div class="mission-bar-bg">
+        <div class="mission-bar-fill" id="missionProgressBar"></div>
+      </div>
+      <ul class="mission-list" id="missionTasks"></ul>
+      <div class="mission-actions">
+        <button id="missionReviewBtn" class="btn btn-primary">前往複習</button>
+        <button id="missionDetailBtn" class="btn btn-secondary">查看詳情</button>
+      </div>
+    </div>
+
     <!-- Theme Color -->
     <div class="setting-card">
       <div class="setting-header">
@@ -285,6 +375,17 @@
         </label>
       </div>
       <div class="setting-description" data-i18n="enablePhrasalVerbsDesc">自動標記網頁中的常見英文片語動詞（如 give up、look forward to）</div>
+    </div>
+
+    <div class="setting-card">
+      <div class="setting-header">
+        <label class="setting-label" for="enableMissionReminderCheck">每日任務提醒</label>
+        <label class="switch">
+          <input type="checkbox" id="enableMissionReminderCheck">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-description">可選權限，開啟後每天提醒一次本週任務進度</div>
     </div>
   </div>
   

@@ -9,6 +9,13 @@
     "tts",
     "scripting"
   ],
+  "optional_permissions": [
+    "notifications",
+    "alarms"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "background": {
     "service_worker": "background.js"
   },

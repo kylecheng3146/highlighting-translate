@@ -237,7 +237,9 @@ async function handleAnswer(selectedOption, btnElement) {
                 // Highlight the target word in the context sentence
                 const escapedWord = currentQ.target.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape regex chars
                 const regex = new RegExp(`(${escapedWord})`, 'gi');
-                const highlightedContext = currentQ.target.context.replace(regex, '<span class="context-highlight">$1</span>');
+                // Escape HTML first, then apply highlight span to prevent XSS from page-captured context
+                const safeContext = escapeHtml(currentQ.target.context);
+                const highlightedContext = safeContext.replace(regex, '<span class="context-highlight">$1</span>');
                 elements.contextText.innerHTML = highlightedContext;
                 elements.contextContainer.classList.remove('hidden');
             }
@@ -263,7 +265,24 @@ async function handleAnswer(selectedOption, btnElement) {
     });
 
     // Update Storage (Learning Progress)
-    await updateWordProgress(currentQ.target, isCorrect);
+    const progressUpdate = await updateWordProgress(currentQ.target, isCorrect);
+
+    try {
+        const missionRes = await chrome.runtime.sendMessage({
+            action: 'MISSION_APPLY_EVENT',
+            event: {
+                type: 'REVIEW_COMPLETED',
+                isDue: Boolean(currentQ.target.nextReview && currentQ.target.nextReview <= Date.now()),
+                weakWordImproved: Boolean(progressUpdate && progressUpdate.weakWordImproved)
+            }
+        });
+
+        if (missionRes && missionRes.success && missionRes.data) {
+            showMissionProgressToast(missionRes.data);
+        }
+    } catch (error) {
+        console.warn('Failed to update mission progress from review:', error);
+    }
 
     // Show Next Controls and Handle Auto-Next Logic
     const nextControls = document.getElementById('next-action-controls');
@@ -306,7 +325,8 @@ async function updateWordProgress(wordObj, isCorrect) {
     // Wrong: -10%
     // Range: 0 - 100
     
-    let currentRate = wordObj.learningRate || 0;
+    const previousRate = Number(wordObj.learningRate || 0);
+    let currentRate = previousRate;
     if (isCorrect) currentRate += 20;
     else currentRate -= 10;
     
@@ -330,6 +350,50 @@ async function updateWordProgress(wordObj, isCorrect) {
         // Optional: If answering a fallback correctly, maybe add to history?
         // Leaving out for now as per spec "Fallback is just filler".
     }
+
+    return {
+        exists,
+        previousRate,
+        currentRate,
+        weakWordImproved: previousRate < 60 && currentRate >= 60
+    };
+}
+
+function showMissionProgressToast(mission) {
+    const existing = document.getElementById('mission-progress-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'mission-progress-toast';
+    toast.style.position = 'fixed';
+    toast.style.right = '20px';
+    toast.style.bottom = '20px';
+    toast.style.padding = '10px 14px';
+    toast.style.background = 'rgba(38, 166, 154, 0.95)';
+    toast.style.color = '#fff';
+    toast.style.borderRadius = '999px';
+    toast.style.boxShadow = '0 8px 22px rgba(0,0,0,0.18)';
+    toast.style.zIndex = '9999';
+    toast.style.fontWeight = '600';
+    toast.style.fontSize = '13px';
+    toast.style.transform = 'translateY(10px)';
+    toast.style.opacity = '0';
+    toast.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+
+    const score = Number(mission?.summary?.score || 0);
+    toast.textContent = `Mission +1 進度 ${score}%`;
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    });
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 320);
+    }, 1200);
 }
 
 function showFeedback(isCorrect) {
@@ -361,6 +425,16 @@ function shuffleArray(array) {
     }
 }
 
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 /**
  * Sends a message to the background script to play TTS
  */
@@ -370,7 +444,11 @@ function playTTS(text, lang) {
         action: 'playTTS',
         text: text,
         lang: lang || 'en'
-    }).catch(error => console.error('Error sending TTS message:', error));
+    }, () => {
+        if (chrome.runtime.lastError) {
+            console.warn('TTS message failed:', chrome.runtime.lastError.message);
+        }
+    });
 }
 
 /**

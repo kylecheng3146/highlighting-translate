@@ -48,12 +48,24 @@ async function loadLanguageSidebar() {
         const list = document.getElementById('languageList');
         
         // Keep "All" but reset others
-        list.innerHTML = `
-            <li class="language-item ${currentSourceLang === 'all' ? 'active' : ''}" data-lang="all" tabindex="0" role="button" aria-pressed="${currentSourceLang === 'all'}">
-                <span class="lang-name" data-i18n="allLanguages">All Languages</span>
-                <span class="lang-count" id="totalLangCount">0</span>
-            </li>
-        `;
+        list.innerHTML = '';
+        const allLi = document.createElement('li');
+        allLi.className = `language-item ${currentSourceLang === 'all' ? 'active' : ''}`;
+        allLi.dataset.lang = 'all';
+        allLi.tabIndex = 0;
+        allLi.setAttribute('role', 'button');
+        allLi.setAttribute('aria-pressed', String(currentSourceLang === 'all'));
+        const allNameSpan = document.createElement('span');
+        allNameSpan.className = 'lang-name';
+        allNameSpan.dataset.i18n = 'allLanguages';
+        allNameSpan.textContent = 'All Languages';
+        const allCountSpan = document.createElement('span');
+        allCountSpan.className = 'lang-count';
+        allCountSpan.id = 'totalLangCount';
+        allCountSpan.textContent = '0';
+        allLi.appendChild(allNameSpan);
+        allLi.appendChild(allCountSpan);
+        list.appendChild(allLi);
 
         let totalCount = 0;
         langs.forEach(l => {
@@ -67,10 +79,14 @@ async function loadLanguageSidebar() {
             // Display name map (optional, could use Intl.DisplayNames)
             const displayName = getLanguageName(l.code);
             
-            li.innerHTML = `
-                <span class="lang-name">${displayName}</span>
-                <span class="lang-count">${l.count}</span>
-            `;
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'lang-name';
+            nameSpan.textContent = displayName;
+            const countSpan = document.createElement('span');
+            countSpan.className = 'lang-count';
+            countSpan.textContent = l.count;
+            li.appendChild(nameSpan);
+            li.appendChild(countSpan);
             
             const activate = () => switchLanguage(l.code);
             li.addEventListener('click', activate);
@@ -89,10 +105,9 @@ async function loadLanguageSidebar() {
         document.getElementById('totalLangCount').innerText = totalCount;
         
         // Bind click for All
-        const allItem = list.querySelector('[data-lang="all"]');
         const activateAll = () => switchLanguage('all');
-        allItem.addEventListener('click', activateAll);
-        allItem.addEventListener('keydown', (e) => {
+        allLi.addEventListener('click', activateAll);
+        allLi.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 activateAll();
@@ -174,11 +189,34 @@ async function updateDashboard() {
       "%",
     );
 
+    const missionResponse = await chrome.runtime.sendMessage({ action: 'GET_WEEKLY_MISSION' });
+    const mission = missionResponse && missionResponse.success ? missionResponse.data : null;
+    const missionScore = Number(mission?.summary?.score || 0);
+    const missionTarget = Number(mission?.summary?.targetTotal || 0);
+    const missionProgress = Number(mission?.summary?.progressTotal || 0);
+
+    animateNumber(
+      document.getElementById("stat-mission-score"),
+      0,
+      missionScore,
+      1000,
+      "%",
+    );
+
     // Update Progress Bars
     const coverage2kPercent = Math.min((top2kMastered / 2000) * 100, 100);
     const coverage5kPercent = Math.min((top5kMastered / 5000) * 100, 100);
 
     setTimeout(() => {
+      document.getElementById("bar-mission").style.width = `${missionScore}%`;
+      document.getElementById("mission-summary-ratio").innerText = `${missionProgress} / ${missionTarget}`;
+      const summaryText = document.getElementById("mission-summary-text");
+      if (summaryText) {
+        summaryText.innerText = mission?.completed
+          ? `本週任務已完成 (${mission.weekId})`
+          : `本週任務進度 (${mission?.weekId || '--'})`;
+      }
+
       document.getElementById("bar-coverage-2k").style.width =
         `${coverage2kPercent}%`;
       document.getElementById("bar-coverage-5k").style.width =
@@ -255,7 +293,18 @@ async function loadHistory(reset = true) {
       if (item.isArchived) li.classList.add("is-archived");
 
       const date = new Date(item.timestamp).toLocaleString();
-      const shortUrl = item.sourceUrl ? new URL(item.sourceUrl).hostname : "";
+      let shortUrl = "";
+      let safeSourceUrl = "";
+      if (item.sourceUrl) {
+          try {
+              const parsedUrl = new URL(item.sourceUrl);
+              // Only allow http/https to prevent javascript: or data: URLs in href
+              if (parsedUrl.protocol === 'https:' || parsedUrl.protocol === 'http:') {
+                  shortUrl = parsedUrl.hostname;
+                  safeSourceUrl = item.sourceUrl;
+              }
+          } catch (e) { /* invalid URL, ignore */ }
+      }
       const freqBadge = item.frequency_rank
         ? `
                 <span style="font-size: 10px; background: #eee; padding: 2px 6px; border-radius: 4px; color: #666; font-weight: bold; margin-bottom: 8px; display: inline-block;">
@@ -294,7 +343,7 @@ async function loadHistory(reset = true) {
                     <div class="meta">
                         <div class="meta-info">
                             <span>${date}</span>
-                            ${shortUrl ? `<span>•</span><a href="${item.sourceUrl}" target="_blank">${shortUrl}</a>` : ""}
+                             ${shortUrl ? `<span>•</span><a href="${escapeHtml(safeSourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(shortUrl)}</a>` : ""}
                         </div>
                     </div>
                 </div>
@@ -404,6 +453,10 @@ function playTTS(text, lang) {
       action: 'playTTS',
       text: text,
       lang: lang
+  }, () => {
+      if (chrome.runtime.lastError) {
+          console.warn('TTS message failed:', chrome.runtime.lastError.message);
+      }
   });
 }
 

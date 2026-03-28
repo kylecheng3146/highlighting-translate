@@ -335,7 +335,6 @@ class StorageService {
 }
 
 // Make it available globally
-// Make it available globally
 if (typeof window !== 'undefined') {
     window.StorageService = StorageService;
 } else if (typeof self !== 'undefined') {

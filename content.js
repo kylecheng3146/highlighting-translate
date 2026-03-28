@@ -29,6 +29,7 @@ const translationService = new TranslationService();
 const storageService = new StorageService();
 const highlightService = new HighlightService();
 const tooltipService = new TooltipService();
+let missionFocusWords = new Set();
 
 // 載入設定的函數
 async function loadSettings() {
@@ -100,10 +101,16 @@ async function scanPageForVocabulary() {
             phrasalVerbs = localData.phrasalVerbsExpanded || [];
         }
 
+        const missionData = await chrome.storage.local.get('weeklyMissionFocusWords');
+        missionFocusWords = new Set((missionData.weeklyMissionFocusWords || []).map((word) => String(word).toLowerCase().trim()));
+
         // Merge: phrasal verbs first so they are sorted by length ahead of single words
         // HighlightService already sorts by length descending, so order here doesn't matter,
         // but putting phrasal verbs first avoids duplicates when a form overlaps a saved word.
-        const combined = [...phrasalVerbs, ...(vocabList || [])];
+        const combined = [...phrasalVerbs, ...(vocabList || [])].map((item) => ({
+            ...item,
+            isMissionWord: missionFocusWords.has(String(item.text || '').toLowerCase().trim())
+        }));
 
         if (combined.length > 0) {
             highlightService.scanAndHighlight(document.body, combined);
@@ -475,6 +482,22 @@ function injectStyles(root) {
         }
         .ht-rank-badge.level-mid { background: #42A5F5; }
         .ht-rank-badge.level-low { background: #B0BEC5; }
+        .ht-mission-badge {
+            background: #ff7043;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            display: inline-block;
+            animation: ht-mission-pop 0.18s ease-out;
+        }
+        @keyframes ht-mission-pop {
+            0% { transform: scale(0.85); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
         
         .ht-tooltip-translation {
             font-size: 14px;
@@ -1010,6 +1033,7 @@ document.addEventListener('mouseover', (e) => {
         const text = e.target.dataset.translation;
         const rank = e.target.dataset.rank;
         const level = e.target.dataset.level;
+        const isMission = e.target.dataset.mission === 'true';
         
         if (text) {
             const rect = e.target.getBoundingClientRect();
@@ -1017,7 +1041,7 @@ document.addEventListener('mouseover', (e) => {
             if (!host) {
                 host = createTranslatePopup();
             }
-            tooltipService.show(text, rect, rank, level);
+            tooltipService.show(text, rect, rank, level, isMission);
         }
     }
 });

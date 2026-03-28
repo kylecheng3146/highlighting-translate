@@ -3,6 +3,17 @@ class TooltipService {
         this.tooltip = null;
     }
 
+    // HTML escape helper to prevent XSS
+    _escape(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     init(root) {
         if (this.tooltip) return;
         this.tooltip = root.getElementById('ht-tooltip');
@@ -15,21 +26,26 @@ class TooltipService {
         }
     }
 
-    show(text, rect, rank = null, level = null) {
+    show(text, rect, rank = null, level = null, isMission = false) {
         if (!this.tooltip) return;
 
         let content = '';
         if (rank) {
             const levelClass = rank <= 3000 ? 'level-high' : (rank <= 10000 ? 'level-mid' : 'level-low');
+            const missionBadge = isMission ? '<span class="ht-mission-badge">Mission</span>' : '';
             content = `
                 <div class="ht-tooltip-header">
-                    <span class="ht-rank-badge ${levelClass}">#${rank}</span>
-                    <span class="ht-rank-badge ${levelClass}">${level || ''}</span>
+                    <span>
+                        <span class="ht-rank-badge ${levelClass}">#${this._escape(String(rank))}</span>
+                        <span class="ht-rank-badge ${levelClass}">${this._escape(level || '')}</span>
+                    </span>
+                    ${missionBadge}
                 </div>
-                <div class="ht-tooltip-translation">${text}</div>
+                <div class="ht-tooltip-translation">${this._escape(text)}</div>
             `;
         } else {
-            content = `<div class="ht-tooltip-translation">${text}</div>`;
+            const missionBadge = isMission ? '<div style="margin-bottom:6px"><span class="ht-mission-badge">Mission</span></div>' : '';
+            content = `${missionBadge}<div class="ht-tooltip-translation">${this._escape(text)}</div>`;
         }
 
         this.tooltip.innerHTML = content;

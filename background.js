@@ -1,13 +1,15 @@
 importScripts(
     'services/TranslationService.js',
     'services/SRSService.js',
-    'services/StorageService.js'
+    'services/StorageService.js',
+    'services/MissionService.js'
 );
 
 // Initialize Services
 const translationService = new TranslationService();
 const srsService = new SRSService();
 const storageService = new StorageService();
+const missionService = new MissionService();
 
 // 擴展安裝時的初始化
 chrome.runtime.onInstalled.addListener(async () => {
@@ -20,15 +22,109 @@ chrome.runtime.onInstalled.addListener(async () => {
 
     // Load phrasal verbs DB into storage
     await loadPhrasalVerbsDB();
+    await ensureWeeklyMission(true);
 
     // Dynamic Injection: Inject content scripts into existing tabs
     await injectContentScripts();
 });
 
 // Service Workers are ephemeral — reload phrasal verbs DB on every startup
+// Note: Top-level service instances (translationService, storageService, etc.) are
+// re-created each time the SW wakes up. StorageService uses _ensureCache() lazily,
+// so no state is lost across SW terminations.
 chrome.runtime.onStartup.addListener(async () => {
     await loadPhrasalVerbsDB();
+    await ensureWeeklyMission();
 });
+
+async function ensureWeeklyMission(forceRegenerate = false) {
+    try {
+        const data = await chrome.storage.local.get(missionService.STORAGE_KEY);
+        const existingMission = data[missionService.STORAGE_KEY];
+
+        if (!forceRegenerate && !missionService.shouldRegenerateWeek(existingMission)) {
+            if (Array.isArray(existingMission?.focusWords)) {
+                await chrome.storage.local.set({ [missionService.FOCUS_WORDS_KEY]: existingMission.focusWords });
+            }
+            return existingMission;
+        }
+
+        const vocab = await storageService.getTranslations(5000, 0);
+        const nextMission = missionService.generateWeeklyMission(vocab || [], existingMission || null, Date.now());
+        await chrome.storage.local.set({
+            [missionService.STORAGE_KEY]: nextMission,
+            [missionService.FOCUS_WORDS_KEY]: nextMission.focusWords || []
+        });
+        return nextMission;
+    } catch (error) {
+        console.error('Failed to ensure weekly mission:', error);
+        return null;
+    }
+}
+
+async function applyMissionEvent(event) {
+    const mission = await ensureWeeklyMission();
+    if (!mission) return null;
+    const updated = missionService.applyEvent(mission, event);
+    await chrome.storage.local.set({ [missionService.STORAGE_KEY]: updated });
+    return updated;
+}
+
+async function refreshMissionProgress() {
+    const mission = await ensureWeeklyMission();
+    if (!mission) return null;
+    const normalized = missionService.applyEvent(mission, { type: 'NOOP' });
+    await chrome.storage.local.set({ [missionService.STORAGE_KEY]: normalized });
+    return normalized;
+}
+
+async function scheduleMissionReminder(enabled, hour = 20) {
+    if (!chrome.alarms || !chrome.notifications) return { success: false, error: 'Alarms or notifications API unavailable' };
+    await chrome.alarms.clear('weeklyMissionReminder');
+
+    if (!enabled) {
+        return { success: true };
+    }
+
+    const now = new Date();
+    const next = new Date();
+    next.setHours(hour, 0, 0, 0);
+    if (next <= now) {
+        next.setDate(next.getDate() + 1);
+    }
+
+    await chrome.alarms.create('weeklyMissionReminder', {
+        when: next.getTime(),
+        periodInMinutes: 60 * 24
+    });
+
+    return { success: true };
+}
+
+if (chrome.alarms && chrome.notifications) {
+    chrome.alarms.onAlarm.addListener(async (alarm) => {
+        if (alarm.name !== 'weeklyMissionReminder') return;
+
+        try {
+            const mission = await ensureWeeklyMission();
+            if (!mission || mission.completed) return;
+
+            const pendingTask = mission.tasks.find((task) => task.progress < task.target);
+            const message = pendingTask
+                ? `${pendingTask.title}: ${pendingTask.progress}/${pendingTask.target}`
+                : '今天完成 1 個任務步驟，保持連續學習';
+
+            await chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'icon.svg',
+                title: 'Highlighting Translate 每日任務提醒',
+                message
+            });
+        } catch (error) {
+            console.error('Mission reminder alarm failed:', error);
+        }
+    });
+}
 
 /**
  * Fetches phrasal_verbs_db.json, expands all forms into a flat lookup array,
@@ -125,31 +221,40 @@ async function handleMessage(request, sender, sendResponse) {
             case 'playTTS':
                 handleTTS(request, sendResponse);
                 break;
-            case 'TRANSLATE':
+            case 'TRANSLATE': {
                 const result = await translationService.translate(request.text, request.sourceLang, request.targetLang);
                 sendResponse({success: true, data: result});
                 break;
-            case 'DETECT_LANGUAGE':
+            }
+            case 'DETECT_LANGUAGE': {
                 const lang = translationService.detectLanguage(request.text);
                 sendResponse({success: true, data: lang});
                 break;
+            }
             // Storage Handlers
             case 'STORAGE_SAVE':
+                const existedBeforeSave = await storageService.isStarred(request.item.text, request.item.translation);
                 await storageService.saveTranslation(request.item);
+                if (!existedBeforeSave) {
+                    await applyMissionEvent({ type: 'NEW_WORD_SAVED' });
+                }
                 sendResponse({success: true});
                 break;
-            case 'STORAGE_GET':
+            case 'STORAGE_GET': {
                 const requestItems = await storageService.getTranslations(request.limit, request.offset, request.sourceLangFilter);
                 sendResponse({success: true, data: requestItems});
                 break;
-            case 'STORAGE_GET_SOURCE_LANGS':
+            }
+            case 'STORAGE_GET_SOURCE_LANGS': {
                 const langs = await storageService.getSourceLanguages();
                 sendResponse({success: true, data: langs});
                 break;
-            case 'STORAGE_MIGRATE_AUTO_LANG':
+            }
+            case 'STORAGE_MIGRATE_AUTO_LANG': {
                 const migrated = await storageService.migrateAutoSourceLang();
                 sendResponse({success: true, data: migrated});
                 break;
+            }
             case 'STORAGE_REMOVE':
                 await storageService.removeTranslation(request.text, request.translation);
                 sendResponse({success: true});
@@ -158,18 +263,44 @@ async function handleMessage(request, sender, sendResponse) {
                 await storageService.clearAll(request.sourceLangFilter);
                 sendResponse({success: true});
                 break;
-            case 'STORAGE_IS_STARRED':
+            case 'STORAGE_IS_STARRED': {
                 const isStarred = await storageService.isStarred(request.text, request.translation);
                 sendResponse({success: true, data: isStarred});
                 break;
+            }
             case 'STORAGE_UPDATE_SRS':
                 await storageService.updateSRSStatus(request.text, request.translation, request.updates);
                 sendResponse({success: true});
                 break;
-            case 'STORAGE_GET_WORD_INFO':
+            case 'GET_WEEKLY_MISSION': {
+                const mission = await ensureWeeklyMission();
+                sendResponse({ success: true, data: mission });
+                break;
+            }
+            case 'MISSION_APPLY_EVENT': {
+                const mission = await applyMissionEvent(request.event || {});
+                sendResponse({ success: true, data: mission });
+                break;
+            }
+            case 'MISSION_RECALC_PROGRESS': {
+                const mission = await refreshMissionProgress();
+                sendResponse({ success: true, data: mission });
+                break;
+            }
+            case 'SET_MISSION_REMINDER': {
+                const result = await scheduleMissionReminder(Boolean(request.enabled), Number(request.hour || 20));
+                if (!result.success) {
+                    sendResponse({ success: false, error: result.error });
+                    break;
+                }
+                sendResponse({ success: true });
+                break;
+            }
+            case 'STORAGE_GET_WORD_INFO': {
                 const wordInfo = await storageService.getWordInfo(request.word);
                 sendResponse({success: true, data: wordInfo});
                 break;
+            }
             default:
                 console.warn('Unknown action:', request.action);
                 sendResponse({success: false, error: 'Unknown action'});

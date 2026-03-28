@@ -20,10 +20,12 @@ class HighlightService {
         vocabularyList.forEach(item => {
             if (item.text && item.text.length >= this.minWordLength) {
                 const normalized = item.text.toLowerCase();
+                const existing = vocabMap.get(normalized);
                 vocabMap.set(normalized, {
                     translation: item.translation,
                     rank: item.frequency_rank,
-                    level: item.cefr_level
+                    level: item.cefr_level,
+                    isMissionWord: Boolean(item.isMissionWord || existing?.isMissionWord)
                 });
             }
         });
@@ -31,9 +33,10 @@ class HighlightService {
         if (vocabMap.size === 0) return;
 
         // Build regex ONCE here and reuse across all nodes
-        // Replace escaped spaces '\ ' with '\s+' to allow matching phrasal verbs across arbitrary whitespace
+        // Escape regex special chars, then replace literal spaces with '\s+' to allow
+        // matching phrasal verbs across arbitrary whitespace (multiple spaces, newlines, etc.)
         const escapedKeys = Array.from(vocabMap.keys())
-            .map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\ /g, '\\s+'))
+            .map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+'))
             .sort((a, b) => b.length - a.length);
         const regex = new RegExp(`\\b(${escapedKeys.join('|')})\\b`, 'gi');
 
@@ -68,12 +71,22 @@ class HighlightService {
     }
 
     /**
-     * Processes text nodes in chunks using requestIdleCallback if available.
+     * Processes text nodes in chunks using requestIdleCallback if available,
+     * falling back to synchronous processing otherwise (e.g. in test environments).
      */
     processChunks(nodes, vocabMap, regex) {
-        let index = 0;
         const CHUNK_SIZE = 50;
 
+        // Synchronous fallback: used when requestIdleCallback is unavailable (e.g. jsdom/tests)
+        if (typeof window === 'undefined' || !window.requestIdleCallback) {
+            for (let i = 0; i < nodes.length; i++) {
+                if (this.highlightCount >= this.maxHighlights) return;
+                this.highlightNode(nodes[i], vocabMap, regex);
+            }
+            return;
+        }
+
+        let index = 0;
         const process = (deadline) => {
             while (index < nodes.length) {
                 // Yield back to browser if idle time is running out
@@ -89,20 +102,10 @@ class HighlightService {
                 }
 
                 if (this.highlightCount >= this.maxHighlights) return;
-
-                // No deadline (setTimeout fallback): yield after each chunk
-                if (!deadline) {
-                    setTimeout(() => process(null), 10);
-                    return;
-                }
             }
         };
 
-        if (window.requestIdleCallback) {
-            window.requestIdleCallback(process);
-        } else {
-            setTimeout(() => process(null), 10);
-        }
+        window.requestIdleCallback(process);
     }
 
     /**
@@ -137,7 +140,8 @@ class HighlightService {
             }
 
             // Create highlight element
-            const data = vocabMap.get(matchedText.toLowerCase());
+            // Normalize whitespace in matched text to look up the vocab map key
+            const data = vocabMap.get(matchedText.toLowerCase().replace(/\s+/g, ' '));
             const mark = document.createElement('mark');
             mark.className = 'ht-highlight';
             
@@ -153,6 +157,9 @@ class HighlightService {
 
             mark.textContent = matchedText;
             mark.dataset.translation = data.translation;
+            if (data.isMissionWord) {
+                mark.dataset.mission = 'true';
+            }
             fragment.appendChild(mark);
 
             this.highlightCount++;

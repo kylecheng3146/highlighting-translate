@@ -1,92 +1,82 @@
-# 02. UI Wireframes (UI 草圖)
-
-> **版本**: v2 — 片語資料庫 Level 1 整合 (2026-03-07)
-
-## 1. Popup 設定頁 (現有，無需修改)
-
-片語功能屬於後台靜默功能，**不需要新增 Popup UI 開關**。現有的「智能高亮」開關 (`enableHighlightCheck`) 同時控制單字高亮與片語高亮，無需另設切換。
-
-```text
-+-----------------------+
-|  翻譯設定              |
-+-----------------------+
-|  主題配色  [swatches] |
-|  自動顯示翻譯   [ON]  |
-|  自動播放語音   [OFF] |
-|  自動複製       [OFF] |
-|  源語言  [auto ▼]    |
-|  目標語言 [zh-TW ▼]  |
-|  顯示延遲 [500ms]    |
-|  智能高亮       [ON]  |  <-- 片語高亮同此開關
-|  (在此網站禁用)       |
-+-----------------------+
-|  [單字本]   [開始複習] |
-+-----------------------+
+```
+TASK: Popup/History/Review 任務介面線框定義
+EXPECTED OUTCOME: .shared/02-wireframes.md
+REQUIRED AGENT: UI Sketcher
+CONTEXT: .shared/01-requirements.md, popup.html, history.html, review.html
 ```
 
-## 2. Tooltip — 片語高亮 Hover (核心新 UI)
+# 02. UI Wireframes (Weekly Mission)
 
-當使用者 hover 到片語高亮 `<mark>` 時，顯示片語 Tooltip。
-與現有單字 Tooltip 相同元件，由 `data-translation` 顯示，不呼叫 API。
+> 版本: v1 (2026-03-28)
 
-```text
-               +--------------------------------+
-               | [B1]  Rank #850               |  <-- CEFR + Rank badge
-               +--------------------------------+
-               |  放棄                          |  <-- 片語翻譯 (DB 內建)
-               +--------------------------------+
-                   ↑ hover 觸發
-[...she decided to give up the project...]
-                   ~~~~~~~~~~~
-                   mark.ht-highlight.hl-freq-mid
-```
-
-**Tooltip 顯示規則**:
-- `data-translation` = "放棄" (來自 phrasal_verbs_db.json)
-- `data-rank` = "850"
-- `data-level` = "B1"
-- 與單字 Tooltip 完全相同的 `.ht-tooltip` 元件，零額外開發
-
-## 3. 高亮視覺狀態 (Visual States)
-
-片語使用與單字相同的頻率顏色，**無視覺差異**：
+## 1) Popup: 本週任務卡 (新增)
 
 ```text
-單字高亮範例：
-  [give]           → hl-freq-high (rank ≤ 3000, 紅底)
-  [subtle]         → hl-freq-mid  (rank ≤ 10000, 主題色底)
-  [ephemeral]      → hl-freq-low  (rank > 10000, 虛線底)
-
-片語高亮範例：
-  [give up]        → hl-freq-mid  (rank 850, B1)
-  [look forward to]→ hl-freq-mid  (rank 920, B1)
-  [turn off]       → hl-freq-high (rank 450, A2)
++--------------------------------------+
+| 翻譯設定                             |
++--------------------------------------+
+| [本週任務] Week 12                   |
+| 進度: 45%  [█████-----]              |
+| - 複習到期詞彙 6/12                  |
+| - 強化弱項詞彙 2/5                   |
+| - 新增新詞 1/3                       |
+| [前往複習]   [查看詳情]               |
++--------------------------------------+
+| (既有設定項目...)                     |
+| 主題 / 自動翻譯 / 高亮 / ...          |
++--------------------------------------+
 ```
 
-## 4. 前後對比 (Before / After)
+設計原則:
+- 任務卡固定在設定區上方，讓目標先被看見。
+- 不擠壓既有控制項，僅新增一個可折疊區塊。
 
-### Before — 網頁原始文字
+## 2) History: Mission Progress 模組 (新增)
+
 ```text
-She decided to give up the project after a long discussion.
-She was looking forward to the meeting.
++------------------------------------------------+
+| Dashboard                                      |
+| 本週任務完成率 45%  (剩 4 天)                    |
+| [█████-----]                                    |
+| 今日建議: 先完成 4 題到期複習                   |
++------------------------------------------------+
+| 詞彙列表...                                     |
 ```
 
-### After — 片語高亮後
+設計原則:
+- 任務摘要放在統計卡區域，不進入每條詞卡，避免資訊噪音。
+
+## 3) Review: 即時任務回饋 (新增)
+
 ```text
-She decided to [give up] the project after a long discussion.
-                ~~~~~~~~~  ← mark.ht-highlight.hl-freq-mid (hover → "放棄")
+Question Card
 
-She was [looking forward to] the meeting.
-         ~~~~~~~~~~~~~~~~~  ← mark.ht-highlight.hl-freq-mid (hover → "期待")
+Correct!
+[Mission +1] 複習到期詞彙 7/12
 ```
 
-## 5. 不需要新增的 UI 元素
+設計原則:
+- 以單行 toast/badge 呈現，不干擾答題節奏。
 
-以下是評估後**不在 Level 1 範圍內**的 UI 變更：
+## 4) Tooltip: 任務標記 (輕提示)
 
-| 評估項目 | 決策 | 原因 |
-|--------|------|------|
-| 片語開關 | 不加 | 沿用現有智能高亮開關 |
-| 片語 vs 單字視覺差異 | 不加 | 保持一致性 |
-| 片語管理頁面 | 不加 | Level 2 範疇 |
-| 片語統計儀表板 | 不加 | Level 2 範疇 |
+```text
++------------------------------+
+| [B1] Rank #850   Mission     |
++------------------------------+
+| 放棄                          |
++------------------------------+
+```
+
+設計原則:
+- 沿用既有 tooltip 樣式，只增加小標籤，不新增浮層層級。
+
+## 5) Options (可選提醒)
+
+```text
+[ ] 開啟每日任務提醒 (可選權限)
+    每天最多 1 次
+```
+
+設計原則:
+- 權限說明就近顯示，避免使用者不理解為何請求通知權限。

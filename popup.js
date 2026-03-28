@@ -10,6 +10,8 @@ async function loadSettings() {
             delay: 500,
             enableHighlighting: true,
             enablePhrasalVerbs: true,
+            enableMissionReminder: false,
+            missionReminderHour: 20,
             domainBlacklist: []
         });
 
@@ -37,6 +39,9 @@ async function loadSettings() {
 
         const enablePhrasalVerbsCheck = document.getElementById('enablePhrasalVerbsCheck');
         if (enablePhrasalVerbsCheck) enablePhrasalVerbsCheck.checked = settings.enablePhrasalVerbs;
+
+        const enableMissionReminderCheck = document.getElementById('enableMissionReminderCheck');
+        if (enableMissionReminderCheck) enableMissionReminderCheck.checked = !!settings.enableMissionReminder;
 
         // Blacklist button logic
         updateBlacklistButton(settings.domainBlacklist);
@@ -108,6 +113,15 @@ function showSnackbar() {
 
 // 儲存設定
 async function saveSettings() {
+    const enableMissionReminder = document.getElementById('enableMissionReminderCheck').checked;
+
+    if (enableMissionReminder) {
+        const granted = await ensureMissionReminderPermission();
+        if (!granted) {
+            document.getElementById('enableMissionReminderCheck').checked = false;
+        }
+    }
+
     const settings = {
         autoTranslate: document.getElementById('autoTranslateCheck').checked,
         autoCopy: document.getElementById('autoCopyCheck').checked,
@@ -116,7 +130,9 @@ async function saveSettings() {
         targetLang: document.getElementById('targetLang').value,
         delay: parseInt(document.getElementById('delay').value) || 500,
         enableHighlighting: document.getElementById('enableHighlightCheck').checked,
-        enablePhrasalVerbs: document.getElementById('enablePhrasalVerbsCheck').checked
+        enablePhrasalVerbs: document.getElementById('enablePhrasalVerbsCheck').checked,
+        enableMissionReminder: document.getElementById('enableMissionReminderCheck').checked,
+        missionReminderHour: 20
     };
 
     try {
@@ -125,6 +141,11 @@ async function saveSettings() {
         settings.domainBlacklist = data.domainBlacklist;
 
         await chrome.storage.sync.set(settings);
+        await chrome.runtime.sendMessage({
+            action: 'SET_MISSION_REMINDER',
+            enabled: settings.enableMissionReminder,
+            hour: settings.missionReminderHour
+        });
         showSnackbar();
 
         await sendMessageToContentScript({
@@ -133,6 +154,55 @@ async function saveSettings() {
         });
     } catch (error) {
         console.error('Failed to save settings:', error);
+    }
+}
+
+async function ensureMissionReminderPermission() {
+    if (!chrome.permissions || !chrome.permissions.request) {
+        return false;
+    }
+
+    try {
+        const alreadyGranted = await chrome.permissions.contains({ permissions: ['notifications', 'alarms'] });
+        if (alreadyGranted) return true;
+        return await chrome.permissions.request({ permissions: ['notifications', 'alarms'] });
+    } catch (error) {
+        console.warn('Mission reminder permission denied:', error);
+        return false;
+    }
+}
+
+async function loadWeeklyMission() {
+    const weekEl = document.getElementById('missionWeek');
+    const progressTextEl = document.getElementById('missionProgressText');
+    const progressBarEl = document.getElementById('missionProgressBar');
+    const tasksEl = document.getElementById('missionTasks');
+
+    if (!weekEl || !progressTextEl || !progressBarEl || !tasksEl) return;
+
+    try {
+        const response = await chrome.runtime.sendMessage({ action: 'GET_WEEKLY_MISSION' });
+        const mission = response && response.success ? response.data : null;
+
+        if (!mission || !Array.isArray(mission.tasks)) {
+            weekEl.textContent = 'No Mission';
+            progressTextEl.textContent = '0%';
+            progressBarEl.style.width = '0%';
+            tasksEl.innerHTML = '<li>尚無可用任務</li>';
+            return;
+        }
+
+        weekEl.textContent = mission.weekId;
+        const score = Number(mission?.summary?.score || 0);
+        progressTextEl.textContent = `${score}%`;
+        progressBarEl.style.width = `${score}%`;
+
+        tasksEl.innerHTML = mission.tasks
+            .map((task) => `<li>- ${task.title} ${task.progress}/${task.target}</li>`)
+            .join('');
+    } catch (error) {
+        console.warn('Failed to load weekly mission:', error);
+        weekEl.textContent = 'Mission Error';
     }
 }
 
@@ -195,6 +265,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Load other settings
     loadSettings();
+    loadWeeklyMission();
 
     const customColorPicker = document.getElementById('customColorPicker');
     if (customColorPicker) {
@@ -234,6 +305,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const enablePhrasalVerbsCheck = document.getElementById('enablePhrasalVerbsCheck');
     if (enablePhrasalVerbsCheck) enablePhrasalVerbsCheck.addEventListener('change', saveSettings);
 
+    const enableMissionReminderCheck = document.getElementById('enableMissionReminderCheck');
+    if (enableMissionReminderCheck) enableMissionReminderCheck.addEventListener('change', saveSettings);
+
     const blacklistBtn = document.getElementById('blacklistBtn');
     if (blacklistBtn) blacklistBtn.addEventListener('click', toggleBlacklist);
 
@@ -256,6 +330,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (reviewBtn) {
         reviewBtn.addEventListener('click', () => {
             chrome.tabs.create({ url: 'review.html' });
+        });
+    }
+
+    const missionReviewBtn = document.getElementById('missionReviewBtn');
+    if (missionReviewBtn) {
+        missionReviewBtn.addEventListener('click', () => {
+            chrome.tabs.create({ url: 'review.html' });
+        });
+    }
+
+    const missionDetailBtn = document.getElementById('missionDetailBtn');
+    if (missionDetailBtn) {
+        missionDetailBtn.addEventListener('click', () => {
+            chrome.tabs.create({ url: 'history.html' });
         });
     }
 });

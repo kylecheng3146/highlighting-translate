@@ -1,123 +1,130 @@
+```
+TASK: 地獄訪談需求提取與產品定義
+EXPECTED OUTCOME: .shared/01-requirements.md
+REQUIRED AGENT: Hell Interviewer
+CONTEXT: 使用者訪談答案、.shared/ 既有輸出、現有 extension 架構
+```
+
 # 需求規格書 (Requirements Specification)
 
-## 專案概述 (Project Overview)
+## 專案概述
 
-**Highlighting Translate (劃詞翻譯與高亮)** - 迭代升級項目：片語資料庫整合 (Phrasal Verbs DB Integration - Level 1)
+**Highlighting Translate** 新功能提案：**Personalized Weekly Mission (個人化每週任務引擎)**
 
-> **版本**: v2 — 地獄訪談完整決策版 (2026-03-07)
-> **狀態**: 所有 Open Questions 已解答，可進入實作階段
+> 版本: v1 (2026-03-28)
+> 狀態: Hell Interview 已完成，可進入規格化階段
+
+本功能聚焦「留存率」與「個人化」，在不依賴伺服器的前提下，利用本地學習資料（收藏詞彙、複習紀錄、高亮互動）自動產生每週任務，讓使用者有明確且可追蹤的學習目標。
+
+---
+
+## 訪談結論摘要
+
+- 核心指標: 週留存提升
+- 使用場景: 新聞、字幕、社群、工作文件皆需覆蓋
+- 價值取向: 個人化
+- 隱私邊界: 純本地優先（不做雲端同步）
+- 權限策略: 額外能力採可選權限
+- 交付節奏: 4-6 週完整版本
+- 主要成功門檻: 週留存提升
 
 ---
 
 ## 核心目標 (Core Objectives)
 
-升級現有基於單字的難度分析與高亮機制，加入對常見片語（Phrasal Verbs）和慣用語的支援，讓擴充功能在網頁上能正確識別多詞彙組合（如 "look forward to", "give up"），並作為一個整體進行高亮標示和難度分級，而不是被拆解為獨立的單字。
+1. 讓使用者每週都知道「下一步該學什麼」，降低打開 extension 後的決策成本。
+2. 讓任務內容依個人狀態自適應，而不是固定題庫。
+3. 在不打斷閱讀體驗的前提下，提供輕量學習引導。
+4. 完整遵守 MV3 與最小權限策略。
 
 ---
 
 ## 功能需求 (Functional Requirements)
 
-### 1. 片語資料庫 (Phrasal Verbs Database)
+### 1) Weekly Mission 生成
 
-- **檔案位置**: `assets/phrasal_verbs_db.json`
-- **資料來源**: 手工建置，收錄最常用 500-1000 個片語
-- **資料結構**: 與現有 `frequency_db.json` 格式相容
+- 系統每週（以本地時間週一 00:00）生成一組任務包。
+- 任務來源資料（純本地）:
+  - `savedTranslations`（詞彙庫）
+  - `learningRate` / `lastReviewedAt` / `interval` / `repetitions` / `easeFactor`
+  - 當前週完成行為
+- 任務類型（MVP）:
+  1. `review_due_words`: 完成 X 個到期複習
+  2. `master_weak_words`: 讓 Y 個低熟練詞彙達到 learningRate 門檻
+  3. `discover_new_words`: 新增 Z 個新收藏詞彙
 
-  ```json
-  [
-    {
-      "text": "give up",
-      "cefr_level": "B1",
-      "frequency_rank": 850,
-      "translation": "放棄"
-    },
-    {
-      "text": "look forward to",
-      "cefr_level": "B1",
-      "frequency_rank": 920,
-      "translation": "期待"
-    }
-  ]
-  ```
+### 2) 個人化難度調節
 
-- **web_accessible_resources**: 需在 `manifest.json` 中加入允許存取
+- 根據上週完成率與錯誤率，自動調整本週任務目標量（+/-20% 範圍）。
+- 新手保護: 詞彙量 < 30 時，優先輕任務，避免挫折。
+- 高活躍使用者: 提供 stretch goal（加分任務，不影響主任務完成判定）。
 
-### 2. 詞形變化策略 (Morphology - 已確認)
+### 3) 任務可視化入口
 
-- **策略**: 預先展開變形表 (小範圍，4 種變形)
-- **展開規則**: 每個片語展開為以下 4 種標準變形：
-  1. 原形 (base): `give up`
-  2. 第三人稱單數 (-s): `gives up`
-  3. 過去式 (-ed / 不規則): `gave up`
-  4. 現在分詞 (-ing): `giving up`
-  5. 過去分詞 (-en/-ed): `given up`
+- Popup 新增「本週任務卡」區塊（不改動主流程，僅增強）。
+- History 頁新增「Mission Progress」卡片（總進度、剩餘目標、完成預估）。
+- Review 頁在答題後顯示「任務進度 +1」即時回饋。
 
-  > 注意：實際為 5 個變形（含過去分詞），但以「小範圍」為原則，不規則動詞需手工指定。
+### 4) 閱讀中輕提示 (Gentle Nudge)
 
-- **vocabMap 展開策略**: 所有 forms 直接映射到相同的 `{translation, rank, level}` 資料，在 `background.js` 載入時展開
+- 命中任務關鍵詞時，僅在高亮 tooltip 中增加「Mission」標記。
+- 不新增全頁彈窗，不遮蔽內容。
+- 同一頁面每個詞最多提示 1 次，避免干擾。
 
-  ```js
-  // 展開後的 vocabMap 鍵：
-  // "give up" → {translation: "放棄", rank: 850, level: "B1"}
-  // "gave up" → {translation: "放棄", rank: 850, level: "B1"}
-  // "gives up" → {translation: "放棄", rank: 850, level: "B1"}
-  // "giving up" → {translation: "放棄", rank: 850, level: "B1"}
-  // "given up" → {translation: "放棄", rank: 850, level: "B1"}
-  ```
+### 5) 週目標完成與連續週紀錄
 
-### 3. 高亮邏輯升級 (`services/HighlightService.js`)
+- 完成全部主任務後標記 `weeklyMission.completed = true`。
+- 記錄 `weeklyStreak`（連續達成週數）。
+- 提供「本週結算摘要」: 完成項目、最有進步詞彙、下週建議難度。
 
-- **多詞彙匹配**: 現有 `\s+` 替換空格機制已就緒，可直接支援片語
-- **匹配優先級**: 現有 `.sort((a, b) => b.length - a.length)` 確保片語優先於單字匹配
-- **跨標籤片語**: **忽略跨標籤情況**，僅匹配同一 TextNode 內的連續字串 (Level 1 範圍)
-- **視覺樣式**: 片語高亮使用相同的 `hl-freq-high / hl-freq-mid / hl-freq-low` 類別，不另設差異
+### 6) 可選提醒（Optional Permission）
 
-### 4. 載入與整合流程
-
-- **載入時機**: 在 `background.js` service worker 初始化時載入 `phrasal_verbs_db.json`
-- **儲存**: 載入後儲存到 `chrome.storage.local`，與 `frequency_db` 合併後傳遞給 content script
-- **傳遞路徑**: `background.js` → `chrome.storage.local` → `content.js` → `HighlightService`
-- **合併方式**: 片語資料展開所有變形後，與單字資料合併為同一個詞彙列表
-
-### 5. Tooltip 顯示
-
-- **hover 行為**: 片語高亮元素 hover 時，直接從 `data-translation` 顯示資料庫內建翻譯
-- **不呼叫 API**: 片語高亮的翻譯來自 DB，不觸發即時 API 翻譯
-
-### 6. 單字本整合
-
-- **儲存格式**: 使用者手動儲存片語時，以**原形** (如 "give up") 存入單字本
-- **行為一致**: 與現有單字儲存機制相同
+- 預設不要求 `notifications`。
+- 使用者開啟「任務提醒」時才請求 `notifications`（optional_permissions）。
+- 每日最多 1 次提醒，可在 options 中關閉。
 
 ---
 
 ## 非功能需求 (Non-Functional Requirements)
 
-- **效能**: 信任現有 `requestIdleCallback` + chunk 機制（不增加額外 regex 數量限制）
-- **擴充功能大小**: 片語 DB 以 500-1000 個片語為限，避免過度膨脹體積
-- **向下相容**: 片語功能不影響現有單字高亮邏輯
+- 效能: 不增加頁面掃描主成本；任務計算優先在 background idle 時執行。
+- 隱私: 資料全部留在 `chrome.storage.local/sync`，不上傳外部服務。
+- 相容性: 不影響現有翻譯、收藏、高亮、複習流程。
+- 可解釋性: 任務卡需顯示「為何推薦這個任務」。
 
 ---
 
-## 技術邊界 (Technical Boundaries)
+## 成功指標 (Success Metrics)
 
-| 項目 | Level 1 決策 |
-|------|--------------|
-| 詞形變化 | 預先展開 5 種變形（含不規則手工指定） |
-| 跨標籤匹配 | 忽略，僅處理同一 TextNode |
-| vocabMap 策略 | 所有 forms 直接映射 |
-| 視覺差異 | 無，與單字相同頻率顏色 |
-| Tooltip 翻譯 | DB 內建，不呼叫 API |
-| 單字本儲存 | 以原形存入 |
-| DB 建置方式 | 手工建置，格式與 frequency_db.json 相容 |
-| 載入時機 | background.js → chrome.storage → content.js |
+1. 週留存提升（主要）: 使用者啟用後 4 週內，活躍週數中位數提升。
+2. 任務完成率: 每週任務完成率 >= 35%。
+3. 複習參與率: 啟用任務後 7 日內，Review 頁啟動次數提升。
+4. 體驗品質: 不增加顯著性能退化（高亮首輪渲染時間增幅 < 10%）。
 
 ---
 
-## 實作影響範圍 (Affected Files)
+## 範圍界定 (Scope)
 
-1. **新增**: `assets/phrasal_verbs_db.json`
-2. **修改**: `manifest.json` - 加入 web_accessible_resources
-3. **修改**: `background.js` - 載入片語 DB，展開變形，合併後儲存
-4. **維持**: `services/HighlightService.js` - 現有邏輯已能支援，無需大改
-5. **可能修改**: `content.js` - 確認接收合併後詞彙列表的邏輯
+### In Scope
+
+- 本地任務生成
+- Popup/History/Review 任務進度 UI
+- 任務事件追蹤（本地）
+- 可選通知提醒
+
+### Out of Scope
+
+- 帳號登入與跨裝置同步
+- 雲端推薦模型
+- A/B Test 伺服器分流
+
+---
+
+## 影響檔案 (初版預估)
+
+1. 新增: `services/MissionService.js`
+2. 修改: `background.js`（週任務生成 + 可選提醒排程）
+3. 修改: `popup.html`, `popup.js`（任務卡 UI）
+4. 修改: `history.html`, `history.js`（任務進度模組）
+5. 修改: `review.js`（答題後任務進度回寫）
+6. 修改: `manifest.json`（optional_permissions: notifications）

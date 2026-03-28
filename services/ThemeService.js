@@ -72,6 +72,11 @@ class ThemeService {
                  chrome.tabs.sendMessage(tabs[0].id, {
                      action: 'updateTheme',
                      themeColor: colorHex
+                 }, () => {
+                     if (chrome.runtime.lastError) {
+                         // Suppress "no receiver" errors when content script isn't injected
+                         console.debug('Theme notify: no content script in tab:', chrome.runtime.lastError.message);
+                     }
                  });
             }
         } catch (e) {

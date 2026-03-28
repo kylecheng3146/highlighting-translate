@@ -118,7 +118,6 @@ class TranslationService {
 }
 
 // Make it available globally
-// Make it available globally
 if (typeof window !== 'undefined') {
     window.TranslationService = TranslationService;
 } else if (typeof self !== 'undefined') {
