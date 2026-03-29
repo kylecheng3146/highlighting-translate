@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="weeklyReportTitle">Weekly Mission Dashboard</title>
+    <link rel="stylesheet" href="assets/styles/theme.css">
+    <style>
+        body {
+            margin: 0;
+            background: radial-gradient(circle at top right, #e3f6f3 0%, var(--bg-app) 40%);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            min-height: 100vh;
+        }
+
+        .page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+
+        .subtext {
+            color: var(--text-secondary);
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
+        .panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        .trend-wrap {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .trend-bars {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 10px;
+            align-items: end;
+            min-height: 120px;
+        }
+
+        .bar {
+            background: linear-gradient(180deg, #79cfc4 0%, var(--primary) 100%);
+            border-radius: 10px 10px 4px 4px;
+            position: relative;
+            min-height: 8px;
+            transition: transform 0.2s ease;
+        }
+
+        .bar.active {
+            outline: 2px solid var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .bar-label {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 11px;
+            margin-top: 6px;
+            white-space: nowrap;
+        }
+
+        .week-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .week-btn {
+            border: 1px solid var(--border-color);
+            background: #fff;
+            color: var(--text-primary);
+            border-radius: 999px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .week-btn.active {
+            background: var(--primary);
+            color: var(--on-primary);
+            border-color: var(--primary);
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px;
+        }
+
+        .metric {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 12px;
+            background: #fff;
+        }
+
+        .metric .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .metric .value {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .filter-select {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 8px 10px;
+            font-size: 13px;
+            background: #fff;
+            color: var(--text-primary);
+        }
+
+        .task-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .task-item {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 12px;
+            background: #fff;
+        }
+
+        .task-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .task-reason {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .empty {
+            color: var(--text-secondary);
+            font-size: 14px;
+            text-align: center;
+            padding: 24px;
+        }
+
+        @media (max-width: 720px) {
+            .page {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="header">
+            <div>
+                <h1 data-i18n="weeklyReportTitle">Weekly Mission Dashboard</h1>
+                <div class="subtext" data-i18n="weeklyReportSubtitle">Track weekly detail, mission quality, and completion blockers.</div>
+            </div>
+            <button id="exportCsvBtn" class="btn btn-secondary" data-i18n="weeklyReportExport">Export CSV</button>
+        </div>
+
+        <section class="panel trend-wrap">
+            <div class="controls">
+                <strong data-i18n="weeklyReportTrendTitle">8-Week Mission Trend</strong>
+                <span id="trendHint" class="subtext"></span>
+            </div>
+            <div id="trendBars" class="trend-bars"></div>
+            <div id="weekTabs" class="week-grid"></div>
+        </section>
+
+        <section class="panel">
+            <div class="controls">
+                <strong data-i18n="weeklyReportMetricsTitle">Selected Week Metrics</strong>
+                <span id="selectedWeek" class="subtext">--</span>
+            </div>
+            <div class="cards" id="metricCards"></div>
+        </section>
+
+        <section class="panel">
+            <div class="controls">
+                <strong data-i18n="weeklyReportTasksTitle">Task Breakdown</strong>
+                <select id="taskFilter" class="filter-select">
+                    <option value="all" data-i18n="weeklyReportFilterAll">All Tasks</option>
+                    <option value="review_due_words" data-i18n="missionTaskReviewDue">Review due words</option>
+                    <option value="master_weak_words" data-i18n="missionTaskMasterWeak">Strengthen weak words</option>
+                    <option value="discover_new_words" data-i18n="missionTaskDiscover">Add new words</option>
+                </select>
+            </div>
+            <div id="taskList" class="task-list"></div>
+            <div id="taskEmpty" class="empty" style="display:none;" data-i18n="weeklyReportNoTasks">No task data for this filter.</div>
+        </section>
+    </div>
+
+    <script src="services/ThemeService.js"></script>
+    <script src="services/I18nService.js"></script>
+    <script>
+        const themeService = new ThemeService();
+        themeService.loadAndApply();
+    </script>
+    <script src="report.js"></script>
+</body>
+</html>

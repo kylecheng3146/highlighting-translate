@@ -30,6 +30,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     .getElementById("loadMoreBtn")
     .addEventListener("click", () => loadHistory(false));
 
+  const weeklyReportBtn = document.getElementById("weeklyReportBtn");
+  if (weeklyReportBtn) {
+    weeklyReportBtn.addEventListener("click", () => {
+      chrome.tabs.create({ url: 'report.html' });
+    });
+  }
+
   // Toggle Archived
   const toggleBtn = document.getElementById("toggleArchivedBtn");
   const archList = document.getElementById("archivedList");

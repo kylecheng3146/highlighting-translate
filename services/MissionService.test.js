@@ -95,4 +95,45 @@ describe('MissionService', () => {
         expect(dueTask.target).toBe(0);
         expect(dueTask.status).toBe('completed');
     });
+
+    test('should track weekly event stats from mission events', () => {
+        let mission = service.generateWeeklyMission([], null, Date.now());
+
+        mission = service.applyEvent(mission, {
+            type: 'REVIEW_COMPLETED',
+            correct: true,
+            isDue: true,
+            weakWordImproved: true
+        });
+        mission = service.applyEvent(mission, {
+            type: 'REVIEW_COMPLETED',
+            correct: false,
+            isDue: false,
+            weakWordImproved: false
+        });
+        mission = service.applyEvent(mission, { type: 'NEW_WORD_SAVED' });
+
+        expect(mission.summary.eventStats.reviewAttempts).toBe(2);
+        expect(mission.summary.eventStats.reviewCorrect).toBe(1);
+        expect(mission.summary.eventStats.weakWordsImproved).toBe(1);
+        expect(mission.summary.eventStats.newWordsSaved).toBe(1);
+    });
+
+    test('should backfill missing eventStats for backward compatibility', () => {
+        const mission = {
+            weekId: '2026-W13',
+            tasks: [
+                { id: service.TASK_IDS.REVIEW_DUE_WORDS, target: 1, progress: 0, title: 'due' },
+                { id: service.TASK_IDS.MASTER_WEAK_WORDS, target: 1, progress: 0, title: 'weak' },
+                { id: service.TASK_IDS.DISCOVER_NEW_WORDS, target: 1, progress: 0, title: 'new' }
+            ],
+            summary: { weeklyStreak: 3 }
+        };
+
+        const updated = service.applyEvent(mission, { type: 'NEW_WORD_SAVED' });
+        expect(updated.summary.eventStats.reviewAttempts).toBe(0);
+        expect(updated.summary.eventStats.reviewCorrect).toBe(0);
+        expect(updated.summary.eventStats.weakWordsImproved).toBe(0);
+        expect(updated.summary.eventStats.newWordsSaved).toBe(1);
+    });
 });

@@ -36,6 +36,8 @@ FILES=(
     "review.html"
     "review.js"
     "review.css"
+    "report.html"
+    "report.js"
 )
 
 for file in "${FILES[@]}"; do

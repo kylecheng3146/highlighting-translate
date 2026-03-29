@@ -49,6 +49,7 @@ async function ensureWeeklyMission(forceRegenerate = false) {
                 [missionService.STORAGE_KEY]: reconciled,
                 [missionService.FOCUS_WORDS_KEY]: reconciled?.focusWords || []
             });
+            await upsertMissionWeeklyReport(reconciled, vocab || []);
             return reconciled;
         }
 
@@ -57,6 +58,7 @@ async function ensureWeeklyMission(forceRegenerate = false) {
             [missionService.STORAGE_KEY]: nextMission,
             [missionService.FOCUS_WORDS_KEY]: nextMission.focusWords || []
         });
+        await upsertMissionWeeklyReport(nextMission, vocab || []);
         return nextMission;
     } catch (error) {
         console.error('Failed to ensure weekly mission:', error);
@@ -64,11 +66,133 @@ async function ensureWeeklyMission(forceRegenerate = false) {
     }
 }
 
+function normalizeMissionReport(report = {}) {
+    return {
+        weekId: report.weekId || '',
+        completed: Boolean(report.completed),
+        score: Number(report.score || 0),
+        generatedAt: Number(report.generatedAt || 0),
+        updatedAt: Number(report.updatedAt || Date.now()),
+        missionProgressTotal: Number(report.missionProgressTotal || 0),
+        missionTargetTotal: Number(report.missionTargetTotal || 0),
+        weeklyStreak: Number(report.weeklyStreak || 0),
+        stats: {
+            activeVocab: Number(report?.stats?.activeVocab || 0),
+            dueWordCount: Number(report?.stats?.dueWordCount || 0),
+            weakWordCount: Number(report?.stats?.weakWordCount || 0)
+        },
+        metrics: {
+            reviewAttempts: Number(report?.metrics?.reviewAttempts || 0),
+            reviewCorrect: Number(report?.metrics?.reviewCorrect || 0),
+            reviewAccuracy: Number(report?.metrics?.reviewAccuracy || 0),
+            totalLearningVolume: Number(report?.metrics?.totalLearningVolume || 0),
+            dueCoverage: Number(report?.metrics?.dueCoverage || 0),
+            weakImprovement: Number(report?.metrics?.weakImprovement || 0)
+        },
+        taskBreakdown: Array.isArray(report.taskBreakdown) ? report.taskBreakdown.map((task) => ({
+            id: task.id,
+            title: task.title,
+            reason: task.reason,
+            target: Number(task.target || 0),
+            progress: Number(task.progress || 0),
+            status: task.status || 'pending'
+        })) : []
+    };
+}
+
+function buildMissionReport(mission, vocabList = [], now = Date.now()) {
+    if (!mission || !Array.isArray(mission.tasks)) return null;
+
+    const dueTask = mission.tasks.find((task) => task.id === missionService.TASK_IDS.REVIEW_DUE_WORDS);
+    const weakTask = mission.tasks.find((task) => task.id === missionService.TASK_IDS.MASTER_WEAK_WORDS);
+    const summary = mission.summary || {};
+    const eventStats = summary.eventStats || {};
+
+    const reviewAttempts = Number(eventStats.reviewAttempts || 0);
+    const reviewCorrect = Number(eventStats.reviewCorrect || 0);
+    const reviewAccuracy = reviewAttempts > 0 ? Math.round((reviewCorrect / reviewAttempts) * 100) : 0;
+    const newWordsSaved = Number(eventStats.newWordsSaved || 0);
+    const weakWordsImproved = Number(eventStats.weakWordsImproved || 0);
+    const totalLearningVolume = reviewAttempts + newWordsSaved + weakWordsImproved;
+
+    const dueCoverage = Number(dueTask?.target || 0) > 0
+        ? Math.round((Number(dueTask?.progress || 0) / Number(dueTask?.target || 0)) * 100)
+        : 100;
+    const weakImprovement = Number(weakTask?.target || 0) > 0
+        ? Math.round((Number(weakTask?.progress || 0) / Number(weakTask?.target || 0)) * 100)
+        : 100;
+
+    const activeWords = (vocabList || []).filter((item) => !item.isArchived);
+    const dueWordCount = activeWords.filter((item) => item.nextReview && item.nextReview <= now).length;
+    const weakWordCount = activeWords.filter((item) => Number(item.learningRate || 0) < 60).length;
+
+    return normalizeMissionReport({
+        weekId: mission.weekId,
+        completed: mission.completed,
+        score: Number(summary.score || 0),
+        generatedAt: Number(mission.generatedAt || now),
+        updatedAt: now,
+        missionProgressTotal: Number(summary.progressTotal || 0),
+        missionTargetTotal: Number(summary.targetTotal || 0),
+        weeklyStreak: Number(summary.weeklyStreak || 0),
+        stats: {
+            activeVocab: activeWords.length,
+            dueWordCount,
+            weakWordCount
+        },
+        metrics: {
+            reviewAttempts,
+            reviewCorrect,
+            reviewAccuracy,
+            totalLearningVolume,
+            dueCoverage,
+            weakImprovement
+        },
+        taskBreakdown: mission.tasks
+    });
+}
+
+async function upsertMissionWeeklyReport(mission, vocabList = null) {
+    if (!mission || !mission.weekId) return;
+
+    const now = Date.now();
+    const vocab = Array.isArray(vocabList) ? vocabList : await storageService.getTranslations(5000, 0);
+    const report = buildMissionReport(mission, vocab || [], now);
+    if (!report) return;
+
+    const data = await chrome.storage.local.get(missionService.REPORTS_KEY);
+    const existing = Array.isArray(data[missionService.REPORTS_KEY])
+        ? data[missionService.REPORTS_KEY].map((item) => normalizeMissionReport(item))
+        : [];
+
+    const index = existing.findIndex((item) => item.weekId === report.weekId);
+    if (index >= 0) {
+        existing[index] = report;
+    } else {
+        existing.push(report);
+    }
+
+    existing.sort((a, b) => Number(b.generatedAt || 0) - Number(a.generatedAt || 0));
+    const trimmed = existing.slice(0, 24);
+    await chrome.storage.local.set({ [missionService.REPORTS_KEY]: trimmed });
+}
+
+async function getMissionWeeklyReports(limit = 8) {
+    const data = await chrome.storage.local.get(missionService.REPORTS_KEY);
+    const items = Array.isArray(data[missionService.REPORTS_KEY]) ? data[missionService.REPORTS_KEY] : [];
+    return items
+        .map((item) => normalizeMissionReport(item))
+        .sort((a, b) => Number(b.generatedAt || 0) - Number(a.generatedAt || 0))
+        .slice(0, Math.max(1, Number(limit || 8)));
+}
+
 async function applyMissionEvent(event) {
     const mission = await ensureWeeklyMission();
     if (!mission) return null;
     const updated = missionService.applyEvent(mission, event);
+    const vocab = await storageService.getTranslations(5000, 0);
     await chrome.storage.local.set({ [missionService.STORAGE_KEY]: updated });
+    await upsertMissionWeeklyReport(updated, vocab || []);
     return updated;
 }
 
@@ -76,7 +200,9 @@ async function refreshMissionProgress() {
     const mission = await ensureWeeklyMission();
     if (!mission) return null;
     const normalized = missionService.applyEvent(mission, { type: 'NOOP' });
+    const vocab = await storageService.getTranslations(5000, 0);
     await chrome.storage.local.set({ [missionService.STORAGE_KEY]: normalized });
+    await upsertMissionWeeklyReport(normalized, vocab || []);
     return normalized;
 }
 
@@ -277,6 +403,12 @@ async function handleMessage(request, sender, sendResponse) {
             case 'GET_WEEKLY_MISSION': {
                 const mission = await ensureWeeklyMission();
                 sendResponse({ success: true, data: mission });
+                break;
+            }
+            case 'GET_WEEKLY_MISSION_REPORTS': {
+                await ensureWeeklyMission();
+                const reports = await getMissionWeeklyReports(Number(request.limit || 8));
+                sendResponse({ success: true, data: reports });
                 break;
             }
             case 'MISSION_APPLY_EVENT': {

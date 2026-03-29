@@ -2,6 +2,7 @@ class MissionService {
     constructor() {
         this.STORAGE_KEY = 'weeklyMission';
         this.FOCUS_WORDS_KEY = 'weeklyMissionFocusWords';
+        this.REPORTS_KEY = 'weeklyMissionReports';
         this.TASK_IDS = {
             REVIEW_DUE_WORDS: 'review_due_words',
             MASTER_WEAK_WORDS: 'master_weak_words',
@@ -30,6 +31,16 @@ class MissionService {
 
     _roundTarget(value) {
         return Math.max(1, Math.round(value));
+    }
+
+    _normalizeEventStats(summary = {}) {
+        const base = summary.eventStats || {};
+        return {
+            reviewAttempts: Number(base.reviewAttempts || 0),
+            reviewCorrect: Number(base.reviewCorrect || 0),
+            newWordsSaved: Number(base.newWordsSaved || 0),
+            weakWordsImproved: Number(base.weakWordsImproved || 0)
+        };
     }
 
     _calculatePersonalizationFactor(previousMission) {
@@ -145,7 +156,8 @@ class MissionService {
                 score,
                 targetTotal,
                 progressTotal,
-                weeklyStreak: Number(mission?.summary?.weeklyStreak || 0)
+                weeklyStreak: Number(mission?.summary?.weeklyStreak || 0),
+                eventStats: this._normalizeEventStats(mission?.summary || {})
             }
         };
     }
@@ -167,7 +179,13 @@ class MissionService {
                 score: 0,
                 targetTotal: 0,
                 progressTotal: 0,
-                weeklyStreak: previousMission?.completed ? Number(previousMission?.summary?.weeklyStreak || 0) + 1 : Number(previousMission?.summary?.weeklyStreak || 0)
+                weeklyStreak: previousMission?.completed ? Number(previousMission?.summary?.weeklyStreak || 0) + 1 : Number(previousMission?.summary?.weeklyStreak || 0),
+                eventStats: {
+                    reviewAttempts: 0,
+                    reviewCorrect: 0,
+                    newWordsSaved: 0,
+                    weakWordsImproved: 0
+                }
             }
         };
 
@@ -197,7 +215,11 @@ class MissionService {
 
         const updated = {
             ...mission,
-            tasks: mission.tasks.map((task) => ({ ...task }))
+            tasks: mission.tasks.map((task) => ({ ...task })),
+            summary: {
+                ...(mission.summary || {}),
+                eventStats: this._normalizeEventStats(mission.summary || {})
+            }
         };
 
         const byId = (id) => updated.tasks.find((task) => task.id === id);
@@ -212,18 +234,25 @@ class MissionService {
 
         switch (event.type) {
             case 'REVIEW_COMPLETED':
+                updated.summary.eventStats.reviewAttempts += 1;
+                if (event.correct) {
+                    updated.summary.eventStats.reviewCorrect += 1;
+                }
                 if (event.isDue !== false) {
                     inc(this.TASK_IDS.REVIEW_DUE_WORDS, 1);
                 }
                 if (event.weakWordImproved) {
                     inc(this.TASK_IDS.MASTER_WEAK_WORDS, 1);
+                    updated.summary.eventStats.weakWordsImproved += 1;
                 }
                 break;
             case 'NEW_WORD_SAVED':
                 inc(this.TASK_IDS.DISCOVER_NEW_WORDS, 1);
+                updated.summary.eventStats.newWordsSaved += 1;
                 break;
             case 'WEAK_WORD_IMPROVED':
                 inc(this.TASK_IDS.MASTER_WEAK_WORDS, 1);
+                updated.summary.eventStats.weakWordsImproved += 1;
                 break;
             default:
                 break;

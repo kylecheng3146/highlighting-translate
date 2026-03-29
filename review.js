@@ -272,6 +272,7 @@ async function handleAnswer(selectedOption, btnElement) {
             action: 'MISSION_APPLY_EVENT',
             event: {
                 type: 'REVIEW_COMPLETED',
+                correct: Boolean(isCorrect),
                 isDue: Boolean(currentQ.target.nextReview && currentQ.target.nextReview <= Date.now()),
                 weakWordImproved: Boolean(progressUpdate && progressUpdate.weakWordImproved)
             }

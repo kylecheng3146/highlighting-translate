@@ -352,7 +352,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const missionDetailBtn = document.getElementById('missionDetailBtn');
     if (missionDetailBtn) {
         missionDetailBtn.addEventListener('click', () => {
-            chrome.tabs.create({ url: 'history.html' });
+            chrome.tabs.create({ url: 'report.html' });
         });
     }
 });
