@@ -21,12 +21,12 @@ class HighlightService {
             if (item.text && item.text.length >= this.minWordLength) {
                 const normalized = item.text.toLowerCase();
                 const existing = vocabMap.get(normalized);
-                vocabMap.set(normalized, {
-                    translation: item.translation,
-                    rank: item.frequency_rank,
-                    level: item.cefr_level,
-                    isMissionWord: Boolean(item.isMissionWord || existing?.isMissionWord)
-                });
+            vocabMap.set(normalized, {
+                translation: item.translation,
+                rank: item.frequency_rank,
+                level: item.cefr_level,
+                isMissionWord: Boolean(item.isMissionWord || existing?.isMissionWord)
+            });
             }
         });
 

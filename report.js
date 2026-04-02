@@ -25,14 +25,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadWeeklyReports() {
     try {
-        const response = await chrome.runtime.sendMessage({
-            action: 'GET_WEEKLY_MISSION_REPORTS',
-            limit: 8
-        });
+    const response = await chrome.runtime.sendMessage({
+        action: 'GET_FOCUS_TRACK_REPORTS',
+        limit: 8
+    });
 
-        weeklyReports = response && response.success && Array.isArray(response.data)
-            ? response.data
-            : [];
+    weeklyReports = response && response.success && Array.isArray(response.data)
+        ? response.data
+        : [];
 
         if (!selectedWeekId && weeklyReports.length > 0) {
             selectedWeekId = weeklyReports[0].weekId;
@@ -65,7 +65,7 @@ function renderTrend() {
 
     trendBars.innerHTML = '';
     if (weeklyReports.length === 0) {
-        trendHint.textContent = i18nService.getText('weeklyReportNoData');
+        trendHint.textContent = i18nService.getText('weeklyFocusReportNoData');
         return;
     }
 
@@ -91,7 +91,7 @@ function renderTrend() {
     });
 
     const latest = weeklyReports[0];
-    trendHint.textContent = `${i18nService.getText('weeklyReportLatest')}: ${latest.weekId} (${latest.score}%)`;
+    trendHint.textContent = `${i18nService.getText('weeklyFocusReportLatest')}: ${latest.weekId} (${latest.score}%)`;
 }
 
 function renderWeekTabs() {
@@ -120,19 +120,18 @@ function renderMetricCards() {
     cards.innerHTML = '';
     const report = getSelectedReport();
     if (!report) {
-        selectedWeek.textContent = i18nService.getText('weeklyReportNoData');
+        selectedWeek.textContent = i18nService.getText('weeklyFocusReportNoData');
         return;
     }
 
     selectedWeek.textContent = report.weekId;
 
     const metrics = [
-        { label: i18nService.getText('statWeeklyMission'), value: `${Number(report.score || 0)}%` },
-        { label: i18nService.getText('weeklyReportLearningVolume'), value: Number(report?.metrics?.totalLearningVolume || 0) },
-        { label: i18nService.getText('weeklyReportDueCoverage'), value: `${Number(report?.metrics?.dueCoverage || 0)}%` },
-        { label: i18nService.getText('weeklyReportWeakImprovement'), value: `${Number(report?.metrics?.weakImprovement || 0)}%` },
-        { label: i18nService.getText('weeklyReportAccuracy'), value: `${Number(report?.metrics?.reviewAccuracy || 0)}%` },
-        { label: i18nService.getText('weeklyReportStreak'), value: Number(report.weeklyStreak || 0) }
+        { label: i18nService.getText('statWeeklyFocus'), value: `${Number(report.score || 0)}%` },
+        { label: i18nService.getText('weeklyFocusReportActiveVocab'), value: Number(report?.stats?.activeVocab || 0) },
+        { label: i18nService.getText('weeklyFocusReportWeakCount'), value: Number(report?.stats?.weakWordCount || 0) },
+        { label: i18nService.getText('weeklyFocusReportTargetTotal'), value: Number(report?.focusTargetTotal || 0) },
+        { label: i18nService.getText('weeklyFocusReportProgressTotal'), value: Number(report?.focusProgressTotal || 0) }
     ];
 
     metrics.forEach((metric) => {
@@ -150,38 +149,43 @@ function renderTaskBreakdown() {
 
     taskList.innerHTML = '';
     const report = getSelectedReport();
-    if (!report || !Array.isArray(report.taskBreakdown)) {
+    if (!report || !Array.isArray(report.topicBreakdown)) {
         empty.style.display = 'block';
         return;
     }
 
-    const list = report.taskBreakdown.filter((task) => taskFilter === 'all' || task.id === taskFilter);
-    if (list.length === 0) {
-        empty.style.display = 'block';
-        return;
-    }
-    empty.style.display = 'none';
+        const list = report.topicBreakdown.filter((topic) => taskFilter === 'all' || topic.id === taskFilter);
+        if (list.length === 0) {
+            empty.style.display = 'block';
+            return;
+        }
+        empty.style.display = 'none';
 
-    const taskLabelMap = {
-        review_due_words: i18nService.getText('missionTaskReviewDue'),
-        master_weak_words: i18nService.getText('missionTaskMasterWeak'),
-        discover_new_words: i18nService.getText('missionTaskDiscover')
-    };
-    const taskReasonMap = {
-        review_due_words: i18nService.getText('missionReasonReviewDue'),
-        master_weak_words: i18nService.getText('missionReasonMasterWeak'),
-        discover_new_words: i18nService.getText('missionReasonDiscover')
-    };
+        const filterEl = document.getElementById('taskFilter');
+        if (filterEl) {
+            const topics = report.topicBreakdown.map((topic) => ({
+                id: topic.id,
+                label: topic.label || topic.id
+            }));
+            filterEl.innerHTML = [
+                `<option value="all">${escapeHtml(i18nService.getText('weeklyFocusReportFilterAll'))}</option>`,
+                ...topics.map((topic) => `<option value="${escapeHtml(topic.id)}">${escapeHtml(topic.label)}</option>`)
+            ].join('');
+            if (taskFilter !== 'all' && !topics.find((topic) => topic.id === taskFilter)) {
+                taskFilter = 'all';
+            }
+            filterEl.value = taskFilter;
+        }
 
-    list.forEach((task) => {
-        const title = taskLabelMap[task.id] || task.title || task.id;
-        const reason = taskReasonMap[task.id] || task.reason || i18nService.getText('weeklyReportNoReason');
-        const target = Number(task.target || 0);
-        const progress = Number(task.progress || 0);
+    list.forEach((topic) => {
+        const title = topic.label || topic.id;
+        const reason = topic.reason || i18nService.getText('weeklyFocusReportNoReason');
+        const target = Number(topic.target || 0);
+        const progress = Number(topic.progress || 0);
         const remaining = Math.max(0, target - progress);
         const reasonText = remaining > 0
-            ? `${i18nService.getText('weeklyReportRemaining')}: ${remaining}. ${reason}`
-            : i18nService.getText('weeklyReportTaskCompleted');
+            ? `${i18nService.getText('weeklyFocusReportRemaining')}: ${remaining}. ${reason}`
+            : i18nService.getText('weeklyFocusReportTopicCompleted');
 
         const el = document.createElement('div');
         el.className = 'task-item';
@@ -202,30 +206,20 @@ function exportWeeklyReportCsv() {
     const header = [
         'weekId',
         'score',
-        'missionProgressTotal',
-        'missionTargetTotal',
-        'totalLearningVolume',
-        'reviewAttempts',
-        'reviewCorrect',
-        'reviewAccuracy',
-        'dueCoverage',
-        'weakImprovement',
-        'weeklyStreak',
+        'focusProgressTotal',
+        'focusTargetTotal',
+        'activeVocab',
+        'weakWordCount',
         'completed'
     ];
 
     const rows = weeklyReports.map((r) => [
         r.weekId,
         Number(r.score || 0),
-        Number(r.missionProgressTotal || 0),
-        Number(r.missionTargetTotal || 0),
-        Number(r?.metrics?.totalLearningVolume || 0),
-        Number(r?.metrics?.reviewAttempts || 0),
-        Number(r?.metrics?.reviewCorrect || 0),
-        Number(r?.metrics?.reviewAccuracy || 0),
-        Number(r?.metrics?.dueCoverage || 0),
-        Number(r?.metrics?.weakImprovement || 0),
-        Number(r.weeklyStreak || 0),
+        Number(r.focusProgressTotal || 0),
+        Number(r.focusTargetTotal || 0),
+        Number(r?.stats?.activeVocab || 0),
+        Number(r?.stats?.weakWordCount || 0),
         Boolean(r.completed)
     ]);
 
@@ -237,7 +231,7 @@ function exportWeeklyReportCsv() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `weekly-mission-report-${Date.now()}.csv`;
+    a.download = `weekly-focus-report-${Date.now()}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();

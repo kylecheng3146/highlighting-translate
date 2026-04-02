@@ -196,11 +196,11 @@ async function updateDashboard() {
       "%",
     );
 
-    const missionResponse = await chrome.runtime.sendMessage({ action: 'GET_WEEKLY_MISSION' });
-    const mission = missionResponse && missionResponse.success ? missionResponse.data : null;
-    const missionScore = Number(mission?.summary?.score || 0);
-    const missionTarget = Number(mission?.summary?.targetTotal || 0);
-    const missionProgress = Number(mission?.summary?.progressTotal || 0);
+    const focusResponse = await chrome.runtime.sendMessage({ action: 'GET_FOCUS_TRACK' });
+    const focusTrack = focusResponse && focusResponse.success ? focusResponse.data : null;
+    const missionScore = Number(focusTrack?.summary?.score || 0);
+    const missionTarget = Number(focusTrack?.summary?.targetTotal || 0);
+    const missionProgress = Number(focusTrack?.summary?.progressTotal || 0);
 
     animateNumber(
       document.getElementById("stat-mission-score"),
@@ -219,9 +219,9 @@ async function updateDashboard() {
       document.getElementById("mission-summary-ratio").innerText = `${missionProgress} / ${missionTarget}`;
       const summaryText = document.getElementById("mission-summary-text");
       if (summaryText) {
-        summaryText.innerText = mission?.completed
-          ? `${i18nService.getText('missionSummaryCompleted')} (${mission.weekId})`
-          : `${i18nService.getText('missionSummaryProgress')} (${mission?.weekId || '--'})`;
+        summaryText.innerText = focusTrack?.completed
+          ? `${i18nService.getText('focusSummaryCompleted')} (${focusTrack.weekId})`
+          : `${i18nService.getText('focusSummaryProgress')} (${focusTrack?.weekId || '--'})`;
       }
 
       document.getElementById("bar-coverage-2k").style.width =

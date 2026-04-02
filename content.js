@@ -16,7 +16,10 @@ let settings = {
     sourceLang: 'auto',
     targetLang: 'zh-TW',
     delay: 500,
-    enablePhrasalVerbs: true
+    enablePhrasalVerbs: true,
+    enableFocusTrack: true,
+    focusInTooltip: true,
+    focusExperimentFlag: false
 };
 
 let lastSelectedText = '';
@@ -44,7 +47,12 @@ async function loadSettings() {
             enableHighlighting: true,
             enablePhrasalVerbs: true,
             domainBlacklist: [],
-            themeColor: '#26A69A' // Default Teal
+            themeColor: '#26A69A', // Default Teal
+            enableFocusTrack: true,
+            focusInTooltip: true,
+            focusInReview: true,
+            focusInPopup: true,
+            focusExperimentFlag: false
         });
         settings = items;
         
@@ -101,8 +109,8 @@ async function scanPageForVocabulary() {
             phrasalVerbs = localData.phrasalVerbsExpanded || [];
         }
 
-        const missionData = await chrome.storage.local.get('weeklyMissionFocusWords');
-        missionFocusWords = new Set((missionData.weeklyMissionFocusWords || []).map((word) => String(word).toLowerCase().trim()));
+        const focusData = await chrome.storage.local.get('focusTrackWords');
+        missionFocusWords = new Set((focusData.focusTrackWords || []).map((word) => String(word).toLowerCase().trim()));
 
         // Merge: phrasal verbs first so they are sorted by length ahead of single words
         // HighlightService already sorts by length descending, so order here doesn't matter,
@@ -482,7 +490,7 @@ function injectStyles(root) {
         }
         .ht-rank-badge.level-mid { background: #42A5F5; }
         .ht-rank-badge.level-low { background: #B0BEC5; }
-        .ht-mission-badge {
+        .ht-focus-badge {
             background: #ff7043;
             color: #fff;
             padding: 2px 8px;
@@ -492,9 +500,9 @@ function injectStyles(root) {
             letter-spacing: 0.3px;
             text-transform: uppercase;
             display: inline-block;
-            animation: ht-mission-pop 0.18s ease-out;
+            animation: ht-focus-pop 0.18s ease-out;
         }
-        @keyframes ht-mission-pop {
+        @keyframes ht-focus-pop {
             0% { transform: scale(0.85); opacity: 0.5; }
             100% { transform: scale(1); opacity: 1; }
         }
@@ -1034,6 +1042,9 @@ document.addEventListener('mouseover', (e) => {
         const rank = e.target.dataset.rank;
         const level = e.target.dataset.level;
         const isMission = e.target.dataset.mission === 'true';
+        const focusEnabled = settings.enableFocusTrack !== false
+            && settings.focusInTooltip !== false
+            && !settings.focusExperimentFlag;
         
         if (text) {
             const rect = e.target.getBoundingClientRect();
@@ -1041,7 +1052,7 @@ document.addEventListener('mouseover', (e) => {
             if (!host) {
                 host = createTranslatePopup();
             }
-            tooltipService.show(text, rect, rank, level, isMission);
+            tooltipService.show(text, rect, rank, level, isMission && focusEnabled);
         }
     }
 });

@@ -12,7 +12,12 @@ async function loadSettings() {
             enablePhrasalVerbs: true,
             enableMissionReminder: false,
             missionReminderHour: 20,
-            domainBlacklist: []
+            domainBlacklist: [],
+            enableFocusTrack: true,
+            focusInTooltip: true,
+            focusInReview: true,
+            focusInPopup: true,
+            focusExperimentFlag: false
         });
 
         // 更新 UI
@@ -42,6 +47,21 @@ async function loadSettings() {
 
         const enableMissionReminderCheck = document.getElementById('enableMissionReminderCheck');
         if (enableMissionReminderCheck) enableMissionReminderCheck.checked = !!settings.enableMissionReminder;
+
+        const enableFocusTrackCheck = document.getElementById('enableFocusTrackCheck');
+        if (enableFocusTrackCheck) enableFocusTrackCheck.checked = settings.enableFocusTrack !== false;
+
+        const focusInTooltipCheck = document.getElementById('focusInTooltipCheck');
+        if (focusInTooltipCheck) focusInTooltipCheck.checked = settings.focusInTooltip !== false;
+
+        const focusInReviewCheck = document.getElementById('focusInReviewCheck');
+        if (focusInReviewCheck) focusInReviewCheck.checked = settings.focusInReview !== false;
+
+        const focusInPopupCheck = document.getElementById('focusInPopupCheck');
+        if (focusInPopupCheck) focusInPopupCheck.checked = settings.focusInPopup !== false;
+
+        const focusExperimentFlagCheck = document.getElementById('focusExperimentFlagCheck');
+        if (focusExperimentFlagCheck) focusExperimentFlagCheck.checked = settings.focusExperimentFlag === true;
 
         // Blacklist button logic
         updateBlacklistButton(settings.domainBlacklist);
@@ -132,7 +152,12 @@ async function saveSettings() {
         enableHighlighting: document.getElementById('enableHighlightCheck').checked,
         enablePhrasalVerbs: document.getElementById('enablePhrasalVerbsCheck').checked,
         enableMissionReminder: document.getElementById('enableMissionReminderCheck').checked,
-        missionReminderHour: 20
+        missionReminderHour: 20,
+        enableFocusTrack: document.getElementById('enableFocusTrackCheck')?.checked ?? true,
+        focusInTooltip: document.getElementById('focusInTooltipCheck')?.checked ?? true,
+        focusInReview: document.getElementById('focusInReviewCheck')?.checked ?? true,
+        focusInPopup: document.getElementById('focusInPopupCheck')?.checked ?? true,
+        focusExperimentFlag: document.getElementById('focusExperimentFlagCheck')?.checked ?? false
     };
 
     try {
@@ -215,6 +240,54 @@ async function loadWeeklyMission() {
     }
 }
 
+async function loadFocusTrack() {
+    const weekEl = document.getElementById('focusWeek');
+    const progressTextEl = document.getElementById('focusProgressText');
+    const progressBarEl = document.getElementById('focusProgressBar');
+    const topicsEl = document.getElementById('focusTopics');
+    const focusCard = document.getElementById('focusCard');
+
+    if (!weekEl || !progressTextEl || !progressBarEl || !topicsEl || !focusCard) return;
+
+    const settings = await chrome.storage.sync.get({
+        enableFocusTrack: true,
+        focusInPopup: true,
+        focusExperimentFlag: false
+    });
+
+    const enabled = settings.enableFocusTrack !== false && settings.focusInPopup !== false && !settings.focusExperimentFlag;
+    focusCard.style.display = enabled ? 'flex' : 'none';
+    if (!enabled) return;
+
+    try {
+        const response = await chrome.runtime.sendMessage({ action: 'GET_FOCUS_TRACK' });
+        const track = response && response.success ? response.data : null;
+
+        if (!track || !Array.isArray(track.topics)) {
+            weekEl.textContent = i18nService.getText('focusNoData');
+            progressTextEl.textContent = '0%';
+            progressBarEl.style.width = '0%';
+            topicsEl.innerHTML = `<li>${i18nService.getText('focusNoTopic')}</li>`;
+            return;
+        }
+
+        weekEl.textContent = track.weekId;
+        const score = Number(track?.summary?.score || 0);
+        progressTextEl.textContent = `${score}%`;
+        progressBarEl.style.width = `${score}%`;
+
+        topicsEl.innerHTML = track.topics
+            .map((topic) => {
+                const label = topic.label || topic.id;
+                return `<li>- ${label} ${topic.progress}/${topic.target}</li>`;
+            })
+            .join('');
+    } catch (error) {
+        console.warn('Failed to load focus track:', error);
+        weekEl.textContent = i18nService.getText('focusError');
+    }
+}
+
 async function toggleBlacklist() {
     const btn = document.getElementById('blacklistBtn');
     const domain = btn.dataset.domain;
@@ -275,6 +348,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load other settings
     loadSettings();
     loadWeeklyMission();
+    loadFocusTrack();
 
     const customColorPicker = document.getElementById('customColorPicker');
     if (customColorPicker) {
@@ -317,6 +391,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const enableMissionReminderCheck = document.getElementById('enableMissionReminderCheck');
     if (enableMissionReminderCheck) enableMissionReminderCheck.addEventListener('change', saveSettings);
 
+    const enableFocusTrackCheck = document.getElementById('enableFocusTrackCheck');
+    if (enableFocusTrackCheck) enableFocusTrackCheck.addEventListener('change', saveSettings);
+
+    const focusInTooltipCheck = document.getElementById('focusInTooltipCheck');
+    if (focusInTooltipCheck) focusInTooltipCheck.addEventListener('change', saveSettings);
+
+    const focusInReviewCheck = document.getElementById('focusInReviewCheck');
+    if (focusInReviewCheck) focusInReviewCheck.addEventListener('change', saveSettings);
+
+    const focusInPopupCheck = document.getElementById('focusInPopupCheck');
+    if (focusInPopupCheck) focusInPopupCheck.addEventListener('change', saveSettings);
+
+    const focusExperimentFlagCheck = document.getElementById('focusExperimentFlagCheck');
+    if (focusExperimentFlagCheck) focusExperimentFlagCheck.addEventListener('change', saveSettings);
+
     const blacklistBtn = document.getElementById('blacklistBtn');
     if (blacklistBtn) blacklistBtn.addEventListener('click', toggleBlacklist);
 
@@ -353,6 +442,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (missionDetailBtn) {
         missionDetailBtn.addEventListener('click', () => {
             chrome.tabs.create({ url: 'report.html' });
+        });
+    }
+
+    const focusReviewBtn = document.getElementById('focusReviewBtn');
+    if (focusReviewBtn) {
+        focusReviewBtn.addEventListener('click', () => {
+            chrome.tabs.create({ url: 'review.html' });
+        });
+    }
+
+    const focusDetailBtn = document.getElementById('focusDetailBtn');
+    if (focusDetailBtn) {
+        focusDetailBtn.addEventListener('click', () => {
+            chrome.tabs.create({ url: 'history.html' });
         });
     }
 });

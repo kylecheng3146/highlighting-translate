@@ -2,26 +2,28 @@
 TASK: MV3 架構設計與實作規劃
 EXPECTED OUTCOME: .shared/04-tech-architecture.md
 REQUIRED AGENT: Extension Architect
-CONTEXT: .shared/01-requirements.md, background.js, popup.js, history.js, review.js
+CONTEXT: .shared/01-requirements.md, background.js, popup.js, history.js, review.js, content.js, options.js
 ```
 
-# 技術架構設計 (Personalized Weekly Mission)
+# 技術架構設計 (Contextual Focus Track)
 
 ## 1. 架構總覽
 
 ### 核心元件
 
-- `MissionService` (新增): 任務生成、進度計算、週結算
-- `background.js` (修改): 週切換偵測、任務重算、提醒排程
-- `popup.js` (修改): 任務摘要讀取與 CTA
-- `history.js` (修改): 任務儀表摘要顯示
-- `review.js` (修改): 作答事件回寫任務進度
+- `FocusTrackService` (新增): 焦點生成、進度計算、週結算
+- `background.js` (修改): 週切換偵測、焦點重算
+- `popup.js` (修改): 焦點摘要讀取與 CTA
+- `history.js` (修改): 焦點摘要顯示
+- `review.js` (修改): 作答事件回寫 Focus 進度
+- `content.js` (修改): tooltip Focus 標籤渲染
+- `options.js` (修改): 開關與回滾控制
 
 ### MV3 與 Message 流
 
 - UI -> Background: `chrome.runtime.sendMessage`
 - Background -> storage: `chrome.storage.local/sync`
-- Content -> Background: 收藏事件可用既有 storage save 路徑觸發任務更新
+- Content -> Background: 收藏事件沿用既有 storage save 路徑觸發 Focus 更新
 
 ## 2. 資料模型
 
@@ -29,23 +31,22 @@ CONTEXT: .shared/01-requirements.md, background.js, popup.js, history.js, review
 
 ```json
 {
-  "weeklyMission": {
-    "weekId": "2026-W13",
-    "generatedAt": 1774636800000,
-    "completed": false,
-    "tasks": [
+  "focusTrack": {
+    "weekId": "2026-W14",
+    "generatedAt": 1775232000000,
+    "topics": [
       {
-        "id": "review_due_words",
-        "target": 12,
-        "progress": 6,
+        "id": "tech-writing",
+        "label": "Tech Writing",
+        "target": 10,
+        "progress": 4,
         "status": "in_progress",
-        "reason": "上週到期未複習數偏高"
+        "reason": "最近閱讀多為技術文章"
       }
     ],
-    "stretchTasks": [],
     "summary": {
-      "score": 45,
-      "weeklyStreak": 2
+      "score": 40,
+      "lastVisitAt": 1775318400000
     }
   }
 }
@@ -55,59 +56,61 @@ CONTEXT: .shared/01-requirements.md, background.js, popup.js, history.js, review
 
 ```json
 {
-  "enableMissionReminder": false,
-  "missionReminderHour": 20
+  "enableFocusTrack": true,
+  "focusInTooltip": true,
+  "focusInReview": true,
+  "focusInPopup": true,
+  "focusExperimentFlag": false
 }
 ```
 
-## 3. 任務生成策略
+## 3. 焦點生成策略
 
 ### 輸入訊號
 
-- 到期卡數量 (`nextReview <= now`)
-- 低熟練詞數 (`learningRate < threshold`)
-- 上週新詞新增數
-- 上週任務完成率
+- 近期閱讀頁面關鍵詞統計（本地摘要）
+- 低熟練詞分佈（learningRate < threshold）
+- 近期收藏詞語言方向
+- 上週 Focus 完成率
 
 ### 輸出規則
 
-- 產生 3 個主任務（複習/弱項/新詞）
+- 產生 1-2 個 Focus Topic
 - `target` 由基準值 * 個人化係數計算
 - 個人化係數範圍: 0.8 - 1.2
+- 新手保護: 詞彙量 < 20 時僅生成 1 個小目標
 
 ## 4. 事件回寫與一致性
 
-- 收藏成功時: `STORAGE_SAVE` 完成後觸發 `MISSION_RECALC_PROGRESS`
-- review 作答時: 既有 `updateSRSStatus` 後觸發 `MISSION_APPLY_EVENT`
+- 收藏成功時: `STORAGE_SAVE` 完成後觸發 `FOCUS_APPLY_EVENT`
+- review 作答時: 既有 `updateSRSStatus` 後觸發 `FOCUS_APPLY_EVENT`
 - 背景每次喚醒時檢查 `weekId`，切週即重新生成
 
-## 5. 可選提醒權限策略
+## 5. 回滾與開關策略
 
-- `manifest.json`:
-  - `optional_permissions`: `notifications`
-- 使用者開啟提醒時:
-  1. `chrome.permissions.request({ permissions: ['notifications'] })`
-  2. 成功後由 background 建立每日提醒
+- `options` 中的總開關 `enableFocusTrack` 可關閉整體
+- 逐模組開關 `focusInTooltip` / `focusInReview` / `focusInPopup`
+- `focusExperimentFlag` 可強制停用（給內部回滾）
 
 ## 6. 與既有功能相容性
 
 - 不修改翻譯 API 呼叫路徑
-- 不增加 content script 權限
-- 高亮引擎僅增補 `mission` 標記資料，不改 regex 核心
+- 不新增 host permissions
+- tooltip 僅增加 `Focus` 標記，不改核心渲染流程
 
 ## 7. MV3 合規檢查
 
 | 項目 | 狀態 | 說明 |
 |---|---|---|
-| Service Worker | 合規 | 任務計算在 background 中執行 |
+| Service Worker | 合規 | 焦點計算在 background 中執行 |
 | 遠端程式碼 | 合規 | 無新增遠端腳本 |
-| 權限最小化 | 合規 | 通知採 optional_permissions |
+| 權限最小化 | 合規 | 無新增權限 |
 | Host permissions | 合規 | 不新增 host 權限 |
 
 ## 8. 風險與緩解
 
 | 風險 | 影響 | 緩解 |
 |---|---|---|
-| 任務目標過高導致放棄 | 留存下降 | 設上限 + 新手保護 |
-| 背景喚醒不穩定 | 任務延遲更新 | 每次 UI 進入時補一次重算 |
-| 資料欄位不一致 | 任務錯誤 | MissionService 統一 schema validator |
+| 焦點不準確 | 使用者困惑 | 顯示推薦原因 + 可關閉模組 |
+| 背景喚醒不穩定 | 更新延遲 | UI 進入時補一次重算 |
+| 資料欄位不一致 | 顯示錯誤 | FocusTrackService 統一 schema validator |

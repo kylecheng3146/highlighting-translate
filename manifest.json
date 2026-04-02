@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Highlighting Translate",
-  "version": "1.15.0",
+  "version": "1.16.0",
   "description": "Translate selected text automatically with smart language detection",
   "permissions": [
     "contextMenus",
@@ -22,7 +22,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["services/TranslationService.js", "services/StorageService.js", "services/HighlightService.js", "services/TooltipService.js", "content.js"],
+      "js": ["services/TranslationService.js", "services/StorageService.js", "services/HighlightService.js", "services/TooltipService.js", "services/FocusTrackService.js", "content.js"],
       "run_at": "document_end"
     }
   ],

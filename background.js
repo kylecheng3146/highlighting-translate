@@ -2,7 +2,8 @@ importScripts(
     'services/TranslationService.js',
     'services/SRSService.js',
     'services/StorageService.js',
-    'services/MissionService.js'
+    'services/MissionService.js',
+    'services/FocusTrackService.js'
 );
 
 // Initialize Services
@@ -10,6 +11,7 @@ const translationService = new TranslationService();
 const srsService = new SRSService();
 const storageService = new StorageService();
 const missionService = new MissionService();
+const focusTrackService = new FocusTrackService();
 
 // 擴展安裝時的初始化
 chrome.runtime.onInstalled.addListener(async () => {
@@ -23,6 +25,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     // Load phrasal verbs DB into storage
     await loadPhrasalVerbsDB();
     await ensureWeeklyMission(true);
+    await ensureFocusTrack(true);
 
     // Dynamic Injection: Inject content scripts into existing tabs
     await injectContentScripts();
@@ -35,6 +38,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 chrome.runtime.onStartup.addListener(async () => {
     await loadPhrasalVerbsDB();
     await ensureWeeklyMission();
+    await ensureFocusTrack();
 });
 
 async function ensureWeeklyMission(forceRegenerate = false) {
@@ -64,6 +68,117 @@ async function ensureWeeklyMission(forceRegenerate = false) {
         console.error('Failed to ensure weekly mission:', error);
         return null;
     }
+}
+
+async function ensureFocusTrack(forceRegenerate = false) {
+    try {
+        const data = await chrome.storage.local.get(focusTrackService.STORAGE_KEY);
+        const existingTrack = data[focusTrackService.STORAGE_KEY];
+        const vocab = await storageService.getTranslations(5000, 0);
+
+        if (!forceRegenerate && !focusTrackService.shouldRegenerateWeek(existingTrack)) {
+            const reconciled = focusTrackService.reconcileWithCurrentData(existingTrack, vocab || [], Date.now());
+            const focusWords = focusTrackService.buildFocusWords(reconciled);
+            await chrome.storage.local.set({
+                [focusTrackService.STORAGE_KEY]: reconciled,
+                [focusTrackService.FOCUS_WORDS_KEY]: focusWords
+            });
+            await upsertFocusWeeklyReport(reconciled, vocab || []);
+            return reconciled;
+        }
+
+        const nextTrack = focusTrackService.generateFocusTrack(vocab || [], existingTrack || null, Date.now());
+        const focusWords = focusTrackService.buildFocusWords(nextTrack);
+        await chrome.storage.local.set({
+            [focusTrackService.STORAGE_KEY]: nextTrack,
+            [focusTrackService.FOCUS_WORDS_KEY]: focusWords
+        });
+        await upsertFocusWeeklyReport(nextTrack, vocab || []);
+        return nextTrack;
+    } catch (error) {
+        console.error('Failed to ensure focus track:', error);
+        return null;
+    }
+}
+
+function normalizeFocusReport(report = {}) {
+    return {
+        weekId: report.weekId || '',
+        completed: Boolean(report.completed),
+        score: Number(report.score || 0),
+        generatedAt: Number(report.generatedAt || 0),
+        updatedAt: Number(report.updatedAt || Date.now()),
+        focusProgressTotal: Number(report.focusProgressTotal || 0),
+        focusTargetTotal: Number(report.focusTargetTotal || 0),
+        stats: {
+            activeVocab: Number(report?.stats?.activeVocab || 0),
+            weakWordCount: Number(report?.stats?.weakWordCount || 0)
+        },
+        topicBreakdown: Array.isArray(report.topicBreakdown) ? report.topicBreakdown.map((topic) => ({
+            id: topic.id,
+            label: topic.label,
+            reason: topic.reason,
+            target: Number(topic.target || 0),
+            progress: Number(topic.progress || 0),
+            status: topic.status || 'pending'
+        })) : []
+    };
+}
+
+function buildFocusReport(track, vocabList = [], now = Date.now()) {
+    if (!track || !Array.isArray(track.topics)) return null;
+
+    const activeWords = (vocabList || []).filter((item) => !item.isArchived);
+    const weakWordCount = activeWords.filter((item) => Number(item.learningRate || 0) < 60).length;
+
+    return normalizeFocusReport({
+        weekId: track.weekId,
+        completed: track.completed,
+        score: Number(track?.summary?.score || 0),
+        generatedAt: Number(track.generatedAt || now),
+        updatedAt: now,
+        focusProgressTotal: Number(track?.summary?.progressTotal || 0),
+        focusTargetTotal: Number(track?.summary?.targetTotal || 0),
+        stats: {
+            activeVocab: activeWords.length,
+            weakWordCount
+        },
+        topicBreakdown: track.topics
+    });
+}
+
+async function upsertFocusWeeklyReport(track, vocabList = null) {
+    if (!track || !track.weekId) return;
+
+    const now = Date.now();
+    const vocab = Array.isArray(vocabList) ? vocabList : await storageService.getTranslations(5000, 0);
+    const report = buildFocusReport(track, vocab || [], now);
+    if (!report) return;
+
+    const data = await chrome.storage.local.get(focusTrackService.REPORTS_KEY);
+    const existing = Array.isArray(data[focusTrackService.REPORTS_KEY])
+        ? data[focusTrackService.REPORTS_KEY].map((item) => normalizeFocusReport(item))
+        : [];
+
+    const index = existing.findIndex((item) => item.weekId === report.weekId);
+    if (index >= 0) {
+        existing[index] = report;
+    } else {
+        existing.push(report);
+    }
+
+    existing.sort((a, b) => Number(b.generatedAt || 0) - Number(a.generatedAt || 0));
+    const trimmed = existing.slice(0, 24);
+    await chrome.storage.local.set({ [focusTrackService.REPORTS_KEY]: trimmed });
+}
+
+async function getFocusWeeklyReports(limit = 8) {
+    const data = await chrome.storage.local.get(focusTrackService.REPORTS_KEY);
+    const items = Array.isArray(data[focusTrackService.REPORTS_KEY]) ? data[focusTrackService.REPORTS_KEY] : [];
+    return items
+        .map((item) => normalizeFocusReport(item))
+        .sort((a, b) => Number(b.generatedAt || 0) - Number(a.generatedAt || 0))
+        .slice(0, Math.max(1, Number(limit || 8)));
 }
 
 function normalizeMissionReport(report = {}) {
@@ -204,6 +319,19 @@ async function refreshMissionProgress() {
     await chrome.storage.local.set({ [missionService.STORAGE_KEY]: normalized });
     await upsertMissionWeeklyReport(normalized, vocab || []);
     return normalized;
+}
+
+async function applyFocusEvent(event) {
+    const track = await ensureFocusTrack();
+    if (!track) return null;
+    const updated = focusTrackService.applyEvent(track, event);
+    const focusWords = focusTrackService.buildFocusWords(updated);
+    await chrome.storage.local.set({
+        [focusTrackService.STORAGE_KEY]: updated,
+        [focusTrackService.FOCUS_WORDS_KEY]: focusWords
+    });
+    await upsertFocusWeeklyReport(updated, null);
+    return updated;
 }
 
 async function scheduleMissionReminder(enabled, hour = 20) {
@@ -365,6 +493,11 @@ async function handleMessage(request, sender, sendResponse) {
                 await storageService.saveTranslation(request.item);
                 if (!existedBeforeSave) {
                     await applyMissionEvent({ type: 'NEW_WORD_SAVED' });
+                    await applyFocusEvent({
+                        type: 'NEW_WORD_SAVED',
+                        word: request.item.text,
+                        sourceUrl: request.item.sourceUrl
+                    });
                 }
                 sendResponse({success: true});
                 break;
@@ -405,15 +538,31 @@ async function handleMessage(request, sender, sendResponse) {
                 sendResponse({ success: true, data: mission });
                 break;
             }
+            case 'GET_FOCUS_TRACK': {
+                const track = await ensureFocusTrack();
+                sendResponse({ success: true, data: track });
+                break;
+            }
             case 'GET_WEEKLY_MISSION_REPORTS': {
                 await ensureWeeklyMission();
                 const reports = await getMissionWeeklyReports(Number(request.limit || 8));
                 sendResponse({ success: true, data: reports });
                 break;
             }
+            case 'GET_FOCUS_TRACK_REPORTS': {
+                await ensureFocusTrack();
+                const reports = await getFocusWeeklyReports(Number(request.limit || 8));
+                sendResponse({ success: true, data: reports });
+                break;
+            }
             case 'MISSION_APPLY_EVENT': {
                 const mission = await applyMissionEvent(request.event || {});
                 sendResponse({ success: true, data: mission });
+                break;
+            }
+            case 'FOCUS_APPLY_EVENT': {
+                const track = await applyFocusEvent(request.event || {});
+                sendResponse({ success: true, data: track });
                 break;
             }
             case 'MISSION_RECALC_PROGRESS': {

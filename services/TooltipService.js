@@ -26,26 +26,26 @@ class TooltipService {
         }
     }
 
-    show(text, rect, rank = null, level = null, isMission = false) {
+    show(text, rect, rank = null, level = null, isFocus = false) {
         if (!this.tooltip) return;
 
         let content = '';
         if (rank) {
             const levelClass = rank <= 3000 ? 'level-high' : (rank <= 10000 ? 'level-mid' : 'level-low');
-            const missionBadge = isMission ? '<span class="ht-mission-badge">Mission</span>' : '';
+            const focusBadge = isFocus ? '<span class="ht-focus-badge">Focus</span>' : '';
             content = `
                 <div class="ht-tooltip-header">
                     <span>
                         <span class="ht-rank-badge ${levelClass}">#${this._escape(String(rank))}</span>
                         <span class="ht-rank-badge ${levelClass}">${this._escape(level || '')}</span>
                     </span>
-                    ${missionBadge}
+                    ${focusBadge}
                 </div>
                 <div class="ht-tooltip-translation">${this._escape(text)}</div>
             `;
         } else {
-            const missionBadge = isMission ? '<div style="margin-bottom:6px"><span class="ht-mission-badge">Mission</span></div>' : '';
-            content = `${missionBadge}<div class="ht-tooltip-translation">${this._escape(text)}</div>`;
+            const focusBadge = isFocus ? '<div style="margin-bottom:6px"><span class="ht-focus-badge">Focus</span></div>' : '';
+            content = `${focusBadge}<div class="ht-tooltip-translation">${this._escape(text)}</div>`;
         }
 
         this.tooltip.innerHTML = content;

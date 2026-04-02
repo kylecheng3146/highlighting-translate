@@ -57,6 +57,10 @@
       background: linear-gradient(145deg, var(--bg-surface) 0%, #f3fbfa 100%);
       border: 1px solid #d5efeb;
     }
+    .focus-card {
+      background: linear-gradient(145deg, #fdf7f0 0%, #fffaf4 100%);
+      border: 1px solid #f3dfc8;
+    }
 
     .mission-header {
       display: flex;
@@ -257,6 +261,25 @@
   </header>
   
   <div class="container">
+    <div class="setting-card focus-card" id="focusCard">
+      <div class="mission-header">
+        <div class="mission-title" data-i18n="focusTitle">本週焦點</div>
+        <div class="mission-week" id="focusWeek">--</div>
+      </div>
+      <div class="mission-progress-row">
+        <span data-i18n="focusProgressLabel">進度</span>
+        <span id="focusProgressText">0%</span>
+      </div>
+      <div class="mission-bar-bg">
+        <div class="mission-bar-fill" id="focusProgressBar"></div>
+      </div>
+      <ul class="mission-list" id="focusTopics"></ul>
+      <div class="mission-actions">
+        <button id="focusReviewBtn" class="btn btn-primary" data-i18n="focusReviewBtn">前往複習</button>
+        <button id="focusDetailBtn" class="btn btn-secondary" data-i18n="focusDetailBtn">查看詳情</button>
+      </div>
+    </div>
+
     <div class="setting-card mission-card" id="missionCard">
       <div class="mission-header">
         <div class="mission-title" data-i18n="missionTitle">本週任務</div>
@@ -379,6 +402,45 @@
 
     <div class="setting-card">
       <div class="setting-header">
+        <label class="setting-label" for="enableFocusTrackCheck" data-i18n="focusEnableLabel">語境焦點追蹤</label>
+        <label class="switch">
+          <input type="checkbox" id="enableFocusTrackCheck">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-description" data-i18n="focusEnableDesc">顯示本週焦點摘要與低介入提示</div>
+      <div class="setting-description" style="margin-top: 8px;">
+        <label class="switch" style="margin-right: 8px;">
+          <input type="checkbox" id="focusInPopupCheck">
+          <span class="slider"></span>
+        </label>
+        <span data-i18n="focusInPopupLabel">Popup 顯示焦點卡</span>
+      </div>
+      <div class="setting-description" style="margin-top: 8px;">
+        <label class="switch" style="margin-right: 8px;">
+          <input type="checkbox" id="focusInReviewCheck">
+          <span class="slider"></span>
+        </label>
+        <span data-i18n="focusInReviewLabel">Review 顯示 Focus 提示</span>
+      </div>
+      <div class="setting-description" style="margin-top: 8px;">
+        <label class="switch" style="margin-right: 8px;">
+          <input type="checkbox" id="focusInTooltipCheck">
+          <span class="slider"></span>
+        </label>
+        <span data-i18n="focusInTooltipLabel">Tooltip 顯示 Focus 標籤</span>
+      </div>
+      <div class="setting-description" style="margin-top: 8px;">
+        <label class="switch" style="margin-right: 8px;">
+          <input type="checkbox" id="focusExperimentFlagCheck">
+          <span class="slider"></span>
+        </label>
+        <span data-i18n="focusExperimentLabel">實驗版 Focus 旗標</span>
+      </div>
+    </div>
+
+    <div class="setting-card">
+      <div class="setting-header">
         <label class="setting-label" for="enableMissionReminderCheck" data-i18n="missionReminderLabel">每日任務提醒</label>
         <label class="switch">
           <input type="checkbox" id="enableMissionReminderCheck">
@@ -399,6 +461,7 @@
   <script src="services/ThemeService.js"></script>
   <script src="services/I18nService.js"></script>
   <script src="services/LocaleDropdown.js"></script>
+  <script src="services/FocusTrackService.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@ REQUIRED AGENT: Planner
 CONTEXT: .shared/04-tech-architecture.md, .shared/05-flow-diagrams.md
 ```
 
-# 07-roadmap.md — Personalized Weekly Mission
+# 07-roadmap.md — Contextual Focus Track
 
 ## 目標版本
 
@@ -14,43 +14,43 @@ CONTEXT: .shared/04-tech-architecture.md, .shared/05-flow-diagrams.md
 
 ## Week 1: Foundation
 
-- 新增 `MissionService` 與資料 schema
-- 背景層加入 `GET_WEEKLY_MISSION` / `MISSION_APPLY_EVENT`
+- 新增 `FocusTrackService` 與資料 schema
+- 背景層加入 `GET_FOCUS_TRACK` / `FOCUS_APPLY_EVENT`
 - 建立 weekId 計算與切週重算機制
 
 驗收:
-- 可在 local storage 看到任務物件
-- 切換到新週可自動生成新任務
+- 可在 local storage 看到 focusTrack 物件
+- 切換到新週可自動生成新 Focus
 
 ## Week 2: Popup + History UI
 
-- popup 顯示本週任務卡與進度
-- history 顯示 mission summary 卡片
+- popup 顯示本週焦點卡與進度
+- history 顯示 focus summary 卡片
 - 增加錯誤降級（資料讀取失敗時不影響主功能）
 
 驗收:
-- 任務進度在兩頁一致
+- 焦點進度在兩頁一致
 - 不影響原有設定操作
 
-## Week 3: Review 整合
+## Week 3: Review + Tooltip
 
-- review 作答事件寫入任務進度
-- 加入 `Mission +1` 回饋
-- 任務完成判定與完成狀態渲染
+- review 作答事件寫入 Focus 進度
+- 加入 `Focus +1` 回饋
+- tooltip 增加 Focus 標籤
 
 驗收:
-- 作答可即時推動任務
-- 完成時可正確顯示完成狀態
+- 作答可即時推動 Focus
+- tooltip 顯示可用且不干擾
 
-## Week 4: 個人化調節 + 可選提醒
+## Week 4: 個人化調節 + 回滾
 
 - 實作個人化目標量調整
-- options 新增任務提醒開關
-- 串接 `optional_permissions.notifications`
+- options 新增 Focus 總開關與模組開關
+- 加入 `focusExperimentFlag` 回滾機制
 
 驗收:
-- 權限請求只在使用者開啟時觸發
-- 未授權不會報錯
+- 關閉總開關可完全隱藏 Focus UI
+- 模組開關各自生效
 
 ## Week 5: QA + Release
 
@@ -65,4 +65,4 @@ CONTEXT: .shared/04-tech-architecture.md, .shared/05-flow-diagrams.md
 
 ## 風險排程備註
 
-- 若通知權限流程審核風險偏高，可將提醒功能延到 `v1.15.1`。
+- 若 focus 生成準確度不足，可延後進階個人化到 `v1.15.1`。

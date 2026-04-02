@@ -285,6 +285,34 @@ async function handleAnswer(selectedOption, btnElement) {
         console.warn('Failed to update mission progress from review:', error);
     }
 
+    try {
+        const focusSettings = await chrome.storage.sync.get({
+            enableFocusTrack: true,
+            focusInReview: true,
+            focusExperimentFlag: false
+        });
+        const focusEnabled = focusSettings.enableFocusTrack !== false
+            && focusSettings.focusInReview !== false
+            && !focusSettings.focusExperimentFlag;
+        if (focusEnabled) {
+            const focusRes = await chrome.runtime.sendMessage({
+                action: 'FOCUS_APPLY_EVENT',
+                event: {
+                    type: 'REVIEW_COMPLETED',
+                    word: currentQ.target.text,
+                    weakWordImproved: Boolean(progressUpdate && progressUpdate.weakWordImproved),
+                    sourceUrl: currentQ.target.sourceUrl
+                }
+            });
+
+            if (focusRes && focusRes.success && focusRes.data) {
+                showFocusProgressToast(focusRes.data);
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to update focus progress from review:', error);
+    }
+
     // Show Next Controls and Handle Auto-Next Logic
     const nextControls = document.getElementById('next-action-controls');
     const autoNextToggle = document.getElementById('auto-next-toggle');
@@ -383,6 +411,43 @@ function showMissionProgressToast(mission) {
 
     const score = Number(mission?.summary?.score || 0);
     toast.textContent = `Mission +1 進度 ${score}%`;
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    });
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 320);
+    }, 1200);
+}
+
+function showFocusProgressToast(track) {
+    const existing = document.getElementById('focus-progress-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'focus-progress-toast';
+    toast.style.position = 'fixed';
+    toast.style.right = '20px';
+    toast.style.bottom = '58px';
+    toast.style.padding = '10px 14px';
+    toast.style.background = 'rgba(255, 112, 67, 0.95)';
+    toast.style.color = '#fff';
+    toast.style.borderRadius = '999px';
+    toast.style.boxShadow = '0 8px 22px rgba(0,0,0,0.18)';
+    toast.style.zIndex = '9999';
+    toast.style.fontWeight = '600';
+    toast.style.fontSize = '13px';
+    toast.style.transform = 'translateY(10px)';
+    toast.style.opacity = '0';
+    toast.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+
+    const score = Number(track?.summary?.score || 0);
+    toast.textContent = `Focus +1 進度 ${score}%`;
     document.body.appendChild(toast);
 
     requestAnimationFrame(() => {
