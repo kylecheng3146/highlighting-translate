@@ -973,6 +973,90 @@ function hideTranslatePopup() {
     }
 }
 
+// 檢查文字是否為有效的單字或句子（排除純符號、純數字、JSON、程式碼等）
+function isValidTextToTranslate(text) {
+    if (!text || text.trim() === '') return false;
+    
+    const trimmed = text.trim();
+
+    // 至少包含一個字母（涵蓋各國語言的字母，包含中日韓等）
+    const hasLetter = /[\p{L}]/u.test(trimmed);
+    if (!hasLetter) return false;
+    
+    // 排除全是重複單一字元的無意義文字 (例如 "-------", "aaaaa")
+    if (/^(.)\1{4,}$/.test(trimmed)) return false;
+
+    // 1. 數字與常見技術標記 (如進制、單位、版本號、IP、顏色碼)
+    // 16進制 (例如 0xff)
+    if (/^0x[0-9a-fA-F]+$/i.test(trimmed)) return false;
+    // 數字帶有常見單位 (例如 10px, 50ms, 100gb, 3.5ghz)
+    if (/^\d+(\.\d+)?\s*(px|em|rem|vh|vw|ms|s|h|m|ns|us|kb|mb|gb|tb|pb|hz|khz|mhz|ghz|dpi|dpcm|dppx|pt|pc|in|cm|mm|deg|rad|turn|%|v|w|a|ma)$/i.test(trimmed)) return false;
+    // 科學記號 (例如 1.2e-3)
+    if (/^\d+(\.\d+)?[eE][+-]?\d+$/.test(trimmed)) return false;
+    // 版本號 (例如 v1.2.3, 16.0)
+    if (/^v?\d+\.\d+(\.\d+)*$/i.test(trimmed)) return false;
+    // IP 位址 (例如 192.168.1.1)
+    if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(trimmed)) return false;
+    // 網頁顏色碼 (例如 #fff, #ffffff)
+    if (/^#[0-9a-fA-F]{3,8}$/.test(trimmed)) return false;
+
+    // 2. JSON-like 格式物件或陣列
+    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+        try {
+            JSON.parse(trimmed);
+            return false;
+        } catch (e) {
+            // 對於非標準/有語法錯誤的 JSON，如果看起來像 JSON 物件/陣列也不翻譯
+            if (/^[{\[][\s\S]*[}\]]$/.test(trimmed)) {
+                const hasKeys = /(?:\b\w+|["']\w+["'])\s*:/u.test(trimmed);
+                const hasArrayElements = trimmed.startsWith('[') && (trimmed.includes(',') || /\d/.test(trimmed));
+                if (hasKeys || hasArrayElements) return false;
+            }
+        }
+    }
+
+    // 3. HTML/XML 標籤 (例如 <div>, <span class="badge">)
+    if (/<[a-zA-Z/][^>]*>/u.test(trimmed)) return false;
+
+    // 4. CSS 語法 (例如 .button { display: flex; }, margin-top: 10px;)
+    if (/^\s*[.#]?\w+[\w-]*\s*\{[^}]*\}/u.test(trimmed) || /\w+-\w+\s*:\s*[^;]+;/u.test(trimmed)) return false;
+
+    // 5. 箭頭函數與常見程式運算子 (例如 =>, &&, ||, ===, !==, ++, +=)
+    if (/\s*=>\s*/u.test(trimmed) || /\s*->\s*/u.test(trimmed)) return false;
+    if (/===|!==|==\s*=|!=\s*=|&&|\|\||\+\+|--|\+=|-=|\*=|\/=/u.test(trimmed)) return false;
+
+    // 6. 程式關鍵字
+    // 涵蓋大多數程式語言的宣告與指令關鍵字
+    if (/\b(const|var|function|import|export|async|await|yield|def|func|fn|impl|struct|enum|pub|package|interface)\b/u.test(trimmed)) return false;
+    // class 關鍵字需要搭配程式符號（大括號、括號等），避免誤判英文句子如 "a class of students"
+    if (/\bclass\b/u.test(trimmed) && /[{}.()=;]/u.test(trimmed)) return false;
+
+    // 7. 函式呼叫 (例如 console.log("hello"), foo())
+    if (/\b[a-zA-Z_]\w*\s*\(.*\)/u.test(trimmed) || /\b[a-zA-Z_]\w*\.[a-zA-Z_]\w*\s*\(/.test(trimmed)) {
+        if (/\b[a-zA-Z_]\w*\.[a-zA-Z_]\w*\s*\(/.test(trimmed)) return false; // 物件方法呼叫
+        if (/^[a-zA-Z_]\w*\s*\([^)]*\);?$/u.test(trimmed)) return false; // 單純的函式呼叫
+    }
+
+    // 8. 結尾為分號且含有運算或屬性符號的單行程式 (例如 "x = 1;")
+    if (/;\s*$/u.test(trimmed) && /[{}.()=+\-*\/%&|^!~<>]/u.test(trimmed)) return false;
+
+    // 9. 單一變數名稱 (snake_case 或 camelCase)
+    if (!/\s/u.test(trimmed)) {
+        // snake_case (例如 user_profile_id)
+        if (/^[a-zA-Z_]\w*_[a-zA-Z0-9_]+/.test(trimmed)) return false;
+        // camelCase (例如 myAwesomeVariable)
+        if (/^[a-z]+[A-Z][a-z]+[A-Z][a-zA-Z0-9]*/.test(trimmed)) return false;
+    }
+
+    // 10. 檔案路徑與 URL 路徑/API Endpoint (例如 /usr/bin/local, src/components/Button.js, /api/v1/users)
+    if (/^(?:\.\.?\/|\/[a-zA-Z0-9_]+|\w+\/)[a-zA-Z0-9_\-\.\/]+\.[a-zA-Z0-9]+$/u.test(trimmed) ||
+        /^\/[a-zA-Z0-9_]+(?:\/[a-zA-Z0-9_\-]+)+$/u.test(trimmed)) {
+        return false;
+    }
+
+    return true;
+}
+
 // 監聽文字選取事件
 let selectionTimeout;
 
@@ -996,6 +1080,10 @@ document.addEventListener('mouseup', (e) => {
         const selectedText = selection.toString().trim();
 
         if (selectedText && selectedText.length > 0 && selectedText.length < 1000) {
+            if (!isValidTextToTranslate(selectedText)) {
+                return;
+            }
+
             if (settings.autoCopy) {
                 try {
                     navigator.clipboard.writeText(selectedText).then(() => {
@@ -1071,6 +1159,7 @@ if (typeof module !== 'undefined' && module.exports) {
         hideTranslatePopup,
         playTTS,
         getSentenceContext,
+        isValidTextToTranslate,
         updateLocalSettings: (newSettings) => { settings = { ...settings, ...newSettings }; }
     };
 }

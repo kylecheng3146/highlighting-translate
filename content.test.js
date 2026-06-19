@@ -538,3 +538,83 @@ describe('HighlightService — Phrasal Verbs', () => {
         expect(singleMark).toBeUndefined();
     });
 });
+
+describe('isValidTextToTranslate optimization', () => {
+    const { isValidTextToTranslate } = content;
+
+    test('should allow valid natural language words and sentences', () => {
+        expect(isValidTextToTranslate('hello')).toBe(true);
+        expect(isValidTextToTranslate('Hello world')).toBe(true);
+        expect(isValidTextToTranslate('這是一個測試')).toBe(true);
+        expect(isValidTextToTranslate('We have 10 apples.')).toBe(true);
+        expect(isValidTextToTranslate('Class is starting soon.')).toBe(true);
+    });
+
+    test('should reject text without letters', () => {
+        expect(isValidTextToTranslate('123')).toBe(false);
+        expect(isValidTextToTranslate('1,234.56')).toBe(false);
+        expect(isValidTextToTranslate('!!!')).toBe(false);
+        expect(isValidTextToTranslate('+ - =')).toBe(false);
+    });
+
+    test('should reject numbers with units, hexadecimal, scientific notation, IP addresses, and colors', () => {
+        expect(isValidTextToTranslate('10px')).toBe(false);
+        expect(isValidTextToTranslate('50ms')).toBe(false);
+        expect(isValidTextToTranslate('100gb')).toBe(false);
+        expect(isValidTextToTranslate('0xff')).toBe(false);
+        expect(isValidTextToTranslate('1.2e-3')).toBe(false);
+        expect(isValidTextToTranslate('v12.3.4')).toBe(false);
+        expect(isValidTextToTranslate('192.168.1.1')).toBe(false);
+        expect(isValidTextToTranslate('#fff')).toBe(false);
+        expect(isValidTextToTranslate('#ff0000')).toBe(false);
+    });
+
+    test('should reject JSON-like objects and arrays', () => {
+        expect(isValidTextToTranslate('{}')).toBe(false);
+        expect(isValidTextToTranslate('[]')).toBe(false);
+        expect(isValidTextToTranslate('{ "id": 123, "name": "John" }')).toBe(false);
+        expect(isValidTextToTranslate('[1, 2, 3]')).toBe(false);
+        // JSON-like syntax with minor syntax errors
+        expect(isValidTextToTranslate('{ name: "John", age: 30 }')).toBe(false);
+    });
+
+    test('should reject HTML/XML tags', () => {
+        expect(isValidTextToTranslate('<div>hello</div>')).toBe(false);
+        expect(isValidTextToTranslate('<span class="badge">')).toBe(false);
+    });
+
+    test('should reject CSS syntax', () => {
+        expect(isValidTextToTranslate('margin-top: 10px;')).toBe(false);
+        expect(isValidTextToTranslate('.button { display: flex; }')).toBe(false);
+    });
+
+    test('should reject arrow functions and code operators', () => {
+        expect(isValidTextToTranslate('x => x * 2')).toBe(false);
+        expect(isValidTextToTranslate('a && b')).toBe(false);
+        expect(isValidTextToTranslate('x === y')).toBe(false);
+        expect(isValidTextToTranslate('x += 1')).toBe(false);
+    });
+
+    test('should reject code keywords', () => {
+        expect(isValidTextToTranslate('const x = 5;')).toBe(false);
+        expect(isValidTextToTranslate('let greeting = "hello";')).toBe(false);
+        expect(isValidTextToTranslate('function test() {}')).toBe(false);
+        expect(isValidTextToTranslate('import React from "react";')).toBe(false);
+    });
+
+    test('should reject function calls', () => {
+        expect(isValidTextToTranslate('console.log("test")')).toBe(false);
+        expect(isValidTextToTranslate('foo()')).toBe(false);
+    });
+
+    test('should reject single variable names (camelCase and snake_case)', () => {
+        expect(isValidTextToTranslate('user_profile_id')).toBe(false);
+        expect(isValidTextToTranslate('myAwesomeVariable')).toBe(false);
+    });
+
+    test('should reject file paths and URL paths', () => {
+        expect(isValidTextToTranslate('/api/v1/users')).toBe(false);
+        expect(isValidTextToTranslate('src/components/Button.js')).toBe(false);
+        expect(isValidTextToTranslate('./styles/theme.css')).toBe(false);
+    });
+});
