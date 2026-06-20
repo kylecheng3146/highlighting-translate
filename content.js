@@ -986,6 +986,9 @@ function isValidTextToTranslate(text) {
     // 排除全是重複單一字元的無意義文字 (例如 "-------", "aaaaa")
     if (/^(.)\1{4,}$/.test(trimmed)) return false;
 
+    // 清理前後的引號、逗號或分號，以便更精準地進行變數名、路徑與常量的檢測
+    const cleanText = trimmed.replace(/^["']|["']$/g, '').replace(/[,;]$/g, '').trim();
+
     // 1. 數字與常見技術標記 (如進制、單位、版本號、IP、顏色碼)
     // 16進制 (例如 0xff)
     if (/^0x[0-9a-fA-F]+$/i.test(trimmed)) return false;
@@ -1015,42 +1018,47 @@ function isValidTextToTranslate(text) {
         }
     }
 
-    // 3. HTML/XML 標籤 (例如 <div>, <span class="badge">)
+    // 3. JSON 屬性/鍵值對 (例如 "current_state": "CREATED",)
+    if (/^["']?[a-zA-Z_]\w*["']?\s*:\s*(?:["'][^"']*["']|\d+(?:\.\d+)?|true|false|null|\[|\{)\s*[,;]?$/i.test(trimmed)) return false;
+
+    // 4. HTML/XML 標籤 (例如 <div>, <span class="badge">)
     if (/<[a-zA-Z/][^>]*>/u.test(trimmed)) return false;
 
-    // 4. CSS 語法 (例如 .button { display: flex; }, margin-top: 10px;)
+    // 5. CSS 語法 (例如 .button { display: flex; }, margin-top: 10px;)
     if (/^\s*[.#]?\w+[\w-]*\s*\{[^}]*\}/u.test(trimmed) || /\w+-\w+\s*:\s*[^;]+;/u.test(trimmed)) return false;
 
-    // 5. 箭頭函數與常見程式運算子 (例如 =>, &&, ||, ===, !==, ++, +=)
+    // 6. 箭頭函數與常見程式運算子 (例如 =>, &&, ||, ===, !==, ++, +=)
     if (/\s*=>\s*/u.test(trimmed) || /\s*->\s*/u.test(trimmed)) return false;
     if (/===|!==|==\s*=|!=\s*=|&&|\|\||\+\+|--|\+=|-=|\*=|\/=/u.test(trimmed)) return false;
 
-    // 6. 程式關鍵字
+    // 7. 程式關鍵字
     // 涵蓋大多數程式語言的宣告與指令關鍵字
     if (/\b(const|var|function|import|export|async|await|yield|def|func|fn|impl|struct|enum|pub|package|interface)\b/u.test(trimmed)) return false;
     // class 關鍵字需要搭配程式符號（大括號、括號等），避免誤判英文句子如 "a class of students"
     if (/\bclass\b/u.test(trimmed) && /[{}.()=;]/u.test(trimmed)) return false;
 
-    // 7. 函式呼叫 (例如 console.log("hello"), foo())
+    // 8. 函式呼叫 (例如 console.log("hello"), foo())
     if (/\b[a-zA-Z_]\w*\s*\(.*\)/u.test(trimmed) || /\b[a-zA-Z_]\w*\.[a-zA-Z_]\w*\s*\(/.test(trimmed)) {
         if (/\b[a-zA-Z_]\w*\.[a-zA-Z_]\w*\s*\(/.test(trimmed)) return false; // 物件方法呼叫
         if (/^[a-zA-Z_]\w*\s*\([^)]*\);?$/u.test(trimmed)) return false; // 單純的函式呼叫
     }
 
-    // 8. 結尾為分號且含有運算或屬性符號的單行程式 (例如 "x = 1;")
+    // 9. 結尾為分號且含有運算或屬性符號的單行程式 (例如 "x = 1;")
     if (/;\s*$/u.test(trimmed) && /[{}.()=+\-*\/%&|^!~<>]/u.test(trimmed)) return false;
 
-    // 9. 單一變數名稱 (snake_case 或 camelCase)
-    if (!/\s/u.test(trimmed)) {
+    // 10. 單一變數名稱 (snake_case 或 camelCase) 或大寫常量/狀態值
+    if (!/\s/u.test(cleanText)) {
         // snake_case (例如 user_profile_id)
-        if (/^[a-zA-Z_]\w*_[a-zA-Z0-9_]+/.test(trimmed)) return false;
+        if (/^[a-zA-Z_]\w*_[a-zA-Z0-9_]+/.test(cleanText)) return false;
         // camelCase (例如 myAwesomeVariable)
-        if (/^[a-z]+[A-Z][a-z]+[A-Z][a-zA-Z0-9]*/.test(trimmed)) return false;
+        if (/^[a-z]+[A-Z][a-z]+[A-Z][a-zA-Z0-9]*/.test(cleanText)) return false;
+        // 大寫常量 / enum (例如 CREATED, STATUS_OK)
+        if (/^[A-Z_][A-Z0-9_]{2,}$/.test(cleanText)) return false;
     }
 
-    // 10. 檔案路徑與 URL 路徑/API Endpoint (例如 /usr/bin/local, src/components/Button.js, /api/v1/users)
-    if (/^(?:\.\.?\/|\/[a-zA-Z0-9_]+|\w+\/)[a-zA-Z0-9_\-\.\/]+\.[a-zA-Z0-9]+$/u.test(trimmed) ||
-        /^\/[a-zA-Z0-9_]+(?:\/[a-zA-Z0-9_\-]+)+$/u.test(trimmed)) {
+    // 11. 檔案路徑與 URL 路徑/API Endpoint (例如 /usr/bin/local, src/components/Button.js, /api/v1/users)
+    if (/^(?:\.\.?\/|\/[a-zA-Z0-9_]+|\w+\/)[a-zA-Z0-9_\-\.\/]+\.[a-zA-Z0-9]+$/u.test(cleanText) ||
+        /^\/[a-zA-Z0-9_]+(?:\/[a-zA-Z0-9_\-]+)+$/u.test(cleanText)) {
         return false;
     }
 

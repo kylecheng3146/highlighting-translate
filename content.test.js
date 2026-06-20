@@ -607,14 +607,27 @@ describe('isValidTextToTranslate optimization', () => {
         expect(isValidTextToTranslate('foo()')).toBe(false);
     });
 
-    test('should reject single variable names (camelCase and snake_case)', () => {
+    test('should reject single variable names (camelCase and snake_case) and uppercase constants', () => {
         expect(isValidTextToTranslate('user_profile_id')).toBe(false);
         expect(isValidTextToTranslate('myAwesomeVariable')).toBe(false);
+        expect(isValidTextToTranslate('CREATED')).toBe(false);
+        expect(isValidTextToTranslate('STATUS_OK')).toBe(false);
+        expect(isValidTextToTranslate('"current_state"')).toBe(false);
+        expect(isValidTextToTranslate('"CREATED"')).toBe(false);
+        expect(isValidTextToTranslate("'CREATED'")).toBe(false);
     });
 
-    test('should reject file paths and URL paths', () => {
+    test('should reject JSON property/key-value lines', () => {
+        expect(isValidTextToTranslate('"current_state": "CREATED",')).toBe(false);
+        expect(isValidTextToTranslate('"status": 200')).toBe(false);
+        expect(isValidTextToTranslate('"msg": "success"')).toBe(false);
+        expect(isValidTextToTranslate('message: "error",')).toBe(false);
+    });
+
+    test('should reject file paths and URL paths (including quoted)', () => {
         expect(isValidTextToTranslate('/api/v1/users')).toBe(false);
         expect(isValidTextToTranslate('src/components/Button.js')).toBe(false);
+        expect(isValidTextToTranslate('"src/components/Button.js"')).toBe(false);
         expect(isValidTextToTranslate('./styles/theme.css')).toBe(false);
     });
 });
