@@ -6,7 +6,7 @@ class TranslationService {
     /**
      * Detects the language of the given text.
      * @param {string} text - The text to detect language for.
-     * @returns {string} - The detected language code (e.g., 'en', 'zh-TW', 'ja', 'auto').
+     * @returns {string} - The detected language code (e.g., 'en', 'es', 'zh-TW', 'ja', 'auto').
      */
     detectLanguage(text) {
         // Regex definitions moved to module scope or constants to avoid recreation
@@ -14,6 +14,9 @@ class TranslationService {
         // Check for specific scripts first to avoid misidentifying Kanji as Chinese
         if (TranslationService.RX_JAPANESE.test(text)) return 'ja';
         if (TranslationService.RX_KOREAN.test(text)) return 'ko';
+
+        if (TranslationService.RX_SPANISH_UNIQUE.test(text)) return 'es';
+
         if (TranslationService.RX_VIETNAMESE.test(text)) return 'vi';
         if (TranslationService.RX_GERMAN.test(text)) return 'de';
 
@@ -65,7 +68,7 @@ class TranslationService {
 
             if (data && data[0] && data[0][0] && data[0][0][0]) {
                 const translation = data[0][0][0];
-                const detectedSourceLang = data[2] || sourceLang; // specific to 'gtx' client response format
+                const detectedSourceLang = data[2] || finalSourceLang; // specific to 'gtx' client response format
                 return { translation, detectedSourceLang };
             }
             throw new Error('Invalid response format');
@@ -107,11 +110,12 @@ class TranslationService {
     }
 
     // Static Regex Definitions
-    static RX_JAPANESE = /[\u3040-\u309f\u30a0-\u30ff]/g;
-    static RX_KOREAN = /[\uac00-\ud7af]/g;
+    static RX_JAPANESE = /[\u3040-\u309f\u30a0-\u30ff]/;
+    static RX_KOREAN = /[\uac00-\ud7af]/;
+    static RX_SPANISH_UNIQUE = /[¿¡ñ]|(?<![\p{L}])(?:hola|gracias|ad[ií]os|espa[nñ]ol|pel[ií]cula|incre[ií]ble|pued(?:o|es|e|en)|quier(?:o|es|e|en)|necesit(?:o|as?|a|amos|an)|teng(?:o|as?|a|amos|an)|ma[nñ]ana|tamb[ií]en|se[nñ]or(?:a|ita)?|d[oó]nde|c[oó]mo|cu[aá]ndo|est[aá](?:s|n)?|buen(?:os|as)|d[ií]as|gusta|idioma|por\s+favor|de\s+nada|qu[eé]\s+tal|no\s+entiendo|[\p{L}]+ción(?:es)?)(?![\p{L}])/iu;
     static RX_GERMAN = /[äöüßÄÖÜ]/;
     static RX_VIETNAMESE = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/;
-    static RX_ENGLISH = /[a-zA-Z]/g;
+    static RX_ENGLISH = /[a-zA-Z]/;
     static RX_CHINESE = /[\u4e00-\u9fff]/g;
     static RX_TRADITIONAL = /[豐併佈閒與會過於陣險離復讓貓體發這測]/g;
     static RX_SIMPLIFIED = /[丰并布闲与会过于阵险离复让猫体发这测]/g;

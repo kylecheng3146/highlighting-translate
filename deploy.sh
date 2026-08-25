@@ -31,6 +31,7 @@ FILES=(
     "content.js"
     "popup.html"
     "popup.js"
+    "dashboard.html"
     "history.html"
     "history.js"
     "review.html"

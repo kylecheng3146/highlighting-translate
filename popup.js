@@ -288,6 +288,60 @@ async function loadFocusTrack() {
     }
 }
 
+async function loadDashboardStats() {
+    const streakValEl = document.getElementById('statStreakVal');
+    const wordsValEl = document.getElementById('statWordsVal');
+    const monthlyValEl = document.getElementById('statMonthlyVal');
+    const weekTimeValEl = document.getElementById('statWeekTimeVal');
+    const milestoneTitleEl = document.getElementById('milestoneTitle');
+    const milestonePercentEl = document.getElementById('milestonePercent');
+    const milestoneProgressBarEl = document.getElementById('milestoneProgressBar');
+    const streakPromptBox = document.getElementById('streakPromptBox');
+
+    if (!streakValEl || !wordsValEl) return;
+
+    try {
+        const response = await chrome.runtime.sendMessage({ action: 'GET_STATS' });
+        if (!response || !response.success || !response.data) return;
+
+        const data = response.data;
+
+        // Animate / Set Values
+        updateStatNumber(streakValEl, `${data.streak || 0}`);
+        updateStatNumber(wordsValEl, `${data.totalWords || 0}`);
+        updateStatNumber(monthlyValEl, `+${data.monthlyNew || 0}`);
+        updateStatNumber(weekTimeValEl, `${data.thisWeekMinutes || 0}m`);
+
+        // Milestone
+        if (data.milestone) {
+            if (milestoneTitleEl) milestoneTitleEl.textContent = data.milestone.displayText || '🌱 起步者';
+            if (milestonePercentEl) milestonePercentEl.textContent = `${data.milestone.percentage || 0}%`;
+            if (milestoneProgressBarEl) milestoneProgressBarEl.style.width = `${data.milestone.percentage || 0}%`;
+        }
+
+        // Streak reminder prompt
+        if (streakPromptBox) {
+            if (!data.hasLearnedToday) {
+                streakPromptBox.style.display = 'block';
+            } else {
+                streakPromptBox.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to load dashboard stats:', error);
+    }
+}
+
+function updateStatNumber(el, newValue) {
+    if (!el) return;
+    if (el.textContent !== newValue) {
+        el.textContent = newValue;
+        el.classList.remove('pop');
+        void el.offsetWidth; // Trigger reflow for CSS animation
+        el.classList.add('pop');
+    }
+}
+
 async function toggleBlacklist() {
     const btn = document.getElementById('blacklistBtn');
     const domain = btn.dataset.domain;
@@ -347,8 +401,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Load other settings
     loadSettings();
+    loadDashboardStats();
     loadWeeklyMission();
     loadFocusTrack();
+
+    const openDashboardBtn = document.getElementById('openDashboardBtn');
+    if (openDashboardBtn) {
+        openDashboardBtn.addEventListener('click', () => {
+            chrome.tabs.create({ url: 'dashboard.html' });
+        });
+    }
+
+    const dismissStreakPrompt = document.getElementById('dismissStreakPrompt');
+    if (dismissStreakPrompt) {
+        dismissStreakPrompt.addEventListener('click', () => {
+            const box = document.getElementById('streakPromptBox');
+            if (box) box.style.display = 'none';
+        });
+    }
 
     const customColorPicker = document.getElementById('customColorPicker');
     if (customColorPicker) {

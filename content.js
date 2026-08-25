@@ -328,6 +328,25 @@ function injectStyles(root) {
             color: var(--ht-text);
             background-color: rgba(0,0,0,0.05);
         }
+        .ht-copy-btn {
+            cursor: pointer;
+            border: 0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            background: transparent;
+            color: var(--ht-text-secondary);
+            font: inherit;
+            font-size: 12px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .ht-copy-btn:hover {
+            color: var(--ht-text);
+            background-color: rgba(0,0,0,0.05);
+        }
+        .ht-copy-btn:focus-visible {
+            outline: 2px solid var(--ht-primary);
+            outline-offset: 2px;
+        }
         .ht-star-btn svg {
             width: 18px;
             height: 18px;
@@ -863,8 +882,18 @@ async function showTranslatePopup(text, rect) {
             throw new Error(response ? response.error : 'Translation failed');
         }
         const { translation, detectedSourceLang } = response.data;
+        if (typeof translation !== 'string' || !translation.trim()) {
+            throw new Error('Invalid translation response');
+        }
         lastTranslationResult = translation;
         lastDetectedSourceLang = detectedSourceLang;
+
+        // Record reading progress in background (non-blocking)
+        sendMessageSafe({
+            action: 'TRANSLATION_RECORDED',
+            text: text,
+            isSaved: false
+        }).catch(err => console.debug('Failed to record translation progress:', err));
         
         // Context Capture
         let context = null;
@@ -898,6 +927,7 @@ async function showTranslatePopup(text, rect) {
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                   </svg>
               </div>
+              <button type="button" class="ht-copy-btn" title="複製翻譯 (Copy translation)" aria-label="複製翻譯">複製</button>
               <div class="ht-close-btn">×</div>
           </div>
           <div class="ht-content" style="flex-direction: column;">
@@ -909,6 +939,24 @@ async function showTranslatePopup(text, rect) {
         
         const closeBtn = contentContainer.querySelector('.ht-close-btn');
         closeBtn.onclick = closeHandler;
+
+        const copyBtn = contentContainer.querySelector('.ht-copy-btn');
+        copyBtn.onclick = async () => {
+            if (copyBtn.disabled) return;
+            copyBtn.disabled = true;
+            try {
+                if (!navigator.clipboard?.writeText) {
+                    throw new Error('Clipboard API unavailable');
+                }
+                await navigator.clipboard.writeText(translation);
+                showToast('📋 已複製翻譯');
+            } catch (error) {
+                console.error('Copy translation error:', error);
+                showToast('複製失敗');
+            } finally {
+                copyBtn.disabled = false;
+            }
+        };
 
         const starBtn = contentContainer.querySelector('.ht-star-btn');
         starBtn.onclick = async () => {
@@ -1029,7 +1077,11 @@ function isValidTextToTranslate(text) {
 
     // 6. 箭頭函數與常見程式運算子 (例如 =>, &&, ||, ===, !==, ++, +=)
     if (/\s*=>\s*/u.test(trimmed) || /\s*->\s*/u.test(trimmed)) return false;
-    if (/===|!==|==\s*=|!=\s*=|&&|\|\||\+\+|--|\+=|-=|\*=|\/=/u.test(trimmed)) return false;
+    // Double dashes are also common in command-line flags such as --help.
+    // ponytail: prefix --name is ambiguous with CLI flags; keep it translatable
+    // until token context can distinguish the two.
+    const hasPostfixDecrement = /(?:^|[^\w$])[A-Za-z_$][\w$]*\s*--(?=\s*(?:[;),\]}]|[,+*%<>=&|\/-]|$))/u.test(trimmed);
+    if (/===|!==|==\s*=|!=\s*=|&&|\|\||\+\+|\+=|-=|\*=|\/=/u.test(trimmed) || hasPostfixDecrement) return false;
 
     // 7. 程式關鍵字
     // 涵蓋大多數程式語言的宣告與指令關鍵字

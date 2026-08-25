@@ -49,7 +49,10 @@ const HighlightService = require('./services/HighlightService');
 let onMessageListener;
 
 describe('content.js Shadow DOM', () => {
+    let originalClipboard;
+
     beforeEach(() => {
+        originalClipboard = navigator.clipboard;
         // Reset listener capture
         global.chrome.runtime.onMessage.addListener.mockImplementation((listener) => {
             onMessageListener = listener;
@@ -109,6 +112,17 @@ describe('content.js Shadow DOM', () => {
             ok: true,
             json: () => Promise.resolve([[['translated']]])
         });
+    });
+
+    afterEach(() => {
+        if (originalClipboard === undefined) {
+            delete navigator.clipboard;
+        } else {
+            Object.defineProperty(navigator, 'clipboard', {
+                configurable: true,
+                value: originalClipboard
+            });
+        }
     });
 
     test('should create host and shadow root', () => {
@@ -203,6 +217,93 @@ describe('content.js Shadow DOM', () => {
             text: 'test'
         }));
         expect(contentContainer.innerHTML).toContain('Translated Text');
+    });
+
+    test('should copy translated text from the popup', async () => {
+        const host = content.createTranslatePopup();
+        let resolveClipboard;
+        const clipboardWrite = jest.fn(() => new Promise(resolve => {
+            resolveClipboard = resolve;
+        }));
+        Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: { writeText: clipboardWrite }
+        });
+
+        const sendMessageMock = jest.fn().mockImplementation((message) => {
+            switch (message.action) {
+                case 'TRANSLATE':
+                    return Promise.resolve({ success: true, data: { translation: 'Translated Text', detectedSourceLang: 'en' } });
+                case 'STORAGE_IS_STARRED':
+                    return Promise.resolve({ success: true, data: false });
+                case 'STORAGE_GET_WORD_INFO':
+                    return Promise.resolve({ success: true, data: null });
+                default:
+                    return Promise.resolve({ success: true });
+            }
+        });
+        global.chrome.runtime.sendMessage = sendMessageMock;
+
+        await content.showTranslatePopup('test', DEFAULT_RECT);
+        await flushPromises();
+
+        const copyBtn = host.shadowRoot.querySelector('.ht-copy-btn');
+        copyBtn.click();
+        copyBtn.click();
+        expect(clipboardWrite).toHaveBeenCalledTimes(1);
+        expect(copyBtn.disabled).toBe(true);
+        resolveClipboard();
+        await flushPromises();
+
+        expect(clipboardWrite).toHaveBeenCalledWith('Translated Text');
+        expect(host.shadowRoot.getElementById('ht-toast').textContent).toBe('📋 已複製翻譯');
+        expect(copyBtn.disabled).toBe(false);
+    });
+
+    test('should show feedback when copying translated text fails', async () => {
+        const host = content.createTranslatePopup();
+        const clipboardWrite = jest.fn().mockRejectedValue(new Error('Clipboard denied'));
+        Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: { writeText: clipboardWrite }
+        });
+
+        const sendMessageMock = jest.fn().mockImplementation((message) => {
+            switch (message.action) {
+                case 'TRANSLATE':
+                    return Promise.resolve({ success: true, data: { translation: 'Translated Text', detectedSourceLang: 'en' } });
+                case 'STORAGE_IS_STARRED':
+                    return Promise.resolve({ success: true, data: false });
+                case 'STORAGE_GET_WORD_INFO':
+                    return Promise.resolve({ success: true, data: null });
+                default:
+                    return Promise.resolve({ success: true });
+            }
+        });
+        global.chrome.runtime.sendMessage = sendMessageMock;
+
+        await content.showTranslatePopup('test', DEFAULT_RECT);
+        await flushPromises();
+
+        host.shadowRoot.querySelector('.ht-copy-btn').click();
+        await flushPromises();
+
+        expect(host.shadowRoot.getElementById('ht-toast').textContent).toBe('複製失敗');
+    });
+
+    test('should not render copy action for an empty translation', async () => {
+        const host = content.createTranslatePopup();
+        global.chrome.runtime.sendMessage = jest.fn().mockResolvedValue({
+            success: true,
+            data: { translation: '', detectedSourceLang: 'en' }
+        });
+
+        await content.showTranslatePopup('test', DEFAULT_RECT);
+        await flushPromises();
+
+        const contentContainer = host.shadowRoot.getElementById('ht-content-container');
+        expect(contentContainer.textContent).toContain('翻譯失敗');
+        expect(contentContainer.querySelector('.ht-copy-btn')).toBeNull();
     });
 
     test('should add play button to popup and trigger playTTS on click', async () => {
@@ -593,6 +694,15 @@ describe('isValidTextToTranslate optimization', () => {
         expect(isValidTextToTranslate('a && b')).toBe(false);
         expect(isValidTextToTranslate('x === y')).toBe(false);
         expect(isValidTextToTranslate('x += 1')).toBe(false);
+    });
+
+    test('should allow command-line flags without rejecting postfix decrement operators', () => {
+        expect(isValidTextToTranslate('Use --help for the complete command reference or provide explicit options in automation. The wizard never writes files until you review and confirm its installation plan.')).toBe(true);
+        expect(isValidTextToTranslate('Use the flag (--help) or [--verbose] for options.')).toBe(true);
+        expect(isValidTextToTranslate('Use --output=json to choose the destination.')).toBe(true);
+        expect(isValidTextToTranslate('Run with --help, --verbose, or --quiet.')).toBe(true);
+        expect(isValidTextToTranslate('count--;')).toBe(false);
+        expect(isValidTextToTranslate('count-- > 0')).toBe(false);
     });
 
     test('should reject code keywords', () => {

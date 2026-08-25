@@ -44,6 +44,25 @@ describe('I18nService', () => {
         expect(i18nService.getText('nonExistentKey')).toBe('nonExistentKey');
     });
 
+    test('should interpolate dynamic dashboard text', () => {
+        global.chrome.i18n.getUILanguage.mockReturnValue('en-US');
+        expect(i18nService.getText('dashboardAverageDailyDescription', {
+            average: 2.5,
+            days: 4
+        })).toBe('Average of 2.5 words on active days (4 active days).');
+    });
+
+    test('should localize page metadata and translated attributes', () => {
+        global.chrome.i18n.getUILanguage.mockReturnValue('ar-EG');
+        document.body.innerHTML = '<button data-i18n-title="backBtnTitle">placeholder</button>';
+
+        i18nService.localizePage();
+
+        expect(document.documentElement.lang).toBe('ar-EG');
+        expect(document.documentElement.dir).toBe('rtl');
+        expect(document.querySelector('button').title).toBe('رجوع');
+    });
+
     describe('locale metadata helpers', () => {
         test('reads metadata and RTL flag from injected locale', () => {
             i18nService.locales['mock-rtl'] = {

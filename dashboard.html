@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="dashboardTitle">Learning Progress</title>
+  <link rel="stylesheet" href="assets/styles/theme.css">
+  <link rel="stylesheet" href="assets/styles/dashboard.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <button id="backBtn" class="back-btn" data-i18n-title="backBtnTitle">
+          ← <span data-i18n="settingsTitle">設定</span>
+        </button>
+        <div class="header-title-group">
+          <h1><span>📊</span> <span data-i18n="dashboardTitle">學習進度儀表板</span></h1>
+          <p data-i18n="dashboardSubtitle">Highlighting Translate Learning Progress</p>
+        </div>
+      </div>
+      <button id="openShareModalBtn" class="share-action-btn">
+        <span>✨</span> <span data-i18n="shareCardBtn">分享進度卡片</span>
+      </button>
+    </header>
+
+    <!-- Milestone Level Banner -->
+    <section class="milestone-banner" id="milestoneBanner">
+      <div class="milestone-header-row">
+        <div class="milestone-badge" id="dashMilestoneBadge">🌱 Beginner (0/100)</div>
+        <div class="milestone-percent-text" id="dashMilestonePercent">0%</div>
+      </div>
+      <div class="milestone-bar-bg">
+        <div class="milestone-bar-fill" id="dashMilestoneBar"></div>
+      </div>
+    </section>
+
+    <!-- Metrics Grid -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon-wrap flame-anim">🔥</div>
+        <div class="metric-info">
+          <div class="metric-value" id="dashStreakVal">0</div>
+          <div class="metric-label" data-i18n="streakLabel">連續天數</div>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon-wrap">📚</div>
+        <div class="metric-info">
+          <div class="metric-value" id="dashWordsVal">0</div>
+          <div class="metric-label" data-i18n="wordsLabel">總詞彙量</div>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon-wrap">📈</div>
+        <div class="metric-info">
+          <div class="metric-value" id="dashMonthlyVal">+0</div>
+          <div class="metric-label" data-i18n="monthlyNewLabel">本月新增</div>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon-wrap">⏱️</div>
+        <div class="metric-info">
+          <div class="metric-value" id="dashWeekTimeVal">0m</div>
+          <div class="metric-label" data-i18n="thisWeekLabel">本週閱讀</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Growth Line Chart -->
+    <section class="dash-card">
+      <div class="chart-card-header">
+        <div class="chart-title">
+          <span>📈</span> <span data-i18n="growthChartTitle">詞彙成長趨勢</span>
+        </div>
+        <div class="range-toggle-group">
+          <button class="range-btn" data-days="7">7D</button>
+          <button class="range-btn active" data-days="30">30D</button>
+          <button class="range-btn" data-days="90">90D</button>
+        </div>
+      </div>
+      <div class="chart-canvas-wrapper">
+        <canvas id="growthCanvas"></canvas>
+        <div id="chartTooltip" class="chart-tooltip"></div>
+      </div>
+    </section>
+
+    <!-- Insights & Reading Stats -->
+    <section class="insights-grid">
+      <div class="dash-card">
+        <div class="chart-title" style="margin-bottom: 12px;">
+          <span>⏱️</span> <span data-i18n="readingStatsTitle">閱讀統計</span>
+        </div>
+        <div class="insight-item">
+          <div class="insight-icon">📅</div>
+          <div class="insight-text">
+            <h4 id="dashPeakDayTitle" data-i18n="dashboardPeakDayTitle">Most Active Day</h4>
+            <p id="dashPeakDayDesc" data-i18n="dashboardLoading">Loading...</p>
+          </div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-icon">🎯</div>
+          <div class="insight-text">
+            <h4 data-i18n="dashboardAverageDailyTitle">Average Daily Learning</h4>
+            <p id="dashAvgDailyDesc" data-i18n="dashboardLoading">Loading...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <div class="chart-title" style="margin-bottom: 12px;">
+          <span>💡</span> <span data-i18n="insightsTitle">學習模式洞察</span>
+        </div>
+        <div class="insight-item">
+          <div class="insight-icon">🔥</div>
+          <div class="insight-text">
+            <h4 data-i18n="dashboardStreakInsightTitle">Learning Momentum</h4>
+            <p id="dashStreakInsight" data-i18n="dashboardStreakInactiveDescription">You haven't started learning today. Translate or save 1 word to keep your progress going!</p>
+          </div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-icon">🧠</div>
+          <div class="insight-text">
+            <h4 data-i18n="dashboardSpacedRepetitionTitle">Spaced Repetition Benefit</h4>
+            <p data-i18n="dashboardSpacedRepetitionDescription">Reviewing with flashcards can improve long-term memory retention by 80%.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Share Modal -->
+  <div class="modal-overlay" id="shareModalOverlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 data-i18n="shareProgressTitle">✨ Share Your Learning Progress</h3>
+        <button id="closeModalBtn" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="share-card-canvas-wrap">
+        <canvas id="shareCanvas"></canvas>
+      </div>
+      <div class="modal-actions">
+        <button id="downloadCardBtn" class="btn btn-primary">
+          <span>📥</span> <span data-i18n="downloadPngBtn">Download Image (PNG)</span>
+        </button>
+        <button id="copyCardBtn" class="btn btn-secondary">
+          <span>📋</span> <span data-i18n="copyClipboardBtn">Copy to Clipboard</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Message -->
+  <div id="toastMsg" class="toast-msg" data-i18n="toastCopied">Copied to clipboard</div>
+
+  <script src="services/ThemeService.js"></script>
+  <script src="services/I18nService.js"></script>
+  <script src="services/ShareCardService.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

@@ -32,6 +32,17 @@ describe('TranslationService', () => {
             expect(service.detectLanguage('Hello World')).toBe('en');
         });
 
+        test('should detect Spanish before English and Vietnamese heuristics', () => {
+            expect(service.detectLanguage('Hola, ¿cómo estás?')).toBe('es');
+            expect(service.detectLanguage('No puedo traducir este texto al idioma actual.')).toBe('es');
+            expect(service.detectLanguage('La casa está muy lejos.')).toBe('es');
+            expect(service.detectLanguage('La película es increíble.')).toBe('es');
+            expect(service.detectLanguage('La canción es buena.')).toBe('es');
+            expect(service.detectLanguage('La vie de Brian.')).toBe('en');
+            expect(service.detectLanguage('La vérité de Brian.')).not.toBe('es');
+            expect(service.detectLanguage('La suspicion était injustifiée.')).not.toBe('es');
+        });
+
         test('should detect German', () => {
             expect(service.detectLanguage('Schönheit')).toBe('de');
             expect(service.detectLanguage('Groß')).toBe('de');
@@ -66,6 +77,11 @@ describe('TranslationService', () => {
             expect(service.shouldTranslate('hello', 'auto', 'zh-TW')).toBe(true);
         });
 
+        test('should recognize Spanish when target language is Spanish', () => {
+            expect(service.shouldTranslate('Hola, ¿cómo estás?', 'auto', 'es')).toBe(false);
+            expect(service.shouldTranslate('Hola, ¿cómo estás?', 'auto', 'zh-TW')).toBe(true);
+        });
+
         test('should not translate if text is mostly target language (ZH-TW case)', () => {
             // Even if auto-detect says ZH-TW, if target is ZH-TW it should be false
             expect(service.shouldTranslate('這是一段繁體中文', 'auto', 'zh-TW')).toBe(false);
@@ -98,6 +114,20 @@ describe('TranslationService', () => {
             expect(global.fetch).toHaveBeenCalledWith(
                 expect.stringContaining('sl=en')
             );
+        });
+
+        test('should send Spanish source when auto-translating Spanish text', async () => {
+            global.fetch.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve([[['translated text']]])
+            });
+
+            const result = await service.translate('No puedo traducir este texto al idioma actual.', 'auto', 'zh-TW');
+
+            expect(global.fetch).toHaveBeenCalledWith(
+                expect.stringContaining('sl=es&tl=zh-TW')
+            );
+            expect(result).toEqual({ translation: 'translated text', detectedSourceLang: 'es' });
         });
 
         test('should throw error on API failure', async () => {

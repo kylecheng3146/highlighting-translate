@@ -3,7 +3,11 @@ importScripts(
     'services/SRSService.js',
     'services/StorageService.js',
     'services/MissionService.js',
-    'services/FocusTrackService.js'
+    'services/FocusTrackService.js',
+    'services/StreakService.js',
+    'services/MilestoneService.js',
+    'services/StatsService.js',
+    'services/ShareCardService.js'
 );
 
 // Initialize Services
@@ -12,6 +16,10 @@ const srsService = new SRSService();
 const storageService = new StorageService();
 const missionService = new MissionService();
 const focusTrackService = new FocusTrackService();
+const streakService = new StreakService();
+const milestoneService = new MilestoneService();
+const statsService = new StatsService({ streakService, milestoneService });
+const shareCardService = new ShareCardService();
 
 // 擴展安裝時的初始化
 chrome.runtime.onInstalled.addListener(async () => {
@@ -498,9 +506,28 @@ async function handleMessage(request, sender, sendResponse) {
                         word: request.item.text,
                         sourceUrl: request.item.sourceUrl
                     });
+                    await statsService.recordTranslation(request.item.text, true);
                 }
                 sendResponse({success: true});
                 break;
+            case 'TRANSLATION_RECORDED': {
+                const stats = await statsService.recordTranslation(request.text, request.isSaved || false);
+                sendResponse({ success: true, data: stats });
+                break;
+            }
+            case 'GET_STATS': {
+                const stats = await statsService.getOverview();
+                sendResponse({ success: true, data: stats });
+                break;
+            }
+            case 'GET_DASHBOARD_DATA': {
+                const overview = await statsService.getOverview();
+                const chartDays = Number(request.days || 30);
+                const chart = await statsService.getGrowthChart(chartDays);
+                const insights = await statsService.getInsights();
+                sendResponse({ success: true, data: { overview, chart, insights } });
+                break;
+            }
             case 'STORAGE_GET': {
                 const requestItems = await storageService.getTranslations(request.limit, request.offset, request.sourceLangFilter);
                 sendResponse({success: true, data: requestItems});

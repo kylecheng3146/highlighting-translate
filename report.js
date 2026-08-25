@@ -4,6 +4,32 @@ let weeklyReports = [];
 let selectedWeekId = null;
 let taskFilter = 'all';
 
+function getTopicLabel(topic = {}) {
+    const id = String(topic.id || '');
+    if (id === 'weak_words' || topic.type === 'weak_words') {
+        return i18nService.getText('weeklyFocusReportWeakCount');
+    }
+    if (id.startsWith('domain:')) {
+        return id.slice('domain:'.length) || i18nService.getText('weeklyFocusReportDefaultTopic');
+    }
+    return i18nService.getText('weeklyFocusReportStarterTopic');
+}
+
+function getTopicReason(topic = {}, report = {}) {
+    const id = String(topic.id || '');
+    if (id.startsWith('domain:')) {
+        return i18nService.getText('weeklyFocusReportDomainReason', {
+            domain: id.slice('domain:'.length)
+        });
+    }
+    if (id === 'weak_words' || topic.type === 'weak_words') {
+        return i18nService.getText('weeklyFocusReportWeakReason', {
+            count: Number(report?.stats?.weakWordCount || 0)
+        });
+    }
+    return i18nService.getText('weeklyFocusReportStarterReason');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     i18nService.localizePage();
 
@@ -165,7 +191,7 @@ function renderTaskBreakdown() {
         if (filterEl) {
             const topics = report.topicBreakdown.map((topic) => ({
                 id: topic.id,
-                label: topic.label || topic.id
+                label: getTopicLabel(topic)
             }));
             filterEl.innerHTML = [
                 `<option value="all">${escapeHtml(i18nService.getText('weeklyFocusReportFilterAll'))}</option>`,
@@ -178,13 +204,12 @@ function renderTaskBreakdown() {
         }
 
     list.forEach((topic) => {
-        const title = topic.label || topic.id;
-        const reason = topic.reason || i18nService.getText('weeklyFocusReportNoReason');
+        const title = getTopicLabel(topic);
         const target = Number(topic.target || 0);
         const progress = Number(topic.progress || 0);
         const remaining = Math.max(0, target - progress);
         const reasonText = remaining > 0
-            ? `${i18nService.getText('weeklyFocusReportRemaining')}: ${remaining}. ${reason}`
+            ? `${i18nService.getText('weeklyFocusReportRemaining')}: ${remaining}. ${getTopicReason(topic, report)}`
             : i18nService.getText('weeklyFocusReportTopicCompleted');
 
         const el = document.createElement('div');
