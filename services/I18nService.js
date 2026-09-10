@@ -148,6 +148,7 @@ const LOCALES = {
                 "toastCopyFailed": "Copy failed. Please use the download option.",
                 "dashboardChartNewToday": "New today",
                 "dashboardChartCumulativeWords": "Cumulative words",
+                "dashboardChartNoData": "Start learning to see your vocabulary growth.",
                 "daySunday": "Sunday",
                 "dayMonday": "Monday",
                 "dayTuesday": "Tuesday",
@@ -307,6 +308,7 @@ const LOCALES = {
                 "toastCopyFailed": "复制失败，请使用下载功能",
                 "dashboardChartNewToday": "今日新增",
                 "dashboardChartCumulativeWords": "累计词汇",
+                "dashboardChartNoData": "开始学习后即可查看词汇成长。",
                 "daySunday": "周日",
                 "dayMonday": "周一",
                 "dayTuesday": "周二",
@@ -466,6 +468,7 @@ const LOCALES = {
                 "toastCopyFailed": "複製失敗，請使用下載功能",
                 "dashboardChartNewToday": "當日新增",
                 "dashboardChartCumulativeWords": "累積詞彙",
+                "dashboardChartNoData": "開始學習後即可查看詞彙成長。",
                 "daySunday": "週日",
                 "dayMonday": "週一",
                 "dayTuesday": "週二",
@@ -625,6 +628,7 @@ const LOCALES = {
                 "toastCopyFailed": "コピーに失敗しました。ダウンロードをお使いください。",
                 "dashboardChartNewToday": "今日の新規",
                 "dashboardChartCumulativeWords": "累積単語数",
+                "dashboardChartNoData": "学習を始めると、語彙の成長を確認できます。",
                 "daySunday": "日曜日",
                 "dayMonday": "月曜日",
                 "dayTuesday": "火曜日",
@@ -784,6 +788,7 @@ const LOCALES = {
                 "toastCopyFailed": "복사하지 못했습니다. 다운로드 기능을 이용하세요.",
                 "dashboardChartNewToday": "오늘 신규",
                 "dashboardChartCumulativeWords": "누적 단어",
+                "dashboardChartNoData": "학습을 시작하면 어휘 성장을 확인할 수 있습니다.",
                 "daySunday": "일요일",
                 "dayMonday": "월요일",
                 "dayTuesday": "화요일",
@@ -943,6 +948,7 @@ const LOCALES = {
                 "toastCopyFailed": "No se pudo copiar. Usa la opción de descarga.",
                 "dashboardChartNewToday": "Nuevas hoy",
                 "dashboardChartCumulativeWords": "Palabras acumuladas",
+                "dashboardChartNoData": "Empieza a aprender para ver tu crecimiento de vocabulario.",
                 "daySunday": "domingo",
                 "dayMonday": "lunes",
                 "dayTuesday": "martes",
@@ -1102,6 +1108,7 @@ const LOCALES = {
                 "toastCopyFailed": "Échec de la copie. Utilisez le téléchargement.",
                 "dashboardChartNewToday": "Nouveaux aujourd'hui",
                 "dashboardChartCumulativeWords": "Mots cumulés",
+                "dashboardChartNoData": "Commencez à apprendre pour voir votre progression de vocabulaire.",
                 "daySunday": "dimanche",
                 "dayMonday": "lundi",
                 "dayTuesday": "mardi",
@@ -1261,6 +1268,7 @@ const LOCALES = {
                 "toastCopyFailed": "Kopieren fehlgeschlagen. Nutze den Download.",
                 "dashboardChartNewToday": "Heute neu",
                 "dashboardChartCumulativeWords": "Wörter insgesamt",
+                "dashboardChartNoData": "Beginne zu lernen, um deinen Vokabelfortschritt zu sehen.",
                 "daySunday": "Sonntag",
                 "dayMonday": "Montag",
                 "dayTuesday": "Dienstag",
@@ -1420,6 +1428,7 @@ const LOCALES = {
                 "toastCopyFailed": "Sao chép thất bại. Hãy dùng tùy chọn tải xuống.",
                 "dashboardChartNewToday": "Mới hôm nay",
                 "dashboardChartCumulativeWords": "Từ vựng tích lũy",
+                "dashboardChartNoData": "Hãy bắt đầu học để xem tiến bộ từ vựng của bạn.",
                 "daySunday": "Chủ nhật",
                 "dayMonday": "Thứ hai",
                 "dayTuesday": "Thứ ba",
@@ -1579,6 +1588,7 @@ const LOCALES = {
             "toastCopyFailed": "فشل النسخ. استخدم خيار التنزيل.",
             "dashboardChartNewToday": "الجديد اليوم",
             "dashboardChartCumulativeWords": "إجمالي الكلمات",
+            "dashboardChartNoData": "ابدأ التعلم لرؤية نمو مفرداتك.",
             "daySunday": "الأحد",
             "dayMonday": "الاثنين",
             "dayTuesday": "الثلاثاء",
@@ -1690,6 +1700,35 @@ class I18nService {
             const text = t[key] || this.locales.en.strings[key];
             if (text) document.title = text;
         }
+    }
+
+    /**
+     * Format a milestone object or current progress into a localized display string
+     * @param {Object} [milestone={}]
+     * @param {number} [totalWords=0]
+     * @returns {string}
+     */
+    formatMilestone(milestone = {}, totalWords = 0) {
+        const current = (milestone && milestone.currentMilestone) || {};
+        const labelKeys = {
+            beginner: 'milestoneBeginner',
+            intermediate: 'milestoneIntermediate',
+            advanced: 'milestoneAdvanced',
+            master: 'milestoneMaster'
+        };
+        const label = this.getText(labelKeys[current.id] || 'milestoneBeginner');
+        const icon = current.icon || (milestone && milestone.isMax ? '🏆' : '🌱');
+        const count = (milestone && milestone.currentWords !== undefined) ? milestone.currentWords : totalWords;
+
+        if (milestone && milestone.isMax) {
+            return this.getText('milestoneMax', { icon, label, count });
+        }
+        return this.getText('milestoneProgress', {
+            icon,
+            label,
+            count,
+            target: (milestone && milestone.targetWords !== undefined) ? milestone.targetWords : 100
+        });
     }
 }
 

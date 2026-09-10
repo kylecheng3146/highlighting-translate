@@ -167,3 +167,71 @@ CONTEXT: .shared/03-ux-specification.md, .shared/04-tech-architecture.md
 - [ ] 可以發布
 - [ ] 需要修復後重新測試
 ```
+
+---
+
+# QA 增補：Cloud Backup & Cross-Device Sync
+
+## 11. 資料模型單元測試
+
+- [ ] 舊 `savedTranslations` migration 產生穩定 ID，重跑不改 ID。
+- [ ] 新單字會產生 `id`、`updatedAt`、`updatedBy`。
+- [ ] 同一單字兩個版本依 `updatedAt` 選出較新資料。
+- [ ] 相同 timestamp 依 `updatedBy` 得到穩定結果。
+- [ ] 活動事件以 `eventId` 去重；相同事件不重複計數。
+- [ ] 兩台裝置同日新增活動會完整累加。
+- [ ] 設定 key 可以獨立 LWW，不因另一個設定變更而遺失。
+- [ ] tombstone 可阻止較舊單字復活，90 天期限正確裁剪。
+- [ ] `CLEAR` 只在輸入完全等於 `CLEAR` 時執行。
+- [ ] current + snapshots 最多保留 7 個完整版本。
+- [ ] schema 版本不相容時拒絕覆蓋 local/remote。
+
+## 12. Drive API Mock 整合測試
+
+- [ ] 啟用同步可建立資料夾與單一 `highlighting-translate-backup.json`。
+- [ ] Drive 空、本機有資料時上傳成功。
+- [ ] Drive 有資料、本機為空時下載成功。
+- [ ] 兩邊都有資料時完成單字、活動、設定合併。
+- [ ] 雙裝置同時更新時，重新讀取 remote 後不遺失任一變更。
+- [ ] 401 只觸發一次 token refresh/re-auth，不進入無限迴圈。
+- [ ] 403 顯示 permission error，不重試無效請求。
+- [ ] 網路、429、5xx 按 1/5/15/30 分鐘順序重試，24 小時後停止。
+- [ ] JSON 損壞或 schema 不支援時保留本機與原 remote。
+- [ ] 帳號切換不會使用前一帳號的 folderId/fileId。
+- [ ] 登出後 local state 與 remote file 都仍存在。
+
+## 13. UI / E2E 測試
+
+- [ ] 未登入時所有既有翻譯、收藏、Review 與 Dashboard 流程正常。
+- [ ] 啟用前能看到資料範圍、Google Drive 位置與明文風險。
+- [ ] OAuth 取消後回到本機模式，不顯示錯誤阻斷畫面。
+- [ ] 已同步、同步中、待同步、離線、授權失效、失敗等狀態正確顯示。
+- [ ] 立即同步可取消重複 pending job。
+- [ ] 歷史版本可列表、預覽差異、還原並產生新 current。
+- [ ] 清除資料需輸入 `CLEAR`，並顯示其他裝置同步刪除警告。
+- [ ] 帳號切換需要確認，且完成後顯示新帳號狀態。
+- [ ] 所有新增文字在 en、zh-TW、zh-CN、ja、ko、es、fr、de、vi、ar-EG 通過。
+- [ ] RTL、鍵盤 Tab/Enter、aria-live 與 focus restore 正常。
+- [ ] `prefers-reduced-motion` 下無持續旋轉/閃爍。
+
+## 14. 手動雙裝置驗證
+
+| 情境 | 裝置 A | 裝置 B | 預期 |
+|---|---|---|---|
+| 初次加入 | 有本機單字 | 空本機 | B 下載 current |
+| 雙向新增 | 新增 A1 | 新增 B1 | 兩邊最後都有 A1/B1 |
+| 同日活動 | 翻譯 3 次 | 翻譯 4 次 | 統計為 7 次，不重複 |
+| 單筆衝突 | 修改同一單字 | 修改同一單字 | 較新 `updatedAt` 生效 |
+| 刪除 | `CLEAR` | 離線 | B 恢復後套用 tombstone |
+| 還原 | 還原舊 snapshot | 正常同步 | 還原成新 current，兩邊一致 |
+| 帳號隔離 | 登出 A | 登入 B | 不混合 A/B 資料 |
+
+## 15. 權限、隱私與發布阻擋
+
+- [ ] 未啟用同步前不請求 Google/alarms 額外權限。
+- [ ] 不儲存 OAuth access token。
+- [ ] 只使用最小 Drive scope，未要求整個 Drive 讀寫權限。
+- [ ] 隱私政策說明單字、來源網址、上下文、統計與設定的傳輸目的。
+- [ ] 啟用同意文案與 Chrome Web Store disclosure 一致。
+- [ ] 未登入、無 Google 帳號、取消授權仍可使用本機功能。
+- [ ] 發現資料遺失、跨裝置覆蓋、帳號混合或清除無法復原時阻擋發布。

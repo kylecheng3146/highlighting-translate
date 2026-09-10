@@ -78,4 +78,80 @@ describe('I18nService', () => {
             expect(i18nService.isRTL()).toBe(true);
         });
     });
+
+    describe('formatMilestone', () => {
+        test('formats starter level (77/100) in English', () => {
+            global.chrome.i18n.getUILanguage.mockReturnValue('en-US');
+            const milestone = {
+                currentMilestone: null,
+                nextMilestone: { id: 'beginner', threshold: 100 },
+                currentWords: 77,
+                targetWords: 100,
+                percentage: 77,
+                isMax: false
+            };
+            expect(i18nService.formatMilestone(milestone, 77)).toBe('🌱 Beginner (77/100)');
+        });
+
+        test('formats starter level (77/100) in Traditional Chinese', () => {
+            global.chrome.i18n.getUILanguage.mockReturnValue('zh-TW');
+            const milestone = {
+                currentMilestone: null,
+                nextMilestone: { id: 'beginner', threshold: 100 },
+                currentWords: 77,
+                targetWords: 100,
+                percentage: 77,
+                isMax: false
+            };
+            expect(i18nService.formatMilestone(milestone, 77)).toBe('🌱 起步者 (77/100)');
+        });
+
+        test('formats starter level (77/100) in Japanese', () => {
+            global.chrome.i18n.getUILanguage.mockReturnValue('ja');
+            const milestone = {
+                currentMilestone: null,
+                nextMilestone: { id: 'beginner', threshold: 100 },
+                currentWords: 77,
+                targetWords: 100,
+                percentage: 77,
+                isMax: false
+            };
+            expect(i18nService.formatMilestone(milestone, 77)).toBe('🌱 初心者 (77/100)');
+        });
+
+        test('formats intermediate level (750/1000) in German', () => {
+            global.chrome.i18n.getUILanguage.mockReturnValue('de');
+            const milestone = {
+                currentMilestone: { id: 'intermediate', threshold: 500, icon: '🌿' },
+                nextMilestone: { id: 'advanced', threshold: 1000 },
+                currentWords: 750,
+                targetWords: 1000,
+                percentage: 75,
+                isMax: false
+            };
+            expect(i18nService.formatMilestone(milestone, 750)).toBe('🌿 Fortgeschritten (750/1000)');
+        });
+
+        test('formats max level (5200 words) in English and Traditional Chinese', () => {
+            const milestone = {
+                currentMilestone: { id: 'master', threshold: 5000, icon: '🏆' },
+                nextMilestone: null,
+                currentWords: 5200,
+                targetWords: 5000,
+                percentage: 100,
+                isMax: true
+            };
+
+            global.chrome.i18n.getUILanguage.mockReturnValue('en-US');
+            expect(i18nService.formatMilestone(milestone, 5200)).toBe('🏆 Master (5200 words)');
+
+            global.chrome.i18n.getUILanguage.mockReturnValue('zh-TW');
+            expect(i18nService.formatMilestone(milestone, 5200)).toBe('🏆 大師 (5200 詞)');
+        });
+
+        test('provides fallback formatting when called with empty or undefined arguments', () => {
+            global.chrome.i18n.getUILanguage.mockReturnValue('en-US');
+            expect(i18nService.formatMilestone()).toBe('🌱 Beginner (0/100)');
+        });
+    });
 });

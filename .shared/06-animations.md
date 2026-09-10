@@ -264,3 +264,22 @@ CONTEXT: .shared/02-wireframes.md, .shared/03-ux-specification.md
 | 分享卡片 | 0.5s | 0s | 0.5s |
 | 里程碑達成 | 0.8s | 0s | 0.8s |
 | Streak 提示 | 0.3s | 0s | 0.3s |
+
+---
+
+# 動畫增補：Cloud Backup & Cross-Device Sync
+
+## 11. 同步狀態動畫
+
+- `syncing`：使用小型旋轉/進度圖示，持續時間不超過單次操作；不使用全區域 loading 遮罩。
+- `synced`：狀態圖示由 pending 平滑切換到完成，約 200ms。
+- `retrying`：使用靜態警示圖示與文字，不使用閃爍。
+- `auth_required` / `error`：使用一次性淡入提示，保留可操作按鈕。
+- 同步動畫不得阻擋 Popup 的翻譯設定與其他按鈕。
+
+## 12. 還原與 destructive action
+
+- 歷史版本預覽使用淡入，不使用會延遲操作的長動畫。
+- `CLEAR` 確認視窗只使用遮罩淡入；輸入錯誤顯示 inline error，不搖晃整個視窗。
+- 還原完成使用一次性 success state，顯示「已建立新同步版本」。
+- `prefers-reduced-motion: reduce` 時移除旋轉、滑入與縮放，只保留狀態文字變化。

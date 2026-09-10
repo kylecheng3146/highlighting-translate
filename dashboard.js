@@ -28,7 +28,10 @@ function localizeDayName(dayName = '') {
 }
 
 function formatMilestone(milestone = {}, totalWords = 0) {
-    const current = milestone.currentMilestone || {};
+    if (i18nService && typeof i18nService.formatMilestone === 'function') {
+        return i18nService.formatMilestone(milestone, totalWords);
+    }
+    const current = (milestone && milestone.currentMilestone) || {};
     const labelKeys = {
         beginner: 'milestoneBeginner',
         intermediate: 'milestoneIntermediate',
@@ -36,17 +39,17 @@ function formatMilestone(milestone = {}, totalWords = 0) {
         master: 'milestoneMaster'
     };
     const label = t(labelKeys[current.id] || 'milestoneBeginner');
-    const icon = current.icon || (milestone.isMax ? '🏆' : '🌱');
-    const count = milestone.currentWords ?? totalWords;
+    const icon = current.icon || (milestone && milestone.isMax ? '🏆' : '🌱');
+    const count = (milestone && milestone.currentWords !== undefined) ? milestone.currentWords : totalWords;
 
-    if (milestone.isMax) {
+    if (milestone && milestone.isMax) {
         return t('milestoneMax', { icon, label, count });
     }
     return t('milestoneProgress', {
         icon,
         label,
         count,
-        target: milestone.targetWords ?? 100
+        target: (milestone && milestone.targetWords !== undefined) ? milestone.targetWords : 100
     });
 }
 
@@ -55,6 +58,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof I18nService !== 'undefined') {
         i18nService = new I18nService();
         i18nService.localizePage();
+        const badgeEl = document.getElementById('dashMilestoneBadge');
+        if (badgeEl && typeof i18nService.formatMilestone === 'function') {
+            badgeEl.textContent = i18nService.formatMilestone();
+        }
     }
     if (typeof ThemeService !== 'undefined') {
         themeService = new ThemeService();
@@ -96,13 +103,30 @@ function setupEventListeners() {
 
     // Range buttons
     const rangeButtons = document.querySelectorAll('.range-btn');
-    rangeButtons.forEach((btn) => {
+    const updateRangeState = (activeButton) => {
+        rangeButtons.forEach((button) => {
+            const active = button === activeButton;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', String(active));
+        });
+    };
+
+    rangeButtons.forEach((btn, index) => {
         btn.addEventListener('click', async () => {
-            rangeButtons.forEach((b) => b.classList.remove('active'));
-            btn.classList.add('active');
+            updateRangeState(btn);
             const days = parseInt(btn.dataset.days, 10) || 30;
             currentRangeDays = days;
             await loadDashboard(currentRangeDays);
+        });
+        btn.addEventListener('keydown', (event) => {
+            if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+            event.preventDefault();
+            const offset = event.key === 'ArrowLeft' ? -1 : 1;
+            const next = rangeButtons[index + offset];
+            if (next) {
+                next.focus();
+                next.click();
+            }
         });
     });
 
@@ -200,6 +224,13 @@ async function loadDashboard(days = 30) {
         // Render Growth Chart
         if (chart && Array.isArray(chart)) {
             chartPoints = chart;
+            const hasData = chart.some((point) => Number(point.count || 0) > 0);
+            const emptyState = document.getElementById('chartEmptyState');
+            const canvas = document.getElementById('growthCanvas');
+            if (emptyState) emptyState.hidden = hasData;
+            if (canvas) canvas.setAttribute('aria-label', hasData
+                ? `Vocabulary growth chart for the last ${days} days`
+                : 'Vocabulary growth chart has no activity yet');
             renderCanvasChart(chartPoints);
         }
     } catch (error) {
@@ -231,14 +262,20 @@ function renderMilestone(overview = {}) {
     const barEl = document.getElementById('dashMilestoneBar');
 
     const milestone = overview.milestone || {};
+    const formatted = formatMilestone(milestone, overview.totalWords || 0);
+    if (overview.milestone) {
+        overview.milestone.displayText = formatted;
+    }
     if (badgeEl) {
-        badgeEl.textContent = formatMilestone(milestone, overview.totalWords || 0);
+        badgeEl.textContent = formatted;
     }
     if (percentEl) {
         percentEl.textContent = `${milestone.percentage || 0}%`;
     }
     if (barEl) {
-        barEl.style.width = `${milestone.percentage || 0}%`;
+        const percentage = Math.max(0, Math.min(100, Number(milestone.percentage || 0)));
+        barEl.style.width = `${percentage}%`;
+        barEl.setAttribute('aria-valuenow', String(percentage));
     }
 }
 
@@ -250,6 +287,11 @@ function renderInsights(insights = {}, overview = {}) {
     const peakDayDescEl = document.getElementById('dashPeakDayDesc');
     const avgDailyDescEl = document.getElementById('dashAvgDailyDesc');
     const streakInsightEl = document.getElementById('dashStreakInsight');
+    const learningInsightsCard = document.getElementById('learningInsightsCard');
+
+    if (learningInsightsCard) {
+        learningInsightsCard.hidden = insights.hasEnoughHistory !== true;
+    }
 
     if (peakDayDescEl) {
         const dayName = localizeDayName(insights.peakDayName || insights.peakDayNameZh || 'Wednesday');

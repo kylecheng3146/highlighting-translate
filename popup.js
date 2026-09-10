@@ -314,9 +314,17 @@ async function loadDashboardStats() {
 
         // Milestone
         if (data.milestone) {
-            if (milestoneTitleEl) milestoneTitleEl.textContent = data.milestone.displayText || '🌱 起步者';
-            if (milestonePercentEl) milestonePercentEl.textContent = `${data.milestone.percentage || 0}%`;
-            if (milestoneProgressBarEl) milestoneProgressBarEl.style.width = `${data.milestone.percentage || 0}%`;
+            if (milestoneTitleEl) {
+                milestoneTitleEl.textContent = typeof i18nService.formatMilestone === 'function'
+                    ? i18nService.formatMilestone(data.milestone, data.totalWords || 0)
+                    : (data.milestone.displayText || '🌱 Beginner (0/100)');
+            }
+            const percentage = Math.max(0, Math.min(100, Number(data.milestone.percentage || 0)));
+            if (milestonePercentEl) milestonePercentEl.textContent = `${percentage}%`;
+            if (milestoneProgressBarEl) {
+                milestoneProgressBarEl.style.width = `${percentage}%`;
+                milestoneProgressBarEl.setAttribute('aria-valuenow', String(percentage));
+            }
         }
 
         // Streak reminder prompt
@@ -394,6 +402,11 @@ function renderLanguageOptions() {
 document.addEventListener('DOMContentLoaded', async () => {
     i18nService.localizePage();
     renderLanguageOptions();
+
+    const initialMilestoneEl = document.getElementById('milestoneTitle');
+    if (initialMilestoneEl && typeof i18nService.formatMilestone === 'function') {
+        initialMilestoneEl.textContent = i18nService.formatMilestone();
+    }
     
     // Load Theme First (Visual Priority)
     const currentColor = await themeService.loadAndApply();

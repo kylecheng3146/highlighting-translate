@@ -5,6 +5,11 @@ jest.mock('./services/I18nService.js', () => {
     return jest.fn().mockImplementation(() => ({
         localizePage: jest.fn(),
         getText: (key) => key,
+        formatMilestone: jest.fn((milestone = {}, totalWords = 0) => {
+            const count = (milestone && milestone.currentWords !== undefined) ? milestone.currentWords : totalWords;
+            const target = (milestone && milestone.targetWords !== undefined) ? milestone.targetWords : 100;
+            return `🌱 Beginner (${count}/${target})`;
+        }),
         getLocaleMetadata: () => ({
             auto: { label: 'Auto Detect' },
             en: { label: 'English' },
@@ -28,6 +33,9 @@ global.chrome = {
     tabs: {
         query: jest.fn(),
         sendMessage: jest.fn(),
+    },
+    runtime: {
+        sendMessage: jest.fn().mockResolvedValue({ success: false })
     },
     tts: {
         getVoices: jest.fn().mockImplementation((cb) => cb([]))
@@ -148,5 +156,41 @@ describe('popup.js', () => {
         const targetArabicOption = document.querySelector('#targetLang option[value="ar-EG"]');
         expect(targetArabicOption).not.toBeNull();
         expect(targetArabicOption.dataset.direction).toBe('rtl');
+    });
+
+    test('should format and localize milestone title initially and after stats load', async () => {
+        chrome.runtime.sendMessage.mockImplementation(async (msg) => {
+            if (msg.action === 'GET_STATS') {
+                return {
+                    success: true,
+                    data: {
+                        streak: 5,
+                        totalWords: 77,
+                        monthlyNew: 12,
+                        thisWeekMinutes: 20,
+                        milestone: {
+                            currentMilestone: null,
+                            nextMilestone: { id: 'beginner', threshold: 100 },
+                            currentWords: 77,
+                            targetWords: 100,
+                            percentage: 77,
+                            isMax: false,
+                            displayText: '🌱 起步者 (77/100)'
+                        }
+                    }
+                };
+            }
+            return { success: false };
+        });
+
+        setupDOM();
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const milestoneTitleEl = document.getElementById('milestoneTitle');
+        const milestonePercentEl = document.getElementById('milestonePercent');
+
+        expect(milestoneTitleEl).not.toBeNull();
+        expect(milestoneTitleEl.textContent).toBe('🌱 Beginner (77/100)');
+        expect(milestonePercentEl.textContent).toBe('77%');
     });
 });

@@ -224,3 +224,128 @@ flowchart TD
     J -->|是| K[顯示正確資料]
     J -->|否| L[顯示錯誤提示]
 ```
+
+---
+
+# 流程增補：Cloud Backup & Cross-Device Sync
+
+## 10. 啟用同步與初始化
+
+```mermaid
+sequenceDiagram
+    participant User as 使用者
+    participant Popup
+    participant BG as Service Worker
+    participant Identity as Chrome Identity
+    participant Drive as Google Drive
+    participant Local as chrome.storage
+
+    User->>Popup: 點擊啟用同步
+    Popup->>User: 顯示資料範圍與明文風險
+    User->>Identity: 同意並登入 Google
+    Identity-->>BG: access token
+    BG->>Drive: 建立/尋找備份資料夾與 JSON
+    Drive-->>BG: folderId/fileId/current
+    BG->>Local: 讀取本機 user state
+    BG->>BG: 判定空資料或執行 merge
+    BG->>Drive: 寫入 current + snapshots
+    BG->>Local: 寫入合併結果與 sync metadata
+    BG-->>Popup: INITIAL_SYNC_COMPLETE
+    Popup-->>User: 顯示同步摘要
+```
+
+## 11. 本機變更與 debounce 上傳
+
+```mermaid
+sequenceDiagram
+    participant Feature as 翻譯/收藏/Review/設定
+    participant Storage as chrome.storage
+    participant BG as Service Worker
+    participant Drive as Google Drive
+
+    Feature->>Storage: 先寫入本機資料
+    Storage-->>BG: storage.onChanged
+    BG->>BG: pending + debounce 60 秒
+    BG->>Drive: 讀取最新 current/revision
+    Drive-->>BG: remote state
+    BG->>BG: 合併 items/events/settings/tombstones
+    BG->>Drive: 更新單一 JSON 與 7 snapshots
+    Drive-->>BG: 新 revision
+    BG->>Storage: 儲存合併結果與 lastSuccessAt
+    BG-->>Feature: SYNC_STATUS_UPDATED
+```
+
+## 12. 遠端輪詢與跨裝置合併
+
+```mermaid
+flowchart TD
+    A[Service Worker 啟動 / Popup 開啟 / 5 分鐘 alarm] --> B[讀取 remote JSON]
+    B --> C{remote revision 是否變更?}
+    C -->|否| D[更新 lastCheckedAt]
+    C -->|是| E[讀取 local state]
+    E --> F[單字依 id + updatedAt 合併]
+    F --> G[活動依 eventId union]
+    G --> H[設定依 key + updatedAt 合併]
+    H --> I[tombstone 與 entity 時間比較]
+    I --> J[重建 readingProgress / Stats / Reports]
+    J --> K[寫回本機]
+    K --> L[通知 Popup/Dashboard 摘要]
+```
+
+## 13. 還原歷史版本
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Popup
+    participant BG as Service Worker
+    participant Drive as Google Drive
+    participant Local as chrome.storage
+
+    User->>Popup: 開啟歷史版本
+    Popup->>BG: LIST_SNAPSHOTS
+    BG->>Drive: 讀取單一 backup JSON
+    Drive-->>BG: 最近 7 個 snapshots
+    BG-->>Popup: 版本摘要
+    User->>Popup: 選擇版本並預覽
+    Popup->>BG: PREVIEW_RESTORE(snapshotId)
+    BG->>BG: 計算新增/修改/刪除差異
+    BG-->>Popup: 差異摘要
+    User->>Popup: 確認還原
+    Popup->>BG: RESTORE_SNAPSHOT(snapshotId)
+    BG->>Local: 取代本機 state
+    BG->>Drive: 以還原結果建立新 current
+    BG-->>Popup: RESTORE_COMPLETE
+```
+
+## 14. CLEAR 與刪除同步
+
+```mermaid
+flowchart TD
+    A[使用者點擊清除] --> B[輸入 CLEAR]
+    B --> C{文字完全相等?}
+    C -->|否| D[保持按鈕 disabled]
+    C -->|是| E[建立 tombstones]
+    E --> F[清除/重建本機 current]
+    F --> G[等待 debounce]
+    G --> H[合併並上傳]
+    H --> I[其他裝置收到刪除標記]
+    I --> J[歷史 7 版本仍保留]
+```
+
+## 15. 失敗重試
+
+```mermaid
+flowchart TD
+    A[Drive 操作失敗] --> B{錯誤類型}
+    B -->|401/403| C[auth_required / permission_error]
+    B -->|網路/429/5xx| D[保留 pending]
+    B -->|JSON/schema| E[停止上傳並保留 remote]
+    D --> F[1 分鐘後重試]
+    F --> G[5 分鐘]
+    G --> H[15 分鐘]
+    H --> I[30 分鐘]
+    I --> J{累計未超過 24 小時?}
+    J -->|是| F
+    J -->|否| K[顯示失敗與手動重試]
+```

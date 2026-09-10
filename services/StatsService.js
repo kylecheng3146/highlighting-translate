@@ -192,15 +192,33 @@ class StatsService {
         const currentYear = referenceDate.getFullYear();
         const currentMonth = referenceDate.getMonth();
         const monthlyWords = new Set();
+        const knownWords = new Set();
         let monthlyTranslations = 0;
 
-        for (const [dateStr, entry] of Object.entries(readingProgress)) {
+        const monthStartKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
+        const entries = Object.entries(readingProgress).sort(([a], [b]) => a.localeCompare(b));
+
+        for (const [dateStr, entry] of entries) {
             const [y, m] = dateStr.split('-').map(Number);
+            if (!Number.isFinite(y) || !Number.isFinite(m)) continue;
+
+            const words = Array.isArray(entry.words)
+                ? entry.words.map((word) => String(word).trim().toLowerCase()).filter(Boolean)
+                : [];
+
+            if (dateStr < monthStartKey) {
+                words.forEach((word) => knownWords.add(word));
+                continue;
+            }
+
             if (y === currentYear && m === (currentMonth + 1)) {
                 monthlyTranslations += (entry.translations || 0) + (entry.saved || 0);
-                if (Array.isArray(entry.words)) {
-                    entry.words.forEach(w => monthlyWords.add(w));
-                }
+                words.forEach((word) => {
+                    if (!knownWords.has(word)) {
+                        monthlyWords.add(word);
+                        knownWords.add(word);
+                    }
+                });
             }
         }
         const monthlyNew = monthlyWords.size > 0 ? monthlyWords.size : monthlyTranslations;
@@ -230,6 +248,35 @@ class StatsService {
             todaySaved: todayEntry.saved || 0,
             milestone: milestoneProgress,
             lastActivity: learningStats.lastActivity || todayKey
+        };
+    }
+
+    /**
+     * Return the activity record for a local calendar day.
+     */
+    async getDailyProgress(referenceDate = new Date()) {
+        const data = await this._getStorage(this.STORAGE_KEY_READING);
+        const date = this.formatDateKey(referenceDate);
+        const entry = data[this.STORAGE_KEY_READING]?.[date];
+        return {
+            date,
+            translations: Number(entry?.translations || 0),
+            saved: Number(entry?.saved || 0),
+            words: Array.isArray(entry?.words) ? [...entry.words] : [],
+            readingMinutes: Number(entry?.readingMinutes || 0)
+        };
+    }
+
+    /**
+     * Return persisted aggregate counters without recalculating the dashboard.
+     */
+    async getAggregatedStats() {
+        const data = await this._getStorage(this.STORAGE_KEY_STATS);
+        return data[this.STORAGE_KEY_STATS] || {
+            totalWords: 0,
+            bestStreak: 0,
+            firstUsed: null,
+            lastActivity: null
         };
     }
 
@@ -314,6 +361,7 @@ class StatsService {
 
         let totalWordsCount = 0;
         let activeDaysCount = 0;
+        let firstActivityDate = null;
 
         for (const [dateStr, entry] of Object.entries(readingProgress)) {
             const count = (entry.translations || 0) + (entry.saved || 0);
@@ -323,6 +371,7 @@ class StatsService {
                 dayActivity[d.getDay()] += count;
                 totalWordsCount += count;
                 activeDaysCount++;
+                if (!firstActivityDate || dateStr < firstActivityDate) firstActivityDate = dateStr;
             }
         }
 
@@ -336,13 +385,19 @@ class StatsService {
         }
 
         const avgDailyWords = activeDaysCount > 0 ? (totalWordsCount / activeDaysCount).toFixed(1) : '0';
+        const historyStart = firstActivityDate
+            ? new Date(`${firstActivityDate}T00:00:00`)
+            : referenceDate;
+        const historyDays = Math.floor((referenceDate - historyStart) / 86400000) + 1;
 
         return {
             peakDayName: dayNames[peakDayIdx],
             peakDayNameZh: dayNamesZh[peakDayIdx],
             avgDailyWords: Number(avgDailyWords),
             activeDaysCount,
-            totalActivity: totalWordsCount
+            totalActivity: totalWordsCount,
+            historyDays: Math.max(0, historyDays),
+            hasEnoughHistory: historyDays >= 14
         };
     }
 

@@ -4,7 +4,7 @@
 class MilestoneService {
     constructor() {
         this.MILESTONES = [
-            { id: 'beginner', threshold: 100, label: '初學者', title: 'Beginner', icon: '🌱', level: 1 },
+            { id: 'beginner', threshold: 100, label: '起步者', title: 'Beginner', icon: '🌱', level: 1 },
             { id: 'intermediate', threshold: 500, label: '進階者', title: 'Intermediate', icon: '🌿', level: 2 },
             { id: 'advanced', threshold: 1000, label: '精通者', title: 'Advanced', icon: '🌳', level: 3 },
             { id: 'master', threshold: 5000, label: '大師', title: 'Master', icon: '🏆', level: 4 }
@@ -47,16 +47,17 @@ class MilestoneService {
     /**
      * Calculate progress details towards the next milestone
      * @param {number} totalWords
+     * @param {Object|null} [i18nService=null]
      * @returns {Object}
      */
-    getProgressToNext(totalWords = 0) {
+    getProgressToNext(totalWords = 0, i18nService = null) {
         const count = Math.max(0, Number(totalWords) || 0);
         const currentMilestone = this.getCurrentMilestone(count);
         const nextMilestone = this.getNextMilestone(count);
 
         if (!nextMilestone) {
             // Master reached (>= 5000)
-            return {
+            const result = {
                 currentMilestone,
                 nextMilestone: null,
                 currentWords: count,
@@ -65,6 +66,10 @@ class MilestoneService {
                 isMax: true,
                 displayText: `🏆 ${currentMilestone ? currentMilestone.label : '大師'} (${count} 詞)`
             };
+            if (i18nService && typeof i18nService.formatMilestone === 'function') {
+                result.displayText = i18nService.formatMilestone(result, count);
+            }
+            return result;
         }
 
         const prevThreshold = currentMilestone ? currentMilestone.threshold : 0;
@@ -76,7 +81,7 @@ class MilestoneService {
 
         const currentLabel = currentMilestone ? `${currentMilestone.icon} ${currentMilestone.label}` : '🌱 起步者';
 
-        return {
+        const result = {
             currentMilestone,
             nextMilestone,
             currentWords: count,
@@ -85,6 +90,10 @@ class MilestoneService {
             isMax: false,
             displayText: `${currentLabel} (${count}/${targetThreshold})`
         };
+        if (i18nService && typeof i18nService.formatMilestone === 'function') {
+            result.displayText = i18nService.formatMilestone(result, count);
+        }
+        return result;
     }
 }
 

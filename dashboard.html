@@ -12,16 +12,16 @@
     <!-- Header -->
     <header class="dashboard-header">
       <div class="header-left">
-        <button id="backBtn" class="back-btn" data-i18n-title="backBtnTitle">
-          ← <span data-i18n="settingsTitle">設定</span>
+        <button id="backBtn" class="back-btn" data-i18n-title="backBtnTitle" type="button">
+          <span aria-hidden="true">←</span> <span data-i18n="settingsTitle">設定</span>
         </button>
         <div class="header-title-group">
-          <h1><span>📊</span> <span data-i18n="dashboardTitle">學習進度儀表板</span></h1>
+          <h1><span aria-hidden="true">📊</span> <span data-i18n="dashboardTitle">學習進度儀表板</span></h1>
           <p data-i18n="dashboardSubtitle">Highlighting Translate Learning Progress</p>
         </div>
       </div>
-      <button id="openShareModalBtn" class="share-action-btn">
-        <span>✨</span> <span data-i18n="shareCardBtn">分享進度卡片</span>
+      <button id="openShareModalBtn" class="share-action-btn" type="button">
+        <span aria-hidden="true">✨</span> <span data-i18n="shareCardBtn">分享進度卡片</span>
       </button>
     </header>
 
@@ -32,37 +32,37 @@
         <div class="milestone-percent-text" id="dashMilestonePercent">0%</div>
       </div>
       <div class="milestone-bar-bg">
-        <div class="milestone-bar-fill" id="dashMilestoneBar"></div>
+        <div class="milestone-bar-fill" id="dashMilestoneBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
       </div>
     </section>
 
     <!-- Metrics Grid -->
     <section class="metrics-grid">
       <div class="metric-card">
-        <div class="metric-icon-wrap flame-anim">🔥</div>
+        <div class="metric-icon-wrap flame-anim" aria-hidden="true">🔥</div>
         <div class="metric-info">
-          <div class="metric-value" id="dashStreakVal">0</div>
+          <div class="metric-value" id="dashStreakVal" aria-live="polite">0</div>
           <div class="metric-label" data-i18n="streakLabel">連續天數</div>
         </div>
       </div>
       <div class="metric-card">
-        <div class="metric-icon-wrap">📚</div>
+        <div class="metric-icon-wrap" aria-hidden="true">📚</div>
         <div class="metric-info">
-          <div class="metric-value" id="dashWordsVal">0</div>
+          <div class="metric-value" id="dashWordsVal" aria-live="polite">0</div>
           <div class="metric-label" data-i18n="wordsLabel">總詞彙量</div>
         </div>
       </div>
       <div class="metric-card">
-        <div class="metric-icon-wrap">📈</div>
+        <div class="metric-icon-wrap" aria-hidden="true">📈</div>
         <div class="metric-info">
-          <div class="metric-value" id="dashMonthlyVal">+0</div>
+          <div class="metric-value" id="dashMonthlyVal" aria-live="polite">+0</div>
           <div class="metric-label" data-i18n="monthlyNewLabel">本月新增</div>
         </div>
       </div>
       <div class="metric-card">
-        <div class="metric-icon-wrap">⏱️</div>
+        <div class="metric-icon-wrap" aria-hidden="true">⏱️</div>
         <div class="metric-info">
-          <div class="metric-value" id="dashWeekTimeVal">0m</div>
+          <div class="metric-value" id="dashWeekTimeVal" aria-live="polite">0m</div>
           <div class="metric-label" data-i18n="thisWeekLabel">本週閱讀</div>
         </div>
       </div>
@@ -72,35 +72,36 @@
     <section class="dash-card">
       <div class="chart-card-header">
         <div class="chart-title">
-          <span>📈</span> <span data-i18n="growthChartTitle">詞彙成長趨勢</span>
+          <span aria-hidden="true">📈</span> <span data-i18n="growthChartTitle">詞彙成長趨勢</span>
         </div>
         <div class="range-toggle-group">
-          <button class="range-btn" data-days="7">7D</button>
-          <button class="range-btn active" data-days="30">30D</button>
-          <button class="range-btn" data-days="90">90D</button>
+          <button class="range-btn" data-days="7" type="button" aria-pressed="false">7D</button>
+          <button class="range-btn active" data-days="30" type="button" aria-pressed="true">30D</button>
+          <button class="range-btn" data-days="90" type="button" aria-pressed="false">90D</button>
         </div>
       </div>
       <div class="chart-canvas-wrapper">
-        <canvas id="growthCanvas"></canvas>
+        <canvas id="growthCanvas" role="img" aria-label="Vocabulary growth chart"></canvas>
+        <p id="chartEmptyState" class="chart-empty-state" data-i18n="dashboardChartNoData" hidden>Start learning to see your vocabulary growth.</p>
         <div id="chartTooltip" class="chart-tooltip"></div>
       </div>
     </section>
 
     <!-- Insights & Reading Stats -->
     <section class="insights-grid">
-      <div class="dash-card">
+      <div class="dash-card" id="readingStatsCard">
         <div class="chart-title" style="margin-bottom: 12px;">
-          <span>⏱️</span> <span data-i18n="readingStatsTitle">閱讀統計</span>
+          <span aria-hidden="true">⏱️</span> <span data-i18n="readingStatsTitle">閱讀統計</span>
         </div>
         <div class="insight-item">
-          <div class="insight-icon">📅</div>
+          <div class="insight-icon" aria-hidden="true">📅</div>
           <div class="insight-text">
             <h4 id="dashPeakDayTitle" data-i18n="dashboardPeakDayTitle">Most Active Day</h4>
             <p id="dashPeakDayDesc" data-i18n="dashboardLoading">Loading...</p>
           </div>
         </div>
         <div class="insight-item">
-          <div class="insight-icon">🎯</div>
+          <div class="insight-icon" aria-hidden="true">🎯</div>
           <div class="insight-text">
             <h4 data-i18n="dashboardAverageDailyTitle">Average Daily Learning</h4>
             <p id="dashAvgDailyDesc" data-i18n="dashboardLoading">Loading...</p>
@@ -108,19 +109,19 @@
         </div>
       </div>
 
-      <div class="dash-card">
+      <div class="dash-card" id="learningInsightsCard" hidden>
         <div class="chart-title" style="margin-bottom: 12px;">
-          <span>💡</span> <span data-i18n="insightsTitle">學習模式洞察</span>
+          <span aria-hidden="true">💡</span> <span data-i18n="insightsTitle">學習模式洞察</span>
         </div>
         <div class="insight-item">
-          <div class="insight-icon">🔥</div>
+          <div class="insight-icon" aria-hidden="true">🔥</div>
           <div class="insight-text">
             <h4 data-i18n="dashboardStreakInsightTitle">Learning Momentum</h4>
             <p id="dashStreakInsight" data-i18n="dashboardStreakInactiveDescription">You haven't started learning today. Translate or save 1 word to keep your progress going!</p>
           </div>
         </div>
         <div class="insight-item">
-          <div class="insight-icon">🧠</div>
+          <div class="insight-icon" aria-hidden="true">🧠</div>
           <div class="insight-text">
             <h4 data-i18n="dashboardSpacedRepetitionTitle">Spaced Repetition Benefit</h4>
             <p data-i18n="dashboardSpacedRepetitionDescription">Reviewing with flashcards can improve long-term memory retention by 80%.</p>
@@ -132,20 +133,20 @@
 
   <!-- Share Modal -->
   <div class="modal-overlay" id="shareModalOverlay">
-    <div class="modal-dialog">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="shareProgressTitle">
       <div class="modal-header">
-        <h3 data-i18n="shareProgressTitle">✨ Share Your Learning Progress</h3>
-        <button id="closeModalBtn" class="modal-close-btn">&times;</button>
+        <h3 id="shareProgressTitle"><span aria-hidden="true">✨</span> <span data-i18n="shareProgressTitle">Share Your Learning Progress</span></h3>
+        <button id="closeModalBtn" class="modal-close-btn" type="button" aria-label="Close">&times;</button>
       </div>
       <div class="share-card-canvas-wrap">
-        <canvas id="shareCanvas"></canvas>
+        <canvas id="shareCanvas" role="img" aria-label="Learning progress share card"></canvas>
       </div>
       <div class="modal-actions">
-        <button id="downloadCardBtn" class="btn btn-primary">
-          <span>📥</span> <span data-i18n="downloadPngBtn">Download Image (PNG)</span>
+        <button id="downloadCardBtn" class="btn btn-primary" type="button">
+          <span aria-hidden="true">📥</span> <span data-i18n="downloadPngBtn">Download Image (PNG)</span>
         </button>
-        <button id="copyCardBtn" class="btn btn-secondary">
-          <span>📋</span> <span data-i18n="copyClipboardBtn">Copy to Clipboard</span>
+        <button id="copyCardBtn" class="btn btn-secondary" type="button">
+          <span aria-hidden="true">📋</span> <span data-i18n="copyClipboardBtn">Copy to Clipboard</span>
         </button>
       </div>
     </div>

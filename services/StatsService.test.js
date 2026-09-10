@@ -70,6 +70,35 @@ describe('StatsService', () => {
         expect(overview.totalWords).toBe(5); // 5 unique words in total
     });
 
+    test('should count only first-time words in monthlyNew', async () => {
+        const testDate = new Date('2026-08-21T10:00:00');
+        mockStorageData['readingProgress'] = {
+            '2026-07-31': { translations: 1, saved: 0, words: ['repeat'] },
+            '2026-08-01': { translations: 2, saved: 0, words: ['repeat', 'new-word'] },
+            '2026-08-02': { translations: 1, saved: 0, words: ['new-word'] }
+        };
+
+        const overview = await statsService.getOverview(testDate);
+        expect(overview.monthlyNew).toBe(1);
+    });
+
+    test('should expose daily and aggregate storage queries', async () => {
+        const testDate = new Date('2026-08-21T10:00:00');
+        mockStorageData.readingProgress = {
+            '2026-08-21': { translations: 2, saved: 1, words: ['hello'], readingMinutes: 4 }
+        };
+        mockStorageData.learningStats = { totalWords: 4, bestStreak: 2 };
+
+        await expect(statsService.getDailyProgress(testDate)).resolves.toEqual({
+            date: '2026-08-21',
+            translations: 2,
+            saved: 1,
+            words: ['hello'],
+            readingMinutes: 4
+        });
+        await expect(statsService.getAggregatedStats()).resolves.toEqual({ totalWords: 4, bestStreak: 2 });
+    });
+
     test('should estimate thisWeekMinutes reading time', async () => {
         const testDate = new Date('2026-08-21T10:00:00');
         mockStorageData['readingProgress'] = {
@@ -108,6 +137,19 @@ describe('StatsService', () => {
         expect(insights.activeDaysCount).toBe(3);
         expect(insights.totalActivity).toBe(18);
         expect(insights.avgDailyWords).toBe(6.0);
+        expect(insights.hasEnoughHistory).toBe(false);
+    });
+
+    test('should only mark insights ready after 14 calendar days of history', async () => {
+        const testDate = new Date('2026-08-21T10:00:00');
+        mockStorageData.readingProgress = {
+            '2026-08-08': { translations: 1, saved: 0 },
+            '2026-08-21': { translations: 1, saved: 0 }
+        };
+
+        const insights = await statsService.getInsights(testDate);
+        expect(insights.historyDays).toBe(14);
+        expect(insights.hasEnoughHistory).toBe(true);
     });
 
     test('should aggregate and clean up data older than 90 days', () => {

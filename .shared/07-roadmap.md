@@ -178,3 +178,69 @@ CONTEXT: .shared/04-tech-architecture.md, .shared/05-flow-diagrams.md
 - 跨裝置同步 (雲端)
 - 社群功能 (排行榜)
 - 更多圖表類型 (圓餅圖、長條圖)
+
+---
+
+# Roadmap 增補：Cloud Backup & Cross-Device Sync（v1.19.0）
+
+## Phase 0：產品與發布前置
+
+- [ ] 建立 Google Cloud project、OAuth client 與 Drive API 設定。
+- [ ] 確認 `drive.file`、`identity`、`alarms` 的最小權限方案。
+- [ ] 更新隱私政策、Chrome Web Store data disclosure 與啟用同意文案。
+- [ ] 定義 backup schema v1、state hash、device ID、event ID 與 migration。
+
+**阻擋條件**：未完成 OAuth/隱私政策，不進入公開發布。
+
+## Phase 1：資料模型與合併核心
+
+- [ ] 為既有單字資料補上穩定 `id`、`updatedAt`、`updatedBy`。
+- [ ] 建立 activity event ledger 與事件去重。
+- [ ] 實作單字 LWW、設定 LWW、tombstone 90 天保留。
+- [ ] 合併後重建 readingProgress、Stats、Mission、Focus Track 與報表。
+- [ ] 補足舊 storage migration 與資料損壞的安全 fallback。
+
+**驗收**：雙裝置同日活動不遺失；同筆單字衝突結果可預測；刪除不會被舊裝置立即復活。
+
+## Phase 2：Google Drive 與 Service Worker
+
+- [ ] `GoogleDriveService`：OAuth、建立/尋找可見資料夾、單一 JSON 建立與更新。
+- [ ] `BackupSyncService`：storage change debounce、startup/open/alarm pull、狀態機。
+- [ ] 建立 current + 7 snapshots 的 payload 與裁剪策略。
+- [ ] 加入 1/5/15/30 分鐘 retry、24 小時上限、401 re-auth 與 schema 錯誤處理。
+- [ ] 處理雙裝置競態：重新讀取、合併、再寫入，不能以舊 payload 盲目覆蓋。
+
+**驗收**：假設 Drive API mock 可完整跑通 enable、upload、pull、merge、retry、sign-out。
+
+## Phase 3：Popup UI 與還原
+
+- [ ] 增加 Cloud Backup & Sync 狀態卡片。
+- [ ] 加入啟用同意、Google 登入、立即同步、登出與帳號切換確認。
+- [ ] 加入 7 個歷史版本列表、預覽差異與還原流程。
+- [ ] 加入 `CLEAR` 輸入確認與跨裝置刪除警告。
+- [ ] 補全 I18n、RTL、鍵盤、aria-live 與 reduced motion。
+
+**驗收**：未登入不影響本機功能；所有同步狀態可理解且可操作。
+
+## Phase 4：QA、政策與發布
+
+- [ ] 單元測試：migration、ID、event dedupe、LWW、tombstone、snapshot。
+- [ ] 整合測試：mock Drive、雙裝置、離線、401、429、損壞 JSON、帳號切換。
+- [ ] Chrome 最新穩定版與 Edge 手動驗證。
+- [ ] 檢查 manifest、OAuth consent、privacy policy 與 Web Store permission disclosure。
+- [ ] 完成封裝、升版與 rollback 手冊。
+
+## 建議版本切分
+
+- `v1.19.0-alpha`：local schema migration + merge engine。
+- `v1.19.0-beta`：Google Drive mock/live integration + Popup UI。
+- `v1.19.0`：歷史還原、失敗重試、政策文件與完整 QA。
+
+## 主要依賴與風險
+
+| 依賴/風險 | 影響 | 對策 |
+|---|---|---|
+| OAuth client/verification | 無法公開啟用同步 | Phase 0 先完成並保留 local-only fallback |
+| Drive API quota/競態 | 同步延遲或覆蓋 | debounce、pull-before-push、retry、state hash |
+| JSON 快照過大 | 上傳失敗 | 監控大小、提示使用者、保留 local state |
+| user data policy | 商店審查阻擋 | 明確 disclosure、最小權限、只為同步目的傳輸 |

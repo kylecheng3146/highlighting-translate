@@ -133,6 +133,27 @@
       animation: slide-in-bottom 0.3s ease-out;
     }
 
+    .streak-dismiss {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font: inherit;
+      opacity: 0.7;
+    }
+
+    .streak-dismiss:focus-visible,
+    #openDashboardBtn:focus-visible,
+    .btn:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgba(38, 166, 154, 0.4);
+      outline-offset: 2px;
+    }
+
     @keyframes slide-in-bottom {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -329,6 +350,13 @@
         background: rgba(0,0,0,0.05);
         color: var(--text-primary);
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -340,7 +368,7 @@
     <div class="setting-card dashboard-card" id="dashboardCard">
       <div class="mission-header">
         <div class="mission-title" style="display: flex; align-items: center; gap: 6px;">
-          <span>📊</span>
+          <span aria-hidden="true">📊</span>
           <span data-i18n="dashboardTitle">學習進度</span>
         </div>
         <button id="openDashboardBtn" class="btn btn-secondary" style="font-size: 11px; padding: 4px 8px;" data-i18n="openDashboardBtn">查看儀表板</button>
@@ -349,30 +377,30 @@
       <!-- 2x2 Stats Grid -->
       <div class="stats-grid">
         <div class="stat-mini-card">
-          <div class="stat-mini-icon streak-icon">🔥</div>
+          <div class="stat-mini-icon streak-icon" aria-hidden="true">🔥</div>
           <div class="stat-mini-info">
-            <div class="stat-mini-val" id="statStreakVal">0</div>
+            <div class="stat-mini-val" id="statStreakVal" aria-live="polite">0</div>
             <div class="stat-mini-lbl" data-i18n="streakLabel">連續天數</div>
           </div>
         </div>
         <div class="stat-mini-card">
-          <div class="stat-mini-icon">📚</div>
+          <div class="stat-mini-icon" aria-hidden="true">📚</div>
           <div class="stat-mini-info">
-            <div class="stat-mini-val" id="statWordsVal">0</div>
+            <div class="stat-mini-val" id="statWordsVal" aria-live="polite">0</div>
             <div class="stat-mini-lbl" data-i18n="wordsLabel">總詞彙量</div>
           </div>
         </div>
         <div class="stat-mini-card">
-          <div class="stat-mini-icon">📈</div>
+          <div class="stat-mini-icon" aria-hidden="true">📈</div>
           <div class="stat-mini-info">
-            <div class="stat-mini-val" id="statMonthlyVal">0</div>
+            <div class="stat-mini-val" id="statMonthlyVal" aria-live="polite">0</div>
             <div class="stat-mini-lbl" data-i18n="monthlyNewLabel">本月新增</div>
           </div>
         </div>
         <div class="stat-mini-card">
-          <div class="stat-mini-icon">⏱️</div>
+          <div class="stat-mini-icon" aria-hidden="true">⏱️</div>
           <div class="stat-mini-info">
-            <div class="stat-mini-val" id="statWeekTimeVal">0m</div>
+            <div class="stat-mini-val" id="statWeekTimeVal" aria-live="polite">0m</div>
             <div class="stat-mini-lbl" data-i18n="thisWeekLabel">本週閱讀</div>
           </div>
         </div>
@@ -381,11 +409,11 @@
       <!-- Milestone progress -->
       <div class="milestone-container" id="milestoneContainer" style="margin-top: 10px;">
         <div class="mission-progress-row" style="margin-bottom: 4px;">
-          <span id="milestoneTitle">🌱 起步者</span>
+          <span id="milestoneTitle">🌱 Beginner (0/100)</span>
           <span id="milestonePercent">0%</span>
         </div>
         <div class="mission-bar-bg" style="margin-bottom: 0;">
-          <div class="mission-bar-fill" id="milestoneProgressBar" style="background: linear-gradient(90deg, #26a69a 0%, #4db6ac 100%);"></div>
+          <div class="mission-bar-fill" id="milestoneProgressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="background: linear-gradient(90deg, #26a69a 0%, #4db6ac 100%);"></div>
         </div>
       </div>
 
@@ -393,7 +421,7 @@
       <div class="streak-prompt" id="streakPromptBox" style="display: none; margin-top: 10px; padding: 8px 10px; background: rgba(255, 107, 53, 0.1); border-left: 3px solid #ff6b35; border-radius: 4px; font-size: 12px; color: var(--text-primary);">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span data-i18n="streakPrompt">🔥 保持連續學習！今天至少翻譯或收藏 1 個詞彙。</span>
-          <span id="dismissStreakPrompt" style="cursor: pointer; opacity: 0.7; font-weight: bold; margin-left: 6px; font-size: 14px;">×</span>
+          <button id="dismissStreakPrompt" class="streak-dismiss" type="button" aria-label="Dismiss streak reminder">×</button>
         </div>
       </div>
     </div>
@@ -594,7 +622,7 @@
   </div>
   
   <div id="snackbar" data-i18n="settingsSaved">設定已儲存</div>
-  
+
   <script src="services/ThemeService.js"></script>
   <script src="services/I18nService.js"></script>
   <script src="services/LocaleDropdown.js"></script>

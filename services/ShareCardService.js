@@ -67,7 +67,7 @@ class ShareCardService {
         ctx.fillText('📊 Learning Progress', 24, 70);
 
         // 4. Milestone Level Badge
-        const milestoneText = stats.milestone && stats.milestone.displayText ? stats.milestone.displayText : (stats.milestone && stats.milestone.currentMilestone ? `${stats.milestone.currentMilestone.icon} ${stats.milestone.currentMilestone.label}` : '🌱 起步者');
+        const milestoneText = stats.milestone && stats.milestone.displayText ? stats.milestone.displayText : (stats.milestone && stats.milestone.currentMilestone ? `${stats.milestone.currentMilestone.icon} ${stats.milestone.currentMilestone.label || stats.milestone.currentMilestone.title}` : '🌱 Beginner (0/100)');
         ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
         this._roundRect(ctx, 24, 90, this.width - 48, 36, 10);
         ctx.fill();
