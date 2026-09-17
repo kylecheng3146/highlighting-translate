@@ -13,7 +13,7 @@
     <header class="dashboard-header">
       <div class="header-left">
         <button id="backBtn" class="back-btn" data-i18n-title="backBtnTitle" type="button">
-          <span aria-hidden="true">←</span> <span data-i18n="settingsTitle">設定</span>
+          <span aria-hidden="true">←</span> <span data-i18n="backBtnTitle">返回</span>
         </button>
         <div class="header-title-group">
           <h1><span aria-hidden="true">📊</span> <span data-i18n="dashboardTitle">學習進度儀表板</span></h1>
@@ -43,6 +43,7 @@
         <div class="metric-info">
           <div class="metric-value" id="dashStreakVal" aria-live="polite">0</div>
           <div class="metric-label" data-i18n="streakLabel">連續天數</div>
+          <div class="metric-secondary" id="dashBestStreakVal" aria-live="polite">Best: 0 days</div>
         </div>
       </div>
       <div class="metric-card">
@@ -81,17 +82,37 @@
         </div>
       </div>
       <div class="chart-canvas-wrapper">
-        <canvas id="growthCanvas" role="img" aria-label="Vocabulary growth chart"></canvas>
+        <canvas id="growthCanvas" role="img" tabindex="0" aria-describedby="chartSummary" aria-label="Vocabulary growth chart"></canvas>
         <p id="chartEmptyState" class="chart-empty-state" data-i18n="dashboardChartNoData" hidden>Start learning to see your vocabulary growth.</p>
+        <p id="chartSummary" class="chart-summary" aria-live="polite" data-i18n="dashboardChartNoData">Start learning to see your vocabulary growth.</p>
         <div id="chartTooltip" class="chart-tooltip"></div>
       </div>
     </section>
 
+    <div class="dashboard-state dashboard-error" id="dashboardError" role="alert" hidden>
+      <p id="dashboardErrorText" data-i18n="dashboardLoadError">Unable to load your learning progress.</p>
+      <button id="retryDashboardBtn" class="btn btn-secondary" type="button" data-i18n="dashboardRetry">Try again</button>
+    </div>
+
     <!-- Insights & Reading Stats -->
-    <section class="insights-grid">
+    <section class="insights-grid single-card">
       <div class="dash-card" id="readingStatsCard">
         <div class="chart-title" style="margin-bottom: 12px;">
           <span aria-hidden="true">⏱️</span> <span data-i18n="readingStatsTitle">閱讀統計</span>
+        </div>
+        <div class="insight-item">
+          <div class="insight-icon" aria-hidden="true">⏱️</div>
+          <div class="insight-text">
+            <h4 data-i18n="thisWeekLabel">This Week</h4>
+            <p id="dashWeekReadingDesc" data-i18n="dashboardLoading">Loading...</p>
+          </div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-icon" aria-hidden="true">📖</div>
+          <div class="insight-text">
+            <h4 data-i18n="dashboardAverageReadingTitle">Average Daily Reading</h4>
+            <p id="dashAvgReadingDesc" data-i18n="dashboardLoading">Loading...</p>
+          </div>
         </div>
         <div class="insight-item">
           <div class="insight-icon" aria-hidden="true">📅</div>
@@ -123,8 +144,8 @@
         <div class="insight-item">
           <div class="insight-icon" aria-hidden="true">🧠</div>
           <div class="insight-text">
-            <h4 data-i18n="dashboardSpacedRepetitionTitle">Spaced Repetition Benefit</h4>
-            <p data-i18n="dashboardSpacedRepetitionDescription">Reviewing with flashcards can improve long-term memory retention by 80%.</p>
+            <h4 data-i18n="dashboardTopDomainTitle">Reading Focus</h4>
+            <p id="dashTopDomainInsight" data-i18n="dashboardNoDomainInsight">Save words from the same site to see your reading focus.</p>
           </div>
         </div>
       </div>
@@ -132,7 +153,7 @@
   </div>
 
   <!-- Share Modal -->
-  <div class="modal-overlay" id="shareModalOverlay">
+  <div class="modal-overlay" id="shareModalOverlay" aria-hidden="true">
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="shareProgressTitle">
       <div class="modal-header">
         <h3 id="shareProgressTitle"><span aria-hidden="true">✨</span> <span data-i18n="shareProgressTitle">Share Your Learning Progress</span></h3>

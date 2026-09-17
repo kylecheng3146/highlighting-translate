@@ -352,25 +352,56 @@ class StatsService {
      * @returns {Promise<Object>}
      */
     async getInsights(referenceDate = new Date()) {
-        const data = await this._getStorage([this.STORAGE_KEY_READING, this.STORAGE_KEY_STATS]);
+        const data = await this._getStorage([
+            this.STORAGE_KEY_READING,
+            this.STORAGE_KEY_STATS,
+            this.SAVED_VOCAB_KEY
+        ]);
         const readingProgress = data[this.STORAGE_KEY_READING] || {};
+        const savedVocabList = Array.isArray(data[this.SAVED_VOCAB_KEY])
+            ? data[this.SAVED_VOCAB_KEY]
+            : [];
 
         const dayActivity = [0, 0, 0, 0, 0, 0, 0]; // Sun to Sat
+        const dayActivityMinutes = [0, 0, 0, 0, 0, 0, 0];
         const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const dayNamesZh = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+        const weekKeys = new Set();
+        const weekDate = new Date(referenceDate.getTime());
+        for (let i = 0; i < 7; i++) {
+            weekKeys.add(this.formatDateKey(weekDate));
+            weekDate.setDate(weekDate.getDate() - 1);
+        }
 
         let totalWordsCount = 0;
         let activeDaysCount = 0;
+        let weeklyActiveDays = 0;
         let firstActivityDate = null;
+        const domainCounts = new Map();
+
+        savedVocabList.forEach((item) => {
+            if (!item || !item.sourceUrl) return;
+            try {
+                const domain = new URL(item.sourceUrl).hostname;
+                if (domain) domainCounts.set(domain, (domainCounts.get(domain) || 0) + 1);
+            } catch (error) {
+                // Ignore malformed historical URLs.
+            }
+        });
 
         for (const [dateStr, entry] of Object.entries(readingProgress)) {
             const count = (entry.translations || 0) + (entry.saved || 0);
+            const minutes = entry.readingMinutes
+                ? Number(entry.readingMinutes)
+                : Math.round(count * 1.5);
             if (count > 0) {
                 const parts = dateStr.split('-').map(Number);
                 const d = new Date(parts[0], parts[1] - 1, parts[2]);
                 dayActivity[d.getDay()] += count;
+                dayActivityMinutes[d.getDay()] += minutes;
                 totalWordsCount += count;
                 activeDaysCount++;
+                if (weekKeys.has(dateStr)) weeklyActiveDays++;
                 if (!firstActivityDate || dateStr < firstActivityDate) firstActivityDate = dateStr;
             }
         }
@@ -385,15 +416,27 @@ class StatsService {
         }
 
         const avgDailyWords = activeDaysCount > 0 ? (totalWordsCount / activeDaysCount).toFixed(1) : '0';
+        const thisWeekMinutes = this.calculateWeekReadingMinutes(readingProgress, referenceDate);
+        const avgDailyMinutes = weeklyActiveDays > 0
+            ? Number((thisWeekMinutes / weeklyActiveDays).toFixed(1))
+            : 0;
+        const topDomainEntry = Array.from(domainCounts.entries())
+            .sort((a, b) => b[1] - a[1])[0];
         const historyStart = firstActivityDate
             ? new Date(`${firstActivityDate}T00:00:00`)
             : referenceDate;
         const historyDays = Math.floor((referenceDate - historyStart) / 86400000) + 1;
 
         return {
-            peakDayName: dayNames[peakDayIdx],
-            peakDayNameZh: dayNamesZh[peakDayIdx],
+            peakDayName: activeDaysCount > 0 ? dayNames[peakDayIdx] : '',
+            peakDayNameZh: activeDaysCount > 0 ? dayNamesZh[peakDayIdx] : '',
+            peakDayMinutes: activeDaysCount > 0 ? dayActivityMinutes[peakDayIdx] : 0,
             avgDailyWords: Number(avgDailyWords),
+            avgDailyMinutes,
+            thisWeekMinutes,
+            weeklyActiveDays,
+            topDomain: topDomainEntry ? topDomainEntry[0] : null,
+            topDomainCount: topDomainEntry ? topDomainEntry[1] : 0,
             activeDaysCount,
             totalActivity: totalWordsCount,
             historyDays: Math.max(0, historyDays),

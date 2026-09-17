@@ -131,12 +131,23 @@ describe('StatsService', () => {
             '2026-08-20': { translations: 2, saved: 0 },  // Thursday
             '2026-08-21': { translations: 4, saved: 0 }   // Friday
         };
+        mockStorageData.savedTranslations = [
+            { sourceUrl: 'https://docs.example.com/a' },
+            { sourceUrl: 'https://docs.example.com/b' },
+            { sourceUrl: 'https://news.example.com/c' }
+        ];
 
         const insights = await statsService.getInsights(testDate);
         expect(insights.peakDayName).toBe('Wednesday');
         expect(insights.activeDaysCount).toBe(3);
         expect(insights.totalActivity).toBe(18);
         expect(insights.avgDailyWords).toBe(6.0);
+        expect(insights.peakDayMinutes).toBe(18);
+        expect(insights.thisWeekMinutes).toBe(27);
+        expect(insights.avgDailyMinutes).toBe(9);
+        expect(insights.weeklyActiveDays).toBe(3);
+        expect(insights.topDomain).toBe('docs.example.com');
+        expect(insights.topDomainCount).toBe(2);
         expect(insights.hasEnoughHistory).toBe(false);
     });
 
@@ -150,6 +161,14 @@ describe('StatsService', () => {
         const insights = await statsService.getInsights(testDate);
         expect(insights.historyDays).toBe(14);
         expect(insights.hasEnoughHistory).toBe(true);
+    });
+
+    test('should not invent a peak day before learning starts', async () => {
+        const insights = await statsService.getInsights(new Date('2026-08-21T10:00:00'));
+
+        expect(insights.peakDayName).toBe('');
+        expect(insights.peakDayMinutes).toBe(0);
+        expect(insights.activeDaysCount).toBe(0);
     });
 
     test('should aggregate and clean up data older than 90 days', () => {

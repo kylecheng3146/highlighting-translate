@@ -55,6 +55,7 @@ body {
 .back-btn:focus-visible,
 .share-action-btn:focus-visible,
 .range-btn:focus-visible,
+.chart-canvas-wrapper canvas:focus-visible,
 .modal-close-btn:focus-visible,
 .modal-actions .btn:focus-visible {
     outline: 3px solid rgba(38, 166, 154, 0.4);
@@ -238,6 +239,12 @@ body {
     margin-top: 4px;
 }
 
+.metric-secondary {
+    font-size: 11px;
+    color: var(--primary);
+    margin-top: 5px;
+}
+
 /* Chart Section */
 .chart-card-header {
     display: flex;
@@ -281,6 +288,11 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
+.range-btn:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
 .chart-canvas-wrapper {
     position: relative;
     width: 100%;
@@ -300,8 +312,53 @@ body {
 }
 
 .chart-empty-state[hidden],
-#learningInsightsCard[hidden] {
+#learningInsightsCard[hidden],
+.dashboard-state[hidden] {
     display: none;
+}
+
+.chart-summary {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.dashboard-state {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.dashboard-state p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.dashboard-state .btn {
+    min-height: 44px;
+    flex-shrink: 0;
+}
+
+.dashboard-error {
+    border-color: #ffcdd2;
+    background: var(--error-bg);
+}
+
+.dashboard-error p {
+    color: var(--error-text);
 }
 
 #growthCanvas {
@@ -332,6 +389,10 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
+}
+
+.insights-grid.single-card {
+    grid-template-columns: 1fr;
 }
 
 @media (max-width: 600px) {

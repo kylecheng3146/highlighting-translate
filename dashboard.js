@@ -8,6 +8,9 @@ let chartPoints = [];
 let shareCardService = null;
 let themeService = null;
 let i18nService = null;
+let lastFocusedElement = null;
+let chartFocusIndex = -1;
+let dashboardLoadInProgress = false;
 
 function t(key, values) {
     return i18nService ? i18nService.getText(key, values) : key;
@@ -137,28 +140,45 @@ function setupEventListeners() {
     const shareCanvas = document.getElementById('shareCanvas');
     const downloadCardBtn = document.getElementById('downloadCardBtn');
     const copyCardBtn = document.getElementById('copyCardBtn');
+    const retryDashboardBtn = document.getElementById('retryDashboardBtn');
+
+    if (retryDashboardBtn) {
+        retryDashboardBtn.addEventListener('click', () => loadDashboard(currentRangeDays));
+    }
 
     if (openShareModalBtn && shareModalOverlay) {
         openShareModalBtn.addEventListener('click', () => {
+            lastFocusedElement = document.activeElement;
             if (dashboardData && dashboardData.overview && shareCardService && shareCanvas) {
                 shareCardService.generateCard(dashboardData.overview, shareCanvas);
             }
             shareModalOverlay.classList.add('active');
+            shareModalOverlay.setAttribute('aria-hidden', 'false');
+            if (closeModalBtn) closeModalBtn.focus();
         });
     }
 
     if (closeModalBtn && shareModalOverlay) {
         closeModalBtn.addEventListener('click', () => {
-            shareModalOverlay.classList.remove('active');
+            closeShareModal(shareModalOverlay);
         });
     }
 
     if (shareModalOverlay) {
         shareModalOverlay.addEventListener('click', (e) => {
             if (e.target === shareModalOverlay) {
-                shareModalOverlay.classList.remove('active');
+                closeShareModal(shareModalOverlay);
             }
         });
+        shareModalOverlay.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closeShareModal(shareModalOverlay);
+        });
+        if (closeModalBtn) {
+            closeModalBtn.setAttribute('aria-label', t('dashboardCloseModal'));
+        }
+        if (shareCanvas) {
+            shareCanvas.setAttribute('aria-label', t('shareProgressTitle'));
+        }
     }
 
     if (downloadCardBtn && shareCanvas) {
@@ -174,11 +194,14 @@ function setupEventListeners() {
         copyCardBtn.addEventListener('click', async () => {
             if (shareCardService) {
                 try {
+                    copyCardBtn.disabled = true;
                     await shareCardService.copyToClipboard(shareCanvas);
                     showToast(t('toastCopySuccess'));
                 } catch (err) {
                     console.error('Clipboard copy error:', err);
                     showToast(t('toastCopyFailed'));
+                } finally {
+                    copyCardBtn.disabled = false;
                 }
             }
         });
@@ -189,8 +212,12 @@ function setupEventListeners() {
     const chartTooltip = document.getElementById('chartTooltip');
 
     if (growthCanvas && chartTooltip) {
+        growthCanvas.setAttribute('aria-label', t('dashboardChartNoData'));
         growthCanvas.addEventListener('mousemove', (e) => {
             handleCanvasHover(e, growthCanvas, chartTooltip);
+        });
+        growthCanvas.addEventListener('keydown', (e) => {
+            handleCanvasKeydown(e, chartTooltip);
         });
         growthCanvas.addEventListener('mouseleave', () => {
             chartTooltip.style.display = 'none';
@@ -198,10 +225,37 @@ function setupEventListeners() {
     }
 }
 
+function closeShareModal(overlay) {
+    overlay.classList.remove('active');
+    overlay.setAttribute('aria-hidden', 'true');
+    if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+        lastFocusedElement.focus();
+    }
+}
+
+function setDashboardError(visible) {
+    const errorEl = document.getElementById('dashboardError');
+    if (errorEl) errorEl.hidden = !visible;
+}
+
+function setDashboardLoading(loading) {
+    dashboardLoadInProgress = loading;
+    const container = document.querySelector('.dashboard-container');
+    const retryButton = document.getElementById('retryDashboardBtn');
+    if (container) container.setAttribute('aria-busy', String(loading));
+    if (retryButton) retryButton.disabled = loading;
+    document.querySelectorAll('.range-btn').forEach((button) => {
+        button.disabled = loading;
+    });
+}
+
 /**
  * Load dashboard overview, chart, and insights from background
  */
 async function loadDashboard(days = 30) {
+    if (dashboardLoadInProgress) return;
+    setDashboardLoading(true);
+    setDashboardError(false);
     try {
         const response = await chrome.runtime.sendMessage({
             action: 'GET_DASHBOARD_DATA',
@@ -209,8 +263,7 @@ async function loadDashboard(days = 30) {
         });
 
         if (!response || !response.success || !response.data) {
-            console.error('Failed to load dashboard data:', response);
-            return;
+            throw new Error('Dashboard data unavailable');
         }
 
         dashboardData = response.data;
@@ -226,15 +279,15 @@ async function loadDashboard(days = 30) {
             chartPoints = chart;
             const hasData = chart.some((point) => Number(point.count || 0) > 0);
             const emptyState = document.getElementById('chartEmptyState');
-            const canvas = document.getElementById('growthCanvas');
             if (emptyState) emptyState.hidden = hasData;
-            if (canvas) canvas.setAttribute('aria-label', hasData
-                ? `Vocabulary growth chart for the last ${days} days`
-                : 'Vocabulary growth chart has no activity yet');
+            updateChartSummary(chart, days, hasData);
             renderCanvasChart(chartPoints);
         }
     } catch (error) {
         console.error('Dashboard load error:', error);
+        setDashboardError(true);
+    } finally {
+        setDashboardLoading(false);
     }
 }
 
@@ -243,11 +296,17 @@ async function loadDashboard(days = 30) {
  */
 function renderOverviewMetrics(overview = {}) {
     const streakEl = document.getElementById('dashStreakVal');
+    const bestStreakEl = document.getElementById('dashBestStreakVal');
     const wordsEl = document.getElementById('dashWordsVal');
     const monthlyEl = document.getElementById('dashMonthlyVal');
     const weekTimeEl = document.getElementById('dashWeekTimeVal');
 
     if (streakEl) streakEl.textContent = `${overview.streak || 0}`;
+    if (bestStreakEl) {
+        bestStreakEl.textContent = t('dashboardBestStreakDescription', {
+            best: overview.bestStreak || overview.streak || 0
+        });
+    }
     if (wordsEl) wordsEl.textContent = `${overview.totalWords || 0}`;
     if (monthlyEl) monthlyEl.textContent = `+${overview.monthlyNew || 0}`;
     if (weekTimeEl) weekTimeEl.textContent = `${overview.thisWeekMinutes || 0}m`;
@@ -283,19 +342,33 @@ function renderMilestone(overview = {}) {
  * Render Insights & Reading statistics
  */
 function renderInsights(insights = {}, overview = {}) {
-    const peakDayTitleEl = document.getElementById('dashPeakDayTitle');
     const peakDayDescEl = document.getElementById('dashPeakDayDesc');
     const avgDailyDescEl = document.getElementById('dashAvgDailyDesc');
+    const weekReadingDescEl = document.getElementById('dashWeekReadingDesc');
+    const avgReadingDescEl = document.getElementById('dashAvgReadingDesc');
     const streakInsightEl = document.getElementById('dashStreakInsight');
+    const topDomainInsightEl = document.getElementById('dashTopDomainInsight');
     const learningInsightsCard = document.getElementById('learningInsightsCard');
+    const insightsGrid = document.querySelector('.insights-grid');
+    const hasEnoughHistory = insights.hasEnoughHistory === true;
 
     if (learningInsightsCard) {
-        learningInsightsCard.hidden = insights.hasEnoughHistory !== true;
+        learningInsightsCard.hidden = !hasEnoughHistory;
+    }
+    if (insightsGrid) {
+        insightsGrid.classList.toggle('single-card', !hasEnoughHistory);
     }
 
     if (peakDayDescEl) {
-        const dayName = localizeDayName(insights.peakDayName || insights.peakDayNameZh || 'Wednesday');
-        peakDayDescEl.textContent = t('dashboardPeakDayDescription', { day: dayName });
+        if (insights.activeDaysCount > 0) {
+            const dayName = localizeDayName(insights.peakDayName || insights.peakDayNameZh);
+            peakDayDescEl.textContent = t('dashboardPeakDayDescription', {
+                day: dayName,
+                minutes: insights.peakDayMinutes || 0
+            });
+        } else {
+            peakDayDescEl.textContent = t('dashboardChartNoData');
+        }
     }
     if (avgDailyDescEl) {
         const avg = insights.avgDailyWords || 0;
@@ -303,6 +376,25 @@ function renderInsights(insights = {}, overview = {}) {
             average: avg,
             days: insights.activeDaysCount || 0
         });
+    }
+    if (weekReadingDescEl) {
+        weekReadingDescEl.textContent = t('dashboardReadingMinutesDescription', {
+            minutes: overview.thisWeekMinutes || insights.thisWeekMinutes || 0
+        });
+    }
+    if (avgReadingDescEl) {
+        avgReadingDescEl.textContent = t('dashboardAverageReadingDescription', {
+            average: insights.avgDailyMinutes || 0,
+            days: insights.weeklyActiveDays || 0
+        });
+    }
+    if (topDomainInsightEl) {
+        topDomainInsightEl.textContent = insights.topDomain
+            ? t('dashboardTopDomainDescription', {
+                domain: insights.topDomain,
+                count: insights.topDomainCount || 0
+            })
+            : t('dashboardNoDomainInsight');
     }
     if (streakInsightEl && overview.streak !== undefined) {
         if (overview.streak > 0) {
@@ -314,6 +406,23 @@ function renderInsights(insights = {}, overview = {}) {
             streakInsightEl.textContent = t('dashboardStreakInactiveDescription');
         }
     }
+}
+
+function updateChartSummary(points, days, hasData) {
+    const canvas = document.getElementById('growthCanvas');
+    const summary = document.getElementById('chartSummary');
+    chartFocusIndex = hasData ? points.length - 1 : -1;
+
+    if (!hasData || points.length === 0) {
+        if (canvas) canvas.setAttribute('aria-label', t('dashboardChartNoData'));
+        if (summary) summary.textContent = t('dashboardChartNoData');
+        return;
+    }
+
+    const latest = points[points.length - 1];
+    const text = `${t('growthChartTitle')} (${days}D): ${t('dashboardChartCumulativeWords')} ${latest.cumulative}; ${t('dashboardChartNewToday')} +${latest.count}`;
+    if (canvas) canvas.setAttribute('aria-label', text);
+    if (summary) summary.textContent = text;
 }
 
 /**
@@ -460,32 +569,65 @@ function handleCanvasHover(event, canvas, tooltip) {
 
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
 
     // Find closest point by X coordinate
     let closest = null;
+    let closestIndex = -1;
     let minDistance = Infinity;
 
-    for (const pt of chartGeometry.points) {
+    chartGeometry.points.forEach((pt, index) => {
         const dist = Math.abs(pt.x - mouseX);
         if (dist < minDistance) {
             minDistance = dist;
             closest = pt;
+            closestIndex = index;
         }
-    }
+    });
 
     if (closest && minDistance < 35) {
-        const { data, x, y } = closest;
-        tooltip.style.display = 'block';
-        tooltip.style.left = `${x}px`;
-        tooltip.style.top = `${y}px`;
-        tooltip.innerHTML = `
-            <strong>${data.date} (${localizeDayName(data.dayName)})</strong><br>
-            ${t('dashboardChartNewToday')}: <b>+${data.count}</b><br>
-            ${t('dashboardChartCumulativeWords')}: <b>${data.cumulative}</b>
-        `;
+        chartFocusIndex = closestIndex;
+        showChartPoint(closest, tooltip);
     } else {
         tooltip.style.display = 'none';
+    }
+}
+
+function handleCanvasKeydown(event, tooltip) {
+    if (!chartGeometry || !chartGeometry.points || chartGeometry.points.length === 0) return;
+
+    const { key } = event;
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(key)) return;
+
+    event.preventDefault();
+    const lastIndex = chartGeometry.points.length - 1;
+    if (key === 'Home') {
+        chartFocusIndex = 0;
+    } else if (key === 'End') {
+        chartFocusIndex = lastIndex;
+    } else {
+        const currentIndex = chartFocusIndex < 0 ? lastIndex : chartFocusIndex;
+        chartFocusIndex = key === 'ArrowLeft'
+            ? Math.max(0, currentIndex - 1)
+            : Math.min(lastIndex, currentIndex + 1);
+    }
+
+    showChartPoint(chartGeometry.points[chartFocusIndex], tooltip);
+}
+
+function showChartPoint(point, tooltip) {
+    const { data, x, y } = point;
+    tooltip.style.display = 'block';
+    tooltip.style.left = `${x}px`;
+    tooltip.style.top = `${y}px`;
+    tooltip.innerHTML = `
+        <strong>${data.date} (${localizeDayName(data.dayName)})</strong><br>
+        ${t('dashboardChartNewToday')}: <b>+${data.count}</b><br>
+        ${t('dashboardChartCumulativeWords')}: <b>${data.cumulative}</b>
+    `;
+
+    const summary = document.getElementById('chartSummary');
+    if (summary) {
+        summary.textContent = `${data.date} (${localizeDayName(data.dayName)}): ${t('dashboardChartNewToday')} +${data.count}; ${t('dashboardChartCumulativeWords')} ${data.cumulative}`;
     }
 }
 
