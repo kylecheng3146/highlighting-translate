@@ -41,9 +41,13 @@ class TranslationService {
      * @param {string} text - The text to translate.
      * @param {string} sourceLang - The source language code.
      * @param {string} targetLang - The target language code.
-     * @returns {Promise<string>} - The translated text.
+     * @param {Object} [options] - Optional settings (e.g. timeoutMs)
+     * @returns {Promise<{translation: string, detectedSourceLang: string}>} - The translated text.
      */
-    async translate(text, sourceLang = 'auto', targetLang = 'zh-TW') {
+    async translate(text, sourceLang = 'auto', targetLang = 'zh-TW', options = {}) {
+        const timeoutMs = options.timeoutMs || 8000;
+        let timeoutId = null;
+
         try {
             if (!text || !text.trim()) {
                 throw new Error('Text to translate is empty');
@@ -59,17 +63,43 @@ class TranslationService {
 
             const url = `${this.apiBaseUrl}?client=gtx&sl=${finalSourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
 
-            const response = await fetch(url);
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const signal = controller ? controller.signal : undefined;
+            if (controller) {
+                timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+            }
+
+            let response;
+            try {
+                response = await fetch(url, signal ? { signal } : undefined);
+            } catch (fetchError) {
+                if (fetchError && fetchError.name === 'AbortError') {
+                    throw new Error('翻譯請求逾時，請稍後再試 (Translation request timed out)');
+                }
+                throw fetchError;
+            } finally {
+                if (timeoutId) clearTimeout(timeoutId);
+            }
+
             if (!response.ok) {
+                if (response.status === 429) {
+                    throw new Error('翻譯請求過於頻繁 (429 Too Many Requests)，請稍後再試');
+                }
                 throw new Error(`Translation API failed with status ${response.status}`);
             }
 
             const data = await response.json();
 
-            if (data && data[0] && data[0][0] && data[0][0][0]) {
-                const translation = data[0][0][0];
-                const detectedSourceLang = data[2] || finalSourceLang; // specific to 'gtx' client response format
-                return { translation, detectedSourceLang };
+            if (data && Array.isArray(data[0])) {
+                const segments = data[0]
+                    .map(segment => (Array.isArray(segment) && typeof segment[0] === 'string' ? segment[0] : ''))
+                    .filter(Boolean);
+
+                if (segments.length > 0) {
+                    const translation = segments.join('');
+                    const detectedSourceLang = data[2] || finalSourceLang; // specific to 'gtx' client response format
+                    return { translation, detectedSourceLang };
+                }
             }
             throw new Error('Invalid response format');
 

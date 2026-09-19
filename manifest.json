@@ -1,13 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Highlighting Translate",
-  "version": "1.18.2",
+  "version": "1.18.3",
   "description": "Translate selected text automatically with smart language detection",
   "permissions": [
     "contextMenus",
     "storage",
-    "tts",
-    "scripting"
+    "tts"
   ],
   "optional_permissions": [
     "notifications",
@@ -22,7 +21,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["services/TranslationService.js", "services/StorageService.js", "services/HighlightService.js", "services/TooltipService.js", "services/FocusTrackService.js", "content.js"],
+      "js": ["services/TranslationService.js", "services/StorageService.js", "services/HighlightService.js", "services/TooltipService.js", "content.js"],
       "run_at": "document_end"
     }
   ],
@@ -32,11 +31,5 @@
   "action": {
     "default_popup": "popup.html",
     "default_title": "翻譯設定"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["assets/frequency_db.json", "assets/fallback_words.json", "assets/phrasal_verbs_db.json"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  }
 }

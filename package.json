@@ -1,6 +1,6 @@
 {
   "name": "highlighting-translate",
-  "version": "1.18.2",
+  "version": "1.18.3",
   "description": "A simple Chrome extension that automatically translates text you select on any webpage.",
   "main": "background.js",
   "scripts": {

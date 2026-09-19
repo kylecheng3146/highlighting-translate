@@ -98,7 +98,8 @@ describe('TranslationService', () => {
             const result = await service.translate('original text', 'en', 'zh-TW');
             
             expect(global.fetch).toHaveBeenCalledWith(
-                expect.stringContaining('sl=en&tl=zh-TW&dt=t&q=original%20text')
+                expect.stringContaining('sl=en&tl=zh-TW&dt=t&q=original%20text'),
+                expect.anything()
             );
             expect(result).toEqual({ translation: 'translated text', detectedSourceLang: 'en' });
         });
@@ -112,7 +113,8 @@ describe('TranslationService', () => {
             await service.translate('hello', 'auto', 'zh-TW');
             
             expect(global.fetch).toHaveBeenCalledWith(
-                expect.stringContaining('sl=en')
+                expect.stringContaining('sl=en'),
+                expect.anything()
             );
         });
 
@@ -125,9 +127,45 @@ describe('TranslationService', () => {
             const result = await service.translate('No puedo traducir este texto al idioma actual.', 'auto', 'zh-TW');
 
             expect(global.fetch).toHaveBeenCalledWith(
-                expect.stringContaining('sl=es&tl=zh-TW')
+                expect.stringContaining('sl=es&tl=zh-TW'),
+                expect.anything()
             );
             expect(result).toEqual({ translation: 'translated text', detectedSourceLang: 'es' });
+        });
+
+        test('should concatenate all sentence segments for multi-sentence text', async () => {
+            global.fetch.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve([
+                    [
+                        ['你好，世界。', 'Hello, world.'],
+                        ['今天天氣真好。', 'The weather is nice today.']
+                    ],
+                    null,
+                    'en'
+                ])
+            });
+
+            const result = await service.translate('Hello, world. The weather is nice today.', 'en', 'zh-TW');
+            expect(result.translation).toBe('你好，世界。今天天氣真好。');
+            expect(result.detectedSourceLang).toBe('en');
+        });
+
+        test('should throw friendly error on 429 rate limit', async () => {
+            global.fetch.mockResolvedValue({
+                ok: false,
+                status: 429
+            });
+
+            await expect(service.translate('test')).rejects.toThrow('429');
+        });
+
+        test('should handle timeout when fetch aborts', async () => {
+            const abortErr = new Error('The operation was aborted');
+            abortErr.name = 'AbortError';
+            global.fetch.mockRejectedValue(abortErr);
+
+            await expect(service.translate('test')).rejects.toThrow('逾時');
         });
 
         test('should throw error on API failure', async () => {

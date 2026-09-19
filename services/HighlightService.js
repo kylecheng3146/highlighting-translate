@@ -11,7 +11,7 @@ class HighlightService {
      * @param {Array} vocabularyList - Array of objects with {text, translation}
      */
     scanAndHighlight(rootElement, vocabularyList) {
-        if (!vocabularyList || vocabularyList.length === 0) return;
+        if (!rootElement || !vocabularyList || vocabularyList.length === 0) return;
 
         this.highlightCount = 0;
 
@@ -21,12 +21,12 @@ class HighlightService {
             if (item.text && item.text.length >= this.minWordLength) {
                 const normalized = item.text.toLowerCase();
                 const existing = vocabMap.get(normalized);
-            vocabMap.set(normalized, {
-                translation: item.translation,
-                rank: item.frequency_rank,
-                level: item.cefr_level,
-                isMissionWord: Boolean(item.isMissionWord || existing?.isMissionWord)
-            });
+                vocabMap.set(normalized, {
+                    translation: item.translation,
+                    rank: item.frequency_rank,
+                    level: item.cefr_level,
+                    isMissionWord: Boolean(item.isMissionWord || existing?.isMissionWord)
+                });
             }
         });
 
@@ -39,6 +39,14 @@ class HighlightService {
             .map(key => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+'))
             .sort((a, b) => b.length - a.length);
         const regex = new RegExp(`\\b(${escapedKeys.join('|')})\\b`, 'gi');
+
+        if (rootElement.nodeType === Node.TEXT_NODE) {
+            const parent = rootElement.parentNode;
+            if (parent && !['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT'].includes(parent.tagName) && !parent.classList?.contains('ht-highlight')) {
+                this.highlightNode(rootElement, vocabMap, regex);
+            }
+            return;
+        }
 
         const walker = document.createTreeWalker(
             rootElement,
@@ -176,7 +184,11 @@ class HighlightService {
 }
 
 // Make it available globally
-window.HighlightService = HighlightService;
+if (typeof window !== 'undefined') {
+    window.HighlightService = HighlightService;
+} else if (typeof self !== 'undefined') {
+    self.HighlightService = HighlightService;
+}
 
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {

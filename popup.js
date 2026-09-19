@@ -492,13 +492,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const blacklistBtn = document.getElementById('blacklistBtn');
     if (blacklistBtn) blacklistBtn.addEventListener('click', toggleBlacklist);
 
-    // List available TTS voices for debugging
-    chrome.tts.getVoices((voices) => {
-        console.log('Available TTS Voices:', voices);
-        const voiceNames = voices.map(v => `${v.voiceName} (${v.lang})`);
-        console.log(voiceNames.join('\n'));
-    });
-
     const historyBtn = document.getElementById('historyBtn');
     if (historyBtn) {
         historyBtn.addEventListener('click', () => {

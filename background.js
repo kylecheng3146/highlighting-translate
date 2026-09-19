@@ -397,8 +397,15 @@ if (chrome.alarms && chrome.notifications) {
  * where `text` is the inflected form (e.g. "giving up") and all other fields
  * come from the base entry so HighlightService can resolve them directly.
  */
-async function loadPhrasalVerbsDB() {
+async function loadPhrasalVerbsDB(force = false) {
     try {
+        if (!force) {
+            const existing = await chrome.storage.local.get('phrasalVerbsExpanded');
+            if (Array.isArray(existing.phrasalVerbsExpanded) && existing.phrasalVerbsExpanded.length > 0) {
+                return;
+            }
+        }
+
         const url = chrome.runtime.getURL('assets/phrasal_verbs_db.json');
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Failed to fetch phrasal_verbs_db.json: ${response.status}`);
@@ -433,6 +440,7 @@ async function loadPhrasalVerbsDB() {
  * This ensures the extension works immediately after install/update without reload.
  */
 async function injectContentScripts() {
+    if (!chrome.scripting || !chrome.scripting.executeScript || !chrome.tabs) return;
     try {
         const manifest = chrome.runtime.getManifest();
         const contentScripts = manifest.content_scripts;
@@ -496,20 +504,28 @@ async function handleMessage(request, sender, sendResponse) {
                 break;
             }
             // Storage Handlers
-            case 'STORAGE_SAVE':
+            case 'STORAGE_SAVE': {
                 const existedBeforeSave = await storageService.isStarred(request.item.text, request.item.translation);
                 await storageService.saveTranslation(request.item);
-                if (!existedBeforeSave) {
-                    await applyMissionEvent({ type: 'NEW_WORD_SAVED' });
-                    await applyFocusEvent({
-                        type: 'NEW_WORD_SAVED',
-                        word: request.item.text,
-                        sourceUrl: request.item.sourceUrl
-                    });
-                    await statsService.recordTranslation(request.item.text, true);
-                }
                 sendResponse({success: true});
+
+                if (!existedBeforeSave) {
+                    (async () => {
+                        try {
+                            await applyMissionEvent({ type: 'NEW_WORD_SAVED' });
+                            await applyFocusEvent({
+                                type: 'NEW_WORD_SAVED',
+                                word: request.item.text,
+                                sourceUrl: request.item.sourceUrl
+                            });
+                            await statsService.recordTranslation(request.item.text, true);
+                        } catch (err) {
+                            console.error('Failed to update stats/mission in background:', err);
+                        }
+                    })();
+                }
                 break;
+            }
             case 'TRANSLATION_RECORDED': {
                 const stats = await statsService.recordTranslation(request.text, request.isSaved || false);
                 sendResponse({ success: true, data: stats });

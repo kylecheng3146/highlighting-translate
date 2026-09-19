@@ -32,6 +32,7 @@ FILES=(
     "popup.html"
     "popup.js"
     "dashboard.html"
+    "dashboard.js"
     "history.html"
     "history.js"
     "review.html"

@@ -71,6 +71,74 @@ async function loadSettings() {
     }
 }
 
+// In-memory vocabulary and phrasal verbs cache
+let cachedCombinedVocab = null;
+let cachedVocabList = null;
+let cachedPhrasalVerbs = null;
+
+function invalidateVocabCache() {
+    cachedCombinedVocab = null;
+    cachedVocabList = null;
+    cachedPhrasalVerbs = null;
+}
+
+/**
+ * Checks if the current page likely contains English content.
+ * Heuristic:
+ * 1. If document.documentElement.lang starts with 'en' -> true.
+ * 2. If lang is missing or set to another language, sample first 500 characters of page text.
+ *    If it contains Latin word characters (/[a-zA-Z]{3,}/), return true (bilingual or technical content).
+ *    Otherwise return false (skip 900+ English phrasal verbs for pure CJK or other non-English pages).
+ */
+function isEnglishPageOrContent() {
+    try {
+        const lang = (document.documentElement && document.documentElement.lang) || '';
+        if (lang.toLowerCase().startsWith('en')) {
+            return true;
+        }
+
+        const bodyText = (document.body && (document.body.innerText || document.body.textContent)) || '';
+        const sample = bodyText.slice(0, 500);
+        return /[a-zA-Z]{3,}/.test(sample);
+    } catch (e) {
+        return true;
+    }
+}
+
+async function getCombinedVocabulary(forceRefresh = false) {
+    if (!forceRefresh && cachedCombinedVocab) {
+        return cachedCombinedVocab;
+    }
+
+    try {
+        if (forceRefresh || !cachedVocabList) {
+            cachedVocabList = await storageService.getTranslations(1000);
+        }
+
+        let phrasalVerbs = [];
+        if (settings.enablePhrasalVerbs && isEnglishPageOrContent()) {
+            if (forceRefresh || !cachedPhrasalVerbs) {
+                const localData = await chrome.storage.local.get('phrasalVerbsExpanded');
+                cachedPhrasalVerbs = localData.phrasalVerbsExpanded || [];
+            }
+            phrasalVerbs = cachedPhrasalVerbs;
+        }
+
+        const focusData = await chrome.storage.local.get('focusTrackWords');
+        missionFocusWords = new Set((focusData.focusTrackWords || []).map((word) => String(word).toLowerCase().trim()));
+
+        cachedCombinedVocab = [...phrasalVerbs, ...(cachedVocabList || [])].map((item) => ({
+            ...item,
+            isMissionWord: missionFocusWords.has(String(item.text || '').toLowerCase().trim())
+        }));
+
+        return cachedCombinedVocab;
+    } catch (e) {
+        console.error('Error getting combined vocabulary:', e);
+        return [];
+    }
+}
+
 // Apply highlight settings (enable/disable/blacklist)
 function applyHighlightSettings() {
     const domain = window.location.hostname;
@@ -80,7 +148,7 @@ function applyHighlightSettings() {
     removeHighlights();
 
     if (settings.enableHighlighting && !isBlacklisted) {
-        scanPageForVocabulary();
+        scanPageForVocabulary(true);
     }
 }
 
@@ -97,30 +165,10 @@ function removeHighlights() {
 }
 
 // Scan page for vocabulary
-async function scanPageForVocabulary() {
+async function scanPageForVocabulary(forceRefresh = false) {
     try {
-        const vocabList = await storageService.getTranslations(1000); // Get up to 1000 items
-
-        // Load pre-expanded phrasal verbs from local storage (populated by background.js)
-        // only if the user has enabled the phrasal verbs feature
-        let phrasalVerbs = [];
-        if (settings.enablePhrasalVerbs) {
-            const localData = await chrome.storage.local.get('phrasalVerbsExpanded');
-            phrasalVerbs = localData.phrasalVerbsExpanded || [];
-        }
-
-        const focusData = await chrome.storage.local.get('focusTrackWords');
-        missionFocusWords = new Set((focusData.focusTrackWords || []).map((word) => String(word).toLowerCase().trim()));
-
-        // Merge: phrasal verbs first so they are sorted by length ahead of single words
-        // HighlightService already sorts by length descending, so order here doesn't matter,
-        // but putting phrasal verbs first avoids duplicates when a form overlaps a saved word.
-        const combined = [...phrasalVerbs, ...(vocabList || [])].map((item) => ({
-            ...item,
-            isMissionWord: missionFocusWords.has(String(item.text || '').toLowerCase().trim())
-        }));
-
-        if (combined.length > 0) {
+        const combined = await getCombinedVocabulary(forceRefresh);
+        if (combined && combined.length > 0 && document.body) {
             highlightService.scanAndHighlight(document.body, combined);
         }
     } catch (e) {
@@ -128,37 +176,57 @@ async function scanPageForVocabulary() {
     }
 }
 
+const pendingMutationNodes = new Set();
 let scanTimeout = null;
-function requestDebouncedScan() {
+
+function requestDebouncedScan(node = null) {
+    if (node) {
+        pendingMutationNodes.add(node);
+    }
+
     if (scanTimeout) clearTimeout(scanTimeout);
-    scanTimeout = setTimeout(() => {
+    scanTimeout = setTimeout(async () => {
         const domain = window.location.hostname;
         const isBlacklisted = settings.domainBlacklist && settings.domainBlacklist.includes(domain);
-        if (settings.enableHighlighting && !isBlacklisted) {
-            scanPageForVocabulary();
+        if (!settings.enableHighlighting || isBlacklisted) {
+            pendingMutationNodes.clear();
+            return;
         }
-    }, 1500);
+
+        const combined = await getCombinedVocabulary();
+        if (!combined || combined.length === 0) {
+            pendingMutationNodes.clear();
+            return;
+        }
+
+        if (pendingMutationNodes.size > 0) {
+            const targets = Array.from(pendingMutationNodes);
+            pendingMutationNodes.clear();
+            for (const target of targets) {
+                if (target && target.isConnected) {
+                    highlightService.scanAndHighlight(target, combined);
+                }
+            }
+        } else if (document.body) {
+            highlightService.scanAndHighlight(document.body, combined);
+        }
+    }, 500);
 }
 
 // 監聽 DOM 變更，支援 SPA (單頁應用程式)
 const domObserver = new MutationObserver((mutations) => {
-    let shouldScan = false;
     for (const m of mutations) {
         if (m.addedNodes.length > 0) {
             for (const node of m.addedNodes) {
                 // 忽略翻譯視窗和已標記節點的變更
                 if (node.id === 'translate-popup-host' || node.nodeName === 'MARK') continue;
-                if (node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0) {
-                    shouldScan = true; break;
+                if (node.nodeType === Node.TEXT_NODE && node.textContent && node.textContent.trim().length > 0) {
+                    requestDebouncedScan(node.parentElement || node);
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    shouldScan = true; break;
+                    requestDebouncedScan(node);
                 }
             }
         }
-        if (shouldScan) break;
-    }
-    if (shouldScan) {
-        requestDebouncedScan();
     }
 });
 
@@ -249,10 +317,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // 監聽 storage 變更（當設定在其他地方更新時）
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'sync') {
-        // 重新載入設定
+        // 重新載入設定並失效詞庫快取
         loadSettings().then(() => {
+            invalidateVocabCache();
             checkAndRetranslate();
         });
+    } else if (namespace === 'local') {
+        if (changes.savedTranslations || changes.phrasalVerbsExpanded || changes.focusTrackWords) {
+            invalidateVocabCache();
+        }
     }
 });
 
@@ -590,7 +663,8 @@ async function toggleStar(text, translation, sourceLang, targetLang, context = n
             isStarred = true;
         }
         
-        // Refresh highlights on the current page immediately
+        // Invalidate cache and refresh highlights on the current page immediately
+        invalidateVocabCache();
         applyHighlightSettings();
         
         return isStarred;
@@ -1220,6 +1294,10 @@ if (typeof module !== 'undefined' && module.exports) {
         playTTS,
         getSentenceContext,
         isValidTextToTranslate,
+        isEnglishPageOrContent,
+        getCombinedVocabulary,
+        invalidateVocabCache,
+        scanPageForVocabulary,
         updateLocalSettings: (newSettings) => { settings = { ...settings, ...newSettings }; }
     };
 }

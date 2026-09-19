@@ -741,3 +741,55 @@ describe('isValidTextToTranslate optimization', () => {
         expect(isValidTextToTranslate('./styles/theme.css')).toBe(false);
     });
 });
+
+describe('Vocabulary caching and language heuristic', () => {
+    const { isEnglishPageOrContent, getCombinedVocabulary, invalidateVocabCache } = content;
+
+    afterEach(() => {
+        document.documentElement.lang = '';
+        if (document.body) document.body.innerHTML = '';
+        invalidateVocabCache();
+    });
+
+    test('should identify English pages via html lang attribute', () => {
+        document.documentElement.lang = 'en-US';
+        expect(isEnglishPageOrContent()).toBe(true);
+    });
+
+    test('should identify English content via body text sampling on non-English lang', () => {
+        document.documentElement.lang = 'zh-TW';
+        document.body.innerHTML = '<div>這是一篇關於 JavaScript 的前端技術文章。</div>';
+        expect(isEnglishPageOrContent()).toBe(true);
+    });
+
+    test('should return false for purely non-English text and lang', () => {
+        document.documentElement.lang = 'zh-TW';
+        document.body.innerHTML = '<div>這是一篇純繁體中文的文章，沒有任何外語。</div>';
+        expect(isEnglishPageOrContent()).toBe(false);
+    });
+
+    test('should cache combined vocabulary across repeated calls', async () => {
+        let callCount = 0;
+        global.chrome.runtime.sendMessage.mockImplementation((msg) => {
+            if (msg.action === 'STORAGE_GET') {
+                callCount++;
+                return Promise.resolve({ success: true, data: [{ text: 'cacheTest', translation: '測試' }] });
+            }
+            return Promise.resolve({ success: true, data: null });
+        });
+
+        invalidateVocabCache();
+        const first = await getCombinedVocabulary();
+        expect(first.length).toBeGreaterThan(0);
+        const countAfterFirst = callCount;
+
+        const second = await getCombinedVocabulary();
+        expect(second).toBe(first); // Identical reference from cache
+        expect(callCount).toBe(countAfterFirst); // No extra IPC call
+
+        // Invalidate cache
+        invalidateVocabCache();
+        const third = await getCombinedVocabulary();
+        expect(callCount).toBe(countAfterFirst + 1); // Re-fetched
+    });
+});

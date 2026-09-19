@@ -151,24 +151,44 @@ class StatsService {
             [this.STORAGE_KEY_STATS]: learningStats
         });
 
-        return this.getOverview(eventDate);
+        return this.getOverview(eventDate, {
+            readingProgress,
+            learningStats,
+            savedVocabList
+        });
     }
 
     /**
      * Get overview dashboard stats
      * @param {Date} [referenceDate=new Date()]
+     * @param {Object} [preloadedData=null] - Optional in-memory data to avoid re-reading storage
      * @returns {Promise<Object>}
      */
-    async getOverview(referenceDate = new Date()) {
-        const data = await this._getStorage([this.STORAGE_KEY_READING, this.STORAGE_KEY_STATS, this.SAVED_VOCAB_KEY]);
-        const readingProgress = data[this.STORAGE_KEY_READING] || {};
-        const learningStats = data[this.STORAGE_KEY_STATS] || {
-            totalWords: 0,
-            bestStreak: 0,
-            firstUsed: null,
-            lastActivity: null
-        };
-        const savedVocabList = Array.isArray(data[this.SAVED_VOCAB_KEY]) ? data[this.SAVED_VOCAB_KEY] : [];
+    async getOverview(referenceDate = new Date(), preloadedData = null) {
+        let readingProgress;
+        let learningStats;
+        let savedVocabList;
+
+        if (preloadedData) {
+            readingProgress = preloadedData.readingProgress || {};
+            learningStats = preloadedData.learningStats || {
+                totalWords: 0,
+                bestStreak: 0,
+                firstUsed: null,
+                lastActivity: null
+            };
+            savedVocabList = preloadedData.savedVocabList || [];
+        } else {
+            const data = await this._getStorage([this.STORAGE_KEY_READING, this.STORAGE_KEY_STATS, this.SAVED_VOCAB_KEY]);
+            readingProgress = data[this.STORAGE_KEY_READING] || {};
+            learningStats = data[this.STORAGE_KEY_STATS] || {
+                totalWords: 0,
+                bestStreak: 0,
+                firstUsed: null,
+                lastActivity: null
+            };
+            savedVocabList = Array.isArray(data[this.SAVED_VOCAB_KEY]) ? data[this.SAVED_VOCAB_KEY] : [];
+        }
 
         const todayKey = this.formatDateKey(referenceDate);
         const todayEntry = readingProgress[todayKey] || { translations: 0, saved: 0, words: [] };

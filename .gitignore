@@ -14,3 +14,20 @@
 dist/
 temp_build/
 
+.agent-ops/.gitignore
+.agent-ops/AGENTS.md
+.agent-ops/CLAUDE.md
+.agent-ops/GEMINI.md
+.agent-ops/config.json
+.agent-ops/manifest.json
+.agents/hooks.json
+.claude/hooks/agent-ops-loop.ps1
+.claude/hooks/agent-ops-loop.sh
+.claude/settings.json
+.codex/config.toml
+.codex/hooks.json
+.codex/hooks/agent-ops-loop.sh
+.opencode/plugins/agent-ops.js
+AGENTS.md
+CLAUDE.md
+GEMINI.md
