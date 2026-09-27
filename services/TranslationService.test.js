@@ -189,5 +189,85 @@ describe('TranslationService', () => {
         test('should throw error if text is empty', async () => {
             await expect(service.translate('  ')).rejects.toThrow('Text to translate is empty');
         });
+
+        test('should return cached result without second fetch', async () => {
+            global.fetch.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve([[['快取翻譯', 'cached text']], null, 'en'])
+            });
+
+            const first = await service.translate('cached text', 'en', 'zh-TW', { retryDelayMs: 1 });
+            const second = await service.translate('cached text', 'en', 'zh-TW', { retryDelayMs: 1 });
+
+            expect(first.translation).toBe('快取翻譯');
+            expect(second.translation).toBe('快取翻譯');
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+        });
+
+        test('should treat trimmed text as same cache key', async () => {
+            global.fetch.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve([[['修剪翻譯', 'hello']], null, 'en'])
+            });
+
+            await service.translate('hello', 'en', 'zh-TW', { retryDelayMs: 1 });
+            await service.translate('  hello  ', 'en', 'zh-TW', { retryDelayMs: 1 });
+
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+        });
+
+        test('should share one fetch for concurrent identical requests', async () => {
+            let resolveFetch;
+            global.fetch.mockImplementation(() => new Promise((resolve) => { resolveFetch = resolve; }));
+
+            const p1 = service.translate('concurrent', 'en', 'zh-TW', { retryDelayMs: 1 });
+            const p2 = service.translate('concurrent', 'en', 'zh-TW', { retryDelayMs: 1 });
+            resolveFetch({ ok: true, json: () => Promise.resolve([[['並發翻譯', 'concurrent']], null, 'en']) });
+
+            const [r1, r2] = await Promise.all([p1, p2]);
+            expect(r1.translation).toBe('並發翻譯');
+            expect(r2.translation).toBe('並發翻譯');
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+        });
+
+        test('should retry once after 429 then succeed', async () => {
+            global.fetch
+                .mockResolvedValueOnce({ ok: false, status: 429 })
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve([[['重試成功', 'retry me']], null, 'en'])
+                });
+
+            const result = await service.translate('retry me', 'en', 'zh-TW', { retryDelayMs: 1 });
+            expect(result.translation).toBe('重試成功');
+            expect(global.fetch).toHaveBeenCalledTimes(2);
+        });
+
+        test('should evict oldest entry when cache is full', async () => {
+            const small = new TranslationService({ maxCacheSize: 2, retryBaseDelayMs: 1 });
+            global.fetch.mockImplementation((url) => Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve([[[`t:${url.slice(-8)}`, 'x']], null, 'en'])
+            }));
+
+            await small.translate('aaa', 'en', 'zh-TW', { retryDelayMs: 1 });
+            await small.translate('bbb', 'en', 'zh-TW', { retryDelayMs: 1 });
+            await small.translate('ccc', 'en', 'zh-TW', { retryDelayMs: 1 });
+            expect(small._cache.size).toBe(2);
+            expect(small._cache.has(small._cacheKey('aaa', 'en', 'zh-TW'))).toBe(false);
+        });
+
+        test('should refetch after clearCache', async () => {
+            global.fetch.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve([[['清除快取', 'clear me']], null, 'en'])
+            });
+
+            await service.translate('clear me', 'en', 'zh-TW', { retryDelayMs: 1 });
+            service.clearCache();
+            await service.translate('clear me', 'en', 'zh-TW', { retryDelayMs: 1 });
+
+            expect(global.fetch).toHaveBeenCalledTimes(2);
+        });
     });
 });

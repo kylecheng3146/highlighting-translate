@@ -1,6 +1,50 @@
 class TranslationService {
-    constructor() {
+    constructor(options = {}) {
         this.apiBaseUrl = 'https://translate.googleapis.com/translate_a/single';
+        this.maxCacheSize = Number(options.maxCacheSize || 200);
+        this.cacheTtlMs = Number(options.cacheTtlMs || 3600000);
+        this.maxRetries = Number(options.maxRetries ?? 2);
+        this.retryBaseDelayMs = Number(options.retryBaseDelayMs ?? 200);
+        this._cache = new Map();
+        this._inflight = new Map();
+    }
+
+    _cacheKey(text, sourceLang, targetLang) {
+        return `${sourceLang}|${targetLang}|${String(text).trim()}`;
+    }
+
+    _getCached(key) {
+        const entry = this._cache.get(key);
+        if (!entry) return null;
+        if (Date.now() > entry.expiresAt) {
+            this._cache.delete(key);
+            return null;
+        }
+        this._cache.delete(key);
+        this._cache.set(key, entry);
+        return entry.value;
+    }
+
+    _setCached(key, value) {
+        if (this._cache.has(key)) this._cache.delete(key);
+        this._cache.set(key, { value, expiresAt: Date.now() + this.cacheTtlMs });
+        while (this._cache.size > this.maxCacheSize) {
+            const oldestKey = this._cache.keys().next().value;
+            this._cache.delete(oldestKey);
+        }
+    }
+
+    clearCache() {
+        this._cache.clear();
+        this._inflight.clear();
+    }
+
+    _sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    _isRetryableStatus(status) {
+        return status === 429 || (status >= 500 && status <= 599);
     }
 
     /**
@@ -46,7 +90,8 @@ class TranslationService {
      */
     async translate(text, sourceLang = 'auto', targetLang = 'zh-TW', options = {}) {
         const timeoutMs = options.timeoutMs || 8000;
-        let timeoutId = null;
+        const maxRetries = Number(options.maxRetries ?? this.maxRetries);
+        const retryDelayMs = Number(options.retryDelayMs ?? this.retryBaseDelayMs);
 
         try {
             if (!text || !text.trim()) {
@@ -61,52 +106,103 @@ class TranslationService {
                 finalSourceLang = detected === 'auto' ? 'auto' : detected;
             }
 
-            const url = `${this.apiBaseUrl}?client=gtx&sl=${finalSourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+            const key = this._cacheKey(text, finalSourceLang, targetLang);
+            const cached = this._getCached(key);
+            if (cached) return cached;
 
-            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-            const signal = controller ? controller.signal : undefined;
-            if (controller) {
-                timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+            if (this._inflight.has(key)) {
+                return this._inflight.get(key);
             }
 
-            let response;
-            try {
-                response = await fetch(url, signal ? { signal } : undefined);
-            } catch (fetchError) {
-                if (fetchError && fetchError.name === 'AbortError') {
-                    throw new Error('翻譯請求逾時，請稍後再試 (Translation request timed out)');
-                }
-                throw fetchError;
-            } finally {
-                if (timeoutId) clearTimeout(timeoutId);
-            }
+            const task = this._fetchWithRetry(text, finalSourceLang, targetLang, {
+                timeoutMs,
+                maxRetries,
+                retryDelayMs
+            }).then((result) => {
+                this._setCached(key, result);
+                return result;
+            }).finally(() => {
+                this._inflight.delete(key);
+            });
 
-            if (!response.ok) {
-                if (response.status === 429) {
-                    throw new Error('翻譯請求過於頻繁 (429 Too Many Requests)，請稍後再試');
-                }
-                throw new Error(`Translation API failed with status ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data && Array.isArray(data[0])) {
-                const segments = data[0]
-                    .map(segment => (Array.isArray(segment) && typeof segment[0] === 'string' ? segment[0] : ''))
-                    .filter(Boolean);
-
-                if (segments.length > 0) {
-                    const translation = segments.join('');
-                    const detectedSourceLang = data[2] || finalSourceLang; // specific to 'gtx' client response format
-                    return { translation, detectedSourceLang };
-                }
-            }
-            throw new Error('Invalid response format');
+            this._inflight.set(key, task);
+            return await task;
 
         } catch (error) {
             console.error('TranslationService error:', error);
             throw error;
         }
+    }
+
+    async _fetchWithRetry(text, finalSourceLang, targetLang, { timeoutMs, maxRetries, retryDelayMs }) {
+        const url = `${this.apiBaseUrl}?client=gtx&sl=${finalSourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+        let lastError = null;
+
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            let timeoutId = null;
+            try {
+                const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                const signal = controller ? controller.signal : undefined;
+                if (controller) {
+                    timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+                }
+
+                let response;
+                try {
+                    response = await fetch(url, signal ? { signal } : undefined);
+                } catch (fetchError) {
+                    if (fetchError && fetchError.name === 'AbortError') {
+                        throw new Error('翻譯請求逾時，請稍後再試 (Translation request timed out)');
+                    }
+                    throw fetchError;
+                } finally {
+                    if (timeoutId) clearTimeout(timeoutId);
+                }
+
+                if (!response.ok) {
+                    if (response.status === 429) {
+                        lastError = new Error('翻譯請求過於頻繁 (429 Too Many Requests)，請稍後再試');
+                    } else {
+                        lastError = new Error(`Translation API failed with status ${response.status}`);
+                    }
+                    if (this._isRetryableStatus(response.status) && attempt < maxRetries) {
+                        await this._sleep(retryDelayMs * Math.pow(2, attempt));
+                        continue;
+                    }
+                    throw lastError;
+                }
+
+                const data = await response.json();
+
+                if (data && Array.isArray(data[0])) {
+                    const segments = data[0]
+                        .map(segment => (Array.isArray(segment) && typeof segment[0] === 'string' ? segment[0] : ''))
+                        .filter(Boolean);
+
+                    if (segments.length > 0) {
+                        const translation = segments.join('');
+                        const detectedSourceLang = data[2] || finalSourceLang; // specific to 'gtx' client response format
+                        return { translation, detectedSourceLang };
+                    }
+                }
+                throw new Error('Invalid response format');
+
+            } catch (error) {
+                lastError = error;
+                const retryableNetwork = error && error.message && /network|fetch|Failed to fetch|Load failed/i.test(error.message);
+                const retryableTimeout = error && /逾時|timed out/i.test(error.message);
+                if ((retryableNetwork || retryableTimeout) && attempt < maxRetries) {
+                    await this._sleep(retryDelayMs * Math.pow(2, attempt));
+                    continue;
+                }
+                if (error && /Invalid response format|empty/i.test(error.message)) {
+                    throw error;
+                }
+                if (lastError && attempt >= maxRetries) throw lastError;
+                throw error;
+            }
+        }
+        throw lastError;
     }
 
     /**
