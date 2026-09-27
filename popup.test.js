@@ -193,4 +193,69 @@ describe('popup.js', () => {
         expect(milestoneTitleEl.textContent).toBe('🌱 Beginner (77/100)');
         expect(milestonePercentEl.textContent).toBe('77%');
     });
+
+    test('should show blacklist button with domain when activeTab url is available', async () => {
+        chrome.storage.sync.get.mockResolvedValue({
+            autoTranslate: true,
+            autoCopy: false,
+            autoPlaySpeech: false,
+            sourceLang: 'auto',
+            targetLang: 'zh-TW',
+            delay: 500,
+            enableHighlighting: true,
+            enablePhrasalVerbs: true,
+            enableMissionReminder: false,
+            missionReminderHour: 20,
+            domainBlacklist: [],
+            enableFocusTrack: true,
+            focusInTooltip: true,
+            focusInReview: true,
+            focusInPopup: true,
+            focusExperimentFlag: false
+        });
+        chrome.tabs.query.mockResolvedValue([{ id: 1, url: 'https://example.com/page' }]);
+        setupDOM();
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const btn = document.getElementById('blacklistBtn');
+        expect(btn.style.display).toBe('block');
+        expect(btn.dataset.domain).toBe('example.com');
+        expect(btn.dataset.isBlacklisted).toBe('false');
+        expect(btn.textContent).toBe('blacklistBtn');
+    });
+
+    test('should show whitelist label when domain is already blacklisted', async () => {
+        chrome.storage.sync.get.mockResolvedValue({
+            autoTranslate: true,
+            sourceLang: 'auto',
+            targetLang: 'zh-TW',
+            delay: 500,
+            domainBlacklist: ['example.com']
+        });
+        chrome.tabs.query.mockResolvedValue([{ id: 1, url: 'https://example.com/other' }]);
+        setupDOM();
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const btn = document.getElementById('blacklistBtn');
+        expect(btn.style.display).toBe('block');
+        expect(btn.textContent).toBe('whitelistBtn');
+        expect(btn.dataset.isBlacklisted).toBe('true');
+    });
+
+    test('should hide blacklist button on restricted pages', async () => {
+        chrome.storage.sync.get.mockResolvedValue({
+            autoTranslate: true,
+            sourceLang: 'auto',
+            targetLang: 'zh-TW',
+            delay: 500,
+            domainBlacklist: []
+        });
+        chrome.tabs.query.mockResolvedValue([{ id: 1, url: 'chrome://extensions' }]);
+        setupDOM();
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const btn = document.getElementById('blacklistBtn');
+        expect(btn.style.display).toBe('none');
+    });
 });
+

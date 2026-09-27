@@ -4,6 +4,7 @@
   "version": "1.18.5",
   "description": "Translate selected text automatically with smart language detection",
   "permissions": [
+    "activeTab",
     "contextMenus",
     "storage",
     "tts"
